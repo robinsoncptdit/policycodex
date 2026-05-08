@@ -1,0 +1,9 @@
+.obsidian/
+.DS_Store
+__pycache__/
+*.pyc
+venv/
+spike/.env
+spike/outputs/
+spike/venv/
+docs/superpowers/.cache/
