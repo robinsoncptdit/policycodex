@@ -8,7 +8,7 @@
 
 **Tech Stack:** git, Claude Code Agent tool with `isolation: "worktree"`, markdown.
 
-**Source spec:** `docs/superpowers/specs/2026-05-05-agent-led-execution-design.md`
+**Source spec:** `internal/superpowers/specs/2026-05-05-agent-led-execution-design.md`
 
 **Execution mode:** Phase 1 runs **inline** in the current Scarlet session (orchestration, not feature implementation). Phases 2–4 dispatch fresh subagents per ticket per the design spec, but the orchestration of those dispatches is itself inline in the Scarlet session.
 
@@ -63,11 +63,11 @@ Expected: `.gitignore:1:.obsidian/	.obsidian`
 ### Task 2: Create the Open Questions log
 
 **Files:**
-- Create: `/Users/chuck/PolicyWonk/PolicyWonk-Open-Questions.md`
+- Create: `/Users/chuck/PolicyWonk/internal/PolicyWonk-Open-Questions.md`
 
 - [ ] **Step 1: Write the file**
 
-Write to `/Users/chuck/PolicyWonk/PolicyWonk-Open-Questions.md`:
+Write to `/Users/chuck/PolicyWonk/internal/PolicyWonk-Open-Questions.md`:
 ```markdown
 # PolicyCodex Open Questions
 
@@ -101,18 +101,18 @@ Source-of-truth log for blockers and pending human decisions during the v0.1 spr
 
 Run:
 ```bash
-ls -la /Users/chuck/PolicyWonk/PolicyWonk-Open-Questions.md
+ls -la /Users/chuck/PolicyWonk/internal/PolicyWonk-Open-Questions.md
 ```
 Expected: file exists, non-zero size.
 
 ### Task 3: Create the Daily Log
 
 **Files:**
-- Create: `/Users/chuck/PolicyWonk/PolicyWonk-Daily-Log.md`
+- Create: `/Users/chuck/PolicyWonk/internal/PolicyWonk-Daily-Log.md`
 
 - [ ] **Step 1: Write the file**
 
-Write to `/Users/chuck/PolicyWonk/PolicyWonk-Daily-Log.md`:
+Write to `/Users/chuck/PolicyWonk/internal/PolicyWonk-Daily-Log.md`:
 ```markdown
 # PolicyCodex Daily Log
 
@@ -123,15 +123,15 @@ Format: `- HH:MM PT — short description`
 ## 2026-05-05 (Tue, Day 1 of Week 1)
 
 - 11:30 PT — Brainstormed the agent-led execution model with Chuck.
-- 12:30 PT — Spec saved to `docs/superpowers/specs/2026-05-05-agent-led-execution-design.md`, approved by Chuck.
-- 12:45 PT — Plan saved to `docs/superpowers/plans/2026-05-05-agent-led-execution.md`.
+- 12:30 PT — Spec saved to `internal/superpowers/specs/2026-05-05-agent-led-execution-design.md`, approved by Chuck.
+- 12:45 PT — Plan saved to `internal/superpowers/plans/2026-05-05-agent-led-execution.md`.
 - (entries continue as Phase 1 executes)
 ```
 
 ### Task 4: Refresh Week-1 Sprint Plan with agent-led owners
 
 **Files:**
-- Modify: `/Users/chuck/PolicyWonk/PolicyWonk-Week-1-Sprint-Plan.md`
+- Modify: `/Users/chuck/PolicyWonk/internal/PolicyWonk-Week-1-Sprint-Plan.md`
 
 - [ ] **Step 1: Replace the Capacity table**
 
@@ -147,7 +147,7 @@ The team is now Chuck (human owner) plus Scarlet (project lead) plus per-ticket 
 | Scarlet | Project lead. Owns tickets, sprint plans, daily log, weekly demo, risky-ticket draft material. Dispatches subagents. Reviews diffs and merges code-only tickets without Chuck. |
 | Subagents (per-ticket) | Execute one ticket each in an isolated worktree against verbatim PRD acceptance criteria. Fresh per dispatch. |
 
-See `docs/superpowers/specs/2026-05-05-agent-led-execution-design.md` for the full operating model.
+See `internal/superpowers/specs/2026-05-05-agent-led-execution-design.md` for the full operating model.
 ```
 
 - [ ] **Step 2: Replace the Sprint Backlog Owner column**
@@ -164,7 +164,7 @@ Replace with the agent-execution risk register from the design spec (subagent-ba
 - [ ] **Step 4: Update Definition of Done**
 
 Add this bullet:
-- All open questions logged in `PolicyWonk-Open-Questions.md` with deadlines.
+- All open questions logged in `internal/PolicyWonk-Open-Questions.md` with deadlines.
 
 - [ ] **Step 5: Add a "Roles" section near the top**
 
@@ -172,14 +172,14 @@ Insert after the sprint goal, before Capacity:
 ```markdown
 ## Roles
 
-The team executing this sprint is agent-led. Roles defined in `docs/superpowers/specs/2026-05-05-agent-led-execution-design.md`.
+The team executing this sprint is agent-led. Roles defined in `internal/superpowers/specs/2026-05-05-agent-led-execution-design.md`.
 ```
 
 - [ ] **Step 6: Verify**
 
 Run:
 ```bash
-grep -c "Friend [ABC]" /Users/chuck/PolicyWonk/PolicyWonk-Week-1-Sprint-Plan.md
+grep -c "Friend [ABC]" /Users/chuck/PolicyWonk/internal/PolicyWonk-Week-1-Sprint-Plan.md
 ```
 Expected: `0` (all human-team owners replaced).
 
@@ -216,7 +216,7 @@ Expected: one commit with the message above.
 
 - [ ] **Step 4: Append to Daily Log**
 
-Add to `/Users/chuck/PolicyWonk/PolicyWonk-Daily-Log.md` under the 2026-05-05 section:
+Add to `/Users/chuck/PolicyWonk/internal/PolicyWonk-Daily-Log.md` under the 2026-05-05 section:
 ```
 - HH:MM PT — Phase 1 complete: git initialized, operating-model artifacts committed.
 ```
@@ -268,7 +268,7 @@ Read the Plan subagent's return. Verify it cites the PRD acceptance criteria and
 
 - [ ] **Step 3: Append the recommendation to OQ-03**
 
-Update `PolicyWonk-Open-Questions.md` row for OQ-03: status → "Plan subagent returned: <one-line summary>. Awaiting Chuck."
+Update `internal/PolicyWonk-Open-Questions.md` row for OQ-03: status → "Plan subagent returned: <one-line summary>. Awaiting Chuck."
 
 - [ ] **Step 4: Surface to Chuck in chat**
 
@@ -287,7 +287,7 @@ Prompt:
 ```
 You are deciding the prompt architecture for the v0.1 AI inventory pass for PolicyCodex. Read:
 - /Users/chuck/PolicyWonk/PolicyWonk-v0.1-Spec.md (P0.2 AI Inventory Pass)
-- /Users/chuck/PolicyWonk/PolicyWonk-Spike-Plan.md (full spike including the recorded results section)
+- /Users/chuck/PolicyWonk/internal/PolicyWonk-Spike-Plan.md (full spike including the recorded results section)
 - /Users/chuck/PolicyWonk/spike/extract.py (the working monolithic prompt)
 - /Users/chuck/PolicyWonk/spike/outputs/results.csv (per-policy extraction results)
 
@@ -343,7 +343,7 @@ Source-of-truth context:
 - /Users/chuck/PolicyWonk/PolicyWonk-v0.1-Spec.md (P0.2)
 - /Users/chuck/PolicyWonk/PolicyWonk-v0.1-Tickets.md (AI-01)
 - /Users/chuck/PolicyWonk/spike/extract.py (current direct-Anthropic-SDK usage; this is reference for the prompt content but NOT the architecture)
-- /Users/chuck/PolicyWonk/docs/superpowers/specs/2026-05-05-agent-led-execution-design.md (Section 2 explains why extract.py is reference, not a starting codebase)
+- /Users/chuck/PolicyWonk/internal/superpowers/specs/2026-05-05-agent-led-execution-design.md (Section 2 explains why extract.py is reference, not a starting codebase)
 
 Decision pending: monolithic-vs-split prompt architecture (OQ-04). Build the abstraction so it works either way: a single `complete(prompt: str, max_tokens: int) -> str` method is enough for the v0.1 use case. Higher-level extraction logic lives outside the provider interface.
 
@@ -409,7 +409,7 @@ You are implementing APP-03 (Git provider abstraction interface) for PolicyCodex
 Source-of-truth context:
 - /Users/chuck/PolicyWonk/PolicyWonk-v0.1-Spec.md (P0.3 GitHub Provider Integration)
 - /Users/chuck/PolicyWonk/PolicyWonk-v0.1-Tickets.md (APP-03, APP-04)
-- /Users/chuck/PolicyWonk/docs/superpowers/specs/2026-05-05-agent-led-execution-design.md
+- /Users/chuck/PolicyWonk/internal/superpowers/specs/2026-05-05-agent-led-execution-design.md
 
 Implementation:
 - Create a Python package at `app/git_provider/` (anticipating APP-01 may pick a different framework; keep this provider package framework-agnostic).
@@ -506,9 +506,9 @@ Use Context7 or the equivalent doc-fetching tool if you have it for current vers
 Return a recommendation with rationale per candidate, a winner, and any v0.2 vector-friendly chunk export (PUBLISH-08) implications. Output in markdown. Do NOT install any package; this is research only.
 ```
 
-- [ ] **Step 2: Receive recommendation. Append to a new file `/Users/chuck/PolicyWonk/PolicyWonk-SSG-Evaluation.md`.**
+- [ ] **Step 2: Receive recommendation. Append to a new file `/Users/chuck/PolicyWonk/internal/PolicyWonk-SSG-Evaluation.md`.**
 
-- [ ] **Step 3: Surface to Chuck for sign-off** (this is a soft decision per the spec, not a blocking risky one). Append a row to `PolicyWonk-Open-Questions.md`:
+- [ ] **Step 3: Surface to Chuck for sign-off** (this is a soft decision per the spec, not a blocking risky one). Append a row to `internal/PolicyWonk-Open-Questions.md`:
 
 ```markdown
 | OQ-09 | Static-site generator (PUBLISH-01) | Chuck, after Explore subagent recommends | 2026-05-08 EOD | Explore subagent returned: <summary>. Awaiting Chuck. |
@@ -523,7 +523,7 @@ These tickets need Chuck to act in third-party UIs. Scarlet's job is to produce 
 ### Task 12: Draft REPO-03 GitHub App permissions checklist
 
 **Files:**
-- Create: `/Users/chuck/PolicyWonk/REPO-03-GitHub-App-Checklist.md`
+- Create: `/Users/chuck/PolicyWonk/internal/REPO-03-GitHub-App-Checklist.md`
 
 - [ ] **Step 1: Write the checklist**
 
@@ -547,7 +547,7 @@ Tell Chuck the checklist is ready. He can run it any time before Friday.
 ### Task 13: Draft REPO-04 PT policy repo branch protection settings
 
 **Files:**
-- Create: `/Users/chuck/PolicyWonk/REPO-04-PT-Repo-Settings.md`
+- Create: `/Users/chuck/PolicyWonk/internal/REPO-04-PT-Repo-Settings.md`
 
 - [ ] **Step 1: Write the settings doc**
 
@@ -580,7 +580,7 @@ These tasks run Friday afternoon (May 8) once Phase 2 is largely complete and th
 ### Task 14: Write Week-1 Demo file
 
 **Files:**
-- Create: `/Users/chuck/PolicyWonk/PolicyWonk-Week-1-Demo.md`
+- Create: `/Users/chuck/PolicyWonk/internal/PolicyWonk-Week-1-Demo.md`
 
 - [ ] **Step 1: Write the demo file**
 
@@ -630,7 +630,7 @@ Structure:
 ### Task 16: Write Week-2 Sprint Plan
 
 **Files:**
-- Create: `/Users/chuck/PolicyWonk/PolicyWonk-Week-2-Sprint-Plan.md`
+- Create: `/Users/chuck/PolicyWonk/internal/PolicyWonk-Week-2-Sprint-Plan.md`
 
 - [ ] **Step 1: Carry over any unmerged Week-1 tickets, plus the Week-2 tickets from `PolicyWonk-v0.1-Tickets.md`.**
 

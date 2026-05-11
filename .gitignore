@@ -7,7 +7,9 @@ venv/
 .env.*
 !.env.example
 *.pem
+archive/
 spike/.env
 spike/outputs/
 spike/venv/
 docs/superpowers/.cache/
+internal/superpowers/.cache/

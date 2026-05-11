@@ -6,7 +6,7 @@
 
 ## Roles
 
-The team executing this sprint is agent-led. Roles defined in `docs/superpowers/specs/2026-05-05-agent-led-execution-design.md`.
+The team executing this sprint is agent-led. Roles defined in `internal/superpowers/specs/2026-05-05-agent-led-execution-design.md`.
 
 | Role | Responsibility |
 |---|---|
@@ -52,7 +52,7 @@ The original four-person-team risks (PT credentials, framework decision drag, li
 | Subagent diff is plausible but wrong | Bad code merged into `main` | Verbatim PRD acceptance criteria in every prompt. Scarlet runs acceptance commands before merging. Risky-ticket review for irreversible work. |
 | Subagents conflict on shared files when dispatched in parallel | Merge conflicts | Detect at merge time; serialize ticket dispatch when files overlap. Friday push uses `ai/`, `app/`, and root README only — no overlap. |
 | The Cowork PM plugin and Scarlet write the same file | Lost edits | The PRD is owned by PM only. Scarlet only reads. Git history surfaces accidental writes. |
-| Chuck offline when a blocker arrives | Lane stalls | Blocker queued in `PolicyWonk-Open-Questions.md`. Scarlet redirects to other ready tickets. |
+| Chuck offline when a blocker arrives | Lane stalls | Blocker queued in `internal/PolicyWonk-Open-Questions.md`. Scarlet redirects to other ready tickets. |
 | `APP-04` (GitHub provider) bottleneck downstream | Eight downstream tickets stall | Tracked in Week 2 risk register. Pair Scarlet with a Plan subagent if the design is non-trivial. |
 | Bootstrap deferred from Tuesday to Friday | Week 1 lands less than originally scoped | Compress into Friday push; carry the rest cleanly to Week 2 with no ceremony around the slip. |
 

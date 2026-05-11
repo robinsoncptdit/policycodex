@@ -1,12 +1,12 @@
 # PolicyCodex Sprint Plan: Week 2
 
 **Dates:** Monday, May 11, 2026 through Friday, May 15, 2026 (5 working days)
-**Operating model:** Agent-led (per `docs/superpowers/specs/2026-05-05-agent-led-execution-design.md`)
+**Operating model:** Agent-led (per `internal/superpowers/specs/2026-05-05-agent-led-execution-design.md`)
 **Sprint Goal:** Land the carryover from Week 1, get APP-04 (the GitHub provider) to a working PR flow, run the AI-11 prompt enhancement, and hit hard scope freeze by EOD Friday.
 
 ## Roles
 
-Same as Week 1. See `docs/superpowers/specs/2026-05-05-agent-led-execution-design.md`.
+Same as Week 1. See `internal/superpowers/specs/2026-05-05-agent-led-execution-design.md`.
 
 | Role | Responsibility |
 |---|---|
@@ -92,7 +92,7 @@ If Monday-morning decisions slip to Tuesday, the framework-dependent App-lane ti
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| Chuck's Monday-morning decisions slip | App-lane and Public-push tickets cascade into Week 3 | Scarlet drafts a one-page decision summary Sunday evening from `PolicyWonk-Open-Questions.md`; Chuck signs off in chat first thing Monday. |
+| Chuck's Monday-morning decisions slip | App-lane and Public-push tickets cascade into Week 3 | Scarlet drafts a one-page decision summary Sunday evening from `internal/PolicyWonk-Open-Questions.md`; Chuck signs off in chat first thing Monday. |
 | APP-04 (GitHub provider) is the largest single ticket of v0.1 and is the central bottleneck | If it slips, eight downstream tickets stall | Pair Scarlet with a Plan subagent on Monday afternoon if the design feels non-trivial. Decompose into clone/branch/commit/push/open_pr/read_pr_state if needed. |
 | Subagent worktree isolation still failing | Sequential dispatch limits throughput | Either get the harness to refresh git-repo detection at session start, or accept sequential dispatch as the operating norm. Both work for v0.1 calendar. |
 | PT corpus export not landed by Friday | INGEST-06 (full-corpus run) can't prove acceptance | The 19 spike PDFs are enough to develop against. INGEST-06 runs Week 4. |

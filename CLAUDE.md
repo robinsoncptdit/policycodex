@@ -4,44 +4,54 @@ Standing context for the PolicyCodex project. Read this first when working in th
 
 *Renamed from PolicyWonk to PolicyCodex on 2026-05-11. Primary domain: `policycodex.org`. The working folder path stays `/Users/chuck/PolicyWonk/` and existing `PolicyWonk-*.md` file names stay as-is, to avoid breaking subagent prompts and configs.*
 
+*Layout note (2026-05-11): the public repo root holds the public-facing artifacts only (PRD, tickets, code, README, LICENSE, this file). Sprint logs, decision rationale, and per-diocese checklists moved under `internal/` (tracked). Historical 2024 notes and pre-PRD brainstorm artifacts moved to `archive/` (gitignored, local-only).*
+
 ## What This Project Is
 
 PolicyCodex is a tool that helps Catholic dioceses (and adjacent mission-driven nonprofits) manage the full lifecycle of their governing documents: inventory, review, approval, publication, and ongoing maintenance.
 
-The product summary lives in `PolicyWonk-Project-Summary.md`. The active spec lives in `PolicyWonk-v0.1-Spec.md`. The sprint board lives in `PolicyWonk-v0.1-Tickets.md`. Read the spec before doing any substantive work in this folder.
+The active spec lives in `PolicyWonk-v0.1-Spec.md`. The sprint board lives in `PolicyWonk-v0.1-Tickets.md`. Read the spec before doing any substantive work in this folder.
 
 ## Current Status
 
-Active. Brainstorm complete, v0.1 spec and engineering tickets locked, riskiest-assumption spike passed (70.9% acceptance excluding always-null fields, recorded in `PolicyWonk-Spike-Plan.md`). Week 1 of a six-week sprint is in progress, targeting a public demo at DISC (Diocesan Information Systems Conference) mid-June 2026. Pensacola-Tallahassee is install zero. The Archdiocese of Los Angeles is the reference design partner.
+Active. Brainstorm complete, v0.1 spec and engineering tickets locked, riskiest-assumption spike passed (70.9% acceptance excluding always-null fields, recorded in `internal/PolicyWonk-Spike-Plan.md`). Week 1 of a six-week sprint is in progress, targeting a public demo at DISC (Diocesan Information Systems Conference) mid-June 2026. Pensacola-Tallahassee is install zero. The Archdiocese of Los Angeles is the reference design partner.
 
 The project is open source under a maintainer model (the maintainer earns through setup, support, and customization, not through licensing).
 
 ## What's In This Folder
 
-Active artifacts:
+**Public root (tracked, public-facing):**
 
-- `PolicyWonk-Project-Summary.md` is the spirit-level product summary
 - `PolicyWonk-v0.1-Spec.md` is the active PRD
 - `PolicyWonk-v0.1-Tickets.md` is the engineering sprint board
-- `PolicyWonk-Week-1-Sprint-Plan.md` is the current sprint plan
-- `PolicyWonk-Spike-Plan.md` is the riskiest-assumption spike, including results
-- `PolicyWonk-README-Draft.md` is the draft of the public-facing GitHub README
+- `README.md` is the public-facing GitHub README
+- `LICENSE` is the AGPL-3.0 text
+- `ai/`, `app/` hold application code
 - `spike/` contains the runnable extraction script (`extract.py`), input PDFs, and per-policy JSON outputs
 
-Historical artifacts:
+**`internal/` (tracked, sprint workspace):**
 
-- `Initial.md` is the original 2024 feature brief
-- `PolicyWonk-Notes-1.md` through `PolicyWonk-Notes-9.md` are the original 2024 working notes
-- `.obsidian/` is the Obsidian vault config
+- `internal/PolicyWonk-Daily-Log.md` is Scarlet's append-only event log
+- `internal/PolicyWonk-Open-Questions.md` is the live OQ tracker
+- `internal/PolicyWonk-Week-N-Sprint-Plan.md` is the per-week sprint plan
+- `internal/PolicyWonk-Week-N-Demo.md` is the per-week demo wrap
+- `internal/PolicyWonk-Spike-Plan.md` is the riskiest-assumption spike, including results
+- `internal/PolicyWonk-Framework-Evaluation.md`, `internal/PolicyWonk-SSG-Evaluation.md`, `internal/PolicyWonk-Prompt-Architecture-Decision.md` capture decision rationale
+- `internal/REPO-03-GitHub-App-Checklist.md`, `internal/REPO-04-PT-Repo-Settings.md` are per-diocese onboarding checklists
+- `internal/superpowers/specs/`, `internal/superpowers/plans/` hold agent-led design and execution plans
 
-This vault opens in Obsidian. Keep new files in markdown.
+**`archive/` (gitignored, local-only):**
+
+- 2024 feature brief, original Notes-1..9, pre-PRD Project Summary, README draft. Historical context only; not part of the public repo.
+
+`.obsidian/` is the Obsidian vault config (gitignored). This vault opens in Obsidian. Keep new files in markdown.
 
 ## How To Approach Work Here
 
-1. Treat the v0.1 spec and tickets as the active plan. Treat the original 2024 notes as historical context.
+1. Treat the v0.1 spec and tickets as the active plan. The 2024 notes in `archive/` are historical context only.
 2. The Git-backed architecture is settled. Do not propose alternative storage models without new information.
-3. Save brainstorming output, design notes, and analysis as new markdown files in this folder.
-4. Naming: free-form descriptive names are fine (for example, `Wedge-Product-Options.md`). The `PolicyWonk-Notes-N.md` pattern is reserved for the original 2024 notes.
+3. New sprint logs, decision rationale, and per-diocese checklists go in `internal/`. New public-facing artifacts (docs about the product itself) go at the root or under `ai/`/`app/`.
+4. Naming: free-form descriptive names are fine.
 
 ## What Has Already Been Reconsidered and Locked
 

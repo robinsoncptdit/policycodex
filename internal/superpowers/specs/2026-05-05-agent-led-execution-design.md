@@ -3,7 +3,7 @@
 **Date:** 2026-05-05
 **Status:** Approved (by Chuck Robinson, in conversation)
 **Author:** Scarlet (Claude Code, Opus 4.7, this session)
-**Supersedes:** the human-team owners listed in `PolicyWonk-Week-1-Sprint-Plan.md`
+**Supersedes:** the human-team owners listed in `internal/PolicyWonk-Week-1-Sprint-Plan.md`
 
 ## Context
 
@@ -132,8 +132,8 @@ The app repo never contains diocese-specific data.
 - For a code-only ticket: dispatch, review, merge inline; narrate the merge in one line.
 
 **While the human is offline (Scarlet keeps working):**
-- Append to `PolicyWonk-Daily-Log.md` — one timestamped line per merge.
-- If a blocker requires human input, **stop** that ticket and write the question to `PolicyWonk-Open-Questions.md`. No inventing answers to organizational questions.
+- Append to `internal/PolicyWonk-Daily-Log.md` — one timestamped line per merge.
+- If a blocker requires human input, **stop** that ticket and write the question to `internal/PolicyWonk-Open-Questions.md`. No inventing answers to organizational questions.
 - A risky ticket awaiting the human's review holds at the merge step; its branch sits open. Other ready tickets continue to be dispatched and merged.
 
 **Friday weekly demo:**
@@ -153,7 +153,7 @@ The app repo never contains diocese-specific data.
 
 Today is Tuesday May 5, 2026. Original sprint plan covers May 5–8 (~3.5 working days). Existing Week-1 ticket scope holds. Owners change from Chuck/Friend A/B/C to **the human** (when human input is required) or **subagent** (dispatchable code work).
 
-**Blocked on the human, queued in `PolicyWonk-Open-Questions.md`:**
+**Blocked on the human, queued in `internal/PolicyWonk-Open-Questions.md`:**
 - `REPO-01` license decision (Friday EOD; fallback AGPL)
 - `REPO-03` GitHub App registration (human acts in GitHub UI; Scarlet drafts the permissions checklist)
 - `REPO-04` PT policy repo creation (human acts in PT GitHub org; Scarlet drafts branch-protection settings)
@@ -214,7 +214,7 @@ Today is Tuesday May 5, 2026. Original sprint plan covers May 5–8 (~3.5 workin
 | Subagent diff is plausible but wrong | Bad code merged into `main` | Verbatim acceptance criteria in every prompt; Scarlet runs acceptance commands before merging; risky-ticket review for irreversible work |
 | Subagents conflict on shared files when dispatched in parallel | Merge conflicts | Detect at merge time; serialize ticket dispatch when files overlap |
 | The Cowork PM plugin and Scarlet write the same file | Lost edits | The PRD is owned by PM only. Scarlet only reads. Git history surfaces any accidental write |
-| The human is offline when a blocker arrives | Lane stalls | Blocker queued in `PolicyWonk-Open-Questions.md`; Scarlet redirects to other ready tickets |
+| The human is offline when a blocker arrives | Lane stalls | Blocker queued in `internal/PolicyWonk-Open-Questions.md`; Scarlet redirects to other ready tickets |
 | `APP-04` (GitHub provider) bottleneck | Eight downstream tickets stall | Track in Week 1 risk register; pair Scarlet with a Plan subagent if the design is non-trivial |
 
 ## References
@@ -223,7 +223,7 @@ Today is Tuesday May 5, 2026. Original sprint plan covers May 5–8 (~3.5 workin
 - `PolicyWonk-Project-Summary.md` — product spirit
 - `PolicyWonk-v0.1-Spec.md` — PRD; product-management owns
 - `PolicyWonk-v0.1-Tickets.md` — engineering tickets; this design owns
-- `PolicyWonk-Week-1-Sprint-Plan.md` — current sprint plan; will be revised post-design
-- `PolicyWonk-Spike-Plan.md` — riskiest-assumption spike, with results
+- `internal/PolicyWonk-Week-1-Sprint-Plan.md` — current sprint plan; will be revised post-design
+- `internal/PolicyWonk-Spike-Plan.md` — riskiest-assumption spike, with results
 - `PolicyWonk-README-Draft.md` — public README draft
 - superpowers skills used: `brainstorming`, `subagent-driven-development`, `dispatching-parallel-agents`, `using-git-worktrees`, `verification-before-completion`

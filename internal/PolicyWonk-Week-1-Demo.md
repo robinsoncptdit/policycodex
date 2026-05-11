@@ -1,7 +1,7 @@
 # PolicyCodex Week 1 Demo
 
 **Date:** 2026-05-08
-**Operating model:** Agent-led (per `docs/superpowers/specs/2026-05-05-agent-led-execution-design.md`)
+**Operating model:** Agent-led (per `internal/superpowers/specs/2026-05-05-agent-led-execution-design.md`)
 
 ## Summary
 
@@ -39,11 +39,11 @@ The push landed cleanly. Both Plan-subagent decisions are back and ready for Chu
 
 ## Lane Status
 
-**Cross-Cutting (REPO):** REPO-02 README in flight via subagent. REPO-03 GitHub App registration checklist drafted (`REPO-03-GitHub-App-Checklist.md`); Chuck's action item, ~15 min in the GitHub UI. REPO-04 PT repo settings drafted (`REPO-04-PT-Repo-Settings.md`); Chuck's action item once PT GitHub org exists. REPO-01 license unresolved.
+**Cross-Cutting (REPO):** REPO-02 README in flight via subagent. REPO-03 GitHub App registration checklist drafted (`internal/REPO-03-GitHub-App-Checklist.md`); Chuck's action item, ~15 min in the GitHub UI. REPO-04 PT repo settings drafted (`internal/REPO-04-PT-Repo-Settings.md`); Chuck's action item once PT GitHub org exists. REPO-01 license unresolved.
 
 **Ingest (P0.1):** No tickets dispatched in Week 1. INGEST-01 (local folder reader) is small (1 day) and starts Week 2. The PRD's mid-Friday pivot to local-folder-only ingest simplified this lane substantially.
 
-**AI (P0.2):** AI-01 merged (LLMProvider abstraction). AI-02 (Claude provider impl) ready for Week 2. AI-04/05/06 reframed as eval-set tickets per the monolithic-vs-split recommendation; concrete next steps in `PolicyWonk-Prompt-Architecture-Decision.md`. AI-11 + AI-12 still scheduled for Week 1-2 per original plan.
+**AI (P0.2):** AI-01 merged (LLMProvider abstraction). AI-02 (Claude provider impl) ready for Week 2. AI-04/05/06 reframed as eval-set tickets per the monolithic-vs-split recommendation; concrete next steps in `internal/PolicyWonk-Prompt-Architecture-Decision.md`. AI-11 + AI-12 still scheduled for Week 1-2 per original plan.
 
 **App (P0.3 + P0.4 + P0.6):** APP-03 (Git provider abstraction) in flight. Framework decision (APP-01 Python+Django) pending Chuck. APP-01 skeleton + APP-02 (auth) start Week 2 once Chuck signs off.
 
@@ -67,4 +67,4 @@ The push landed cleanly. Both Plan-subagent decisions are back and ready for Chu
 
 ## Week 2 Plan Preview
 
-See `PolicyWonk-Week-2-Sprint-Plan.md` for the forward-looking artifact. Headline: pick up the carryover (INGEST-01, AI-02, INGEST-02, INGEST-03, AI-04 eval-set, AI-11, APP-01 skeleton, APP-02, PUBLISH-01 build-it work) plus the Week-2-native tickets (APP-04 GitHub provider, AI-12 retention reference, PUBLISH-02 URL scheme, REPO-04 PT repo creation if Chuck does it Monday). Hard scope freeze still hits end of Week 2.
+See `internal/PolicyWonk-Week-2-Sprint-Plan.md` for the forward-looking artifact. Headline: pick up the carryover (INGEST-01, AI-02, INGEST-02, INGEST-03, AI-04 eval-set, AI-11, APP-01 skeleton, APP-02, PUBLISH-01 build-it work) plus the Week-2-native tickets (APP-04 GitHub provider, AI-12 retention reference, PUBLISH-02 URL scheme, REPO-04 PT repo creation if Chuck does it Monday). Hard scope freeze still hits end of Week 2.
