@@ -18,9 +18,9 @@ PolicyCodex authenticates to each diocese's GitHub.com organization via a GitHub
 
    | Field | Value |
    |---|---|
-   | GitHub App name | `PolicyCodex` (or `PolicyCodex-dev` if `PolicyCodex` is taken; trademark check pending under OQ-02) |
+   | GitHub App name | `PolicyCodex` (registered 2026-05-11; TESS cleared under OQ-02) |
    | Description | "Policy lifecycle management for Catholic dioceses. Reads and writes a private policy repo, opens PRs for edits, and triggers handbook builds." |
-   | Homepage URL | Placeholder for now: `https://github.com/<your-account>/policycodex` (the public PolicyCodex repo, when it exists). Update post-launch. |
+   | Homepage URL | `https://github.com/robinsoncptdit/policycodex` (Chuck's personal account; v0.1 home for the public repo). Update to `policycodex.org` post-launch. |
    | Callback URL | `http://localhost:8080/auth/github/callback` for local dev. Add prod subdomain later. |
    | Setup URL | Optional. Leave blank for v0.1. |
    | Webhook URL | Optional for v0.1 (we can poll PR state via REST). Leave blank or use `http://localhost:8080/webhook/github` if you want to wire webhooks now. |
@@ -87,5 +87,4 @@ PolicyCodex authenticates to each diocese's GitHub.com organization via a GitHub
 ## Notes
 
 - Don't make this App "public" in the GitHub Marketplace sense yet. Public App listings have separate review processes; defer to v0.2.
-- If trademark on "PolicyCodex" doesn't clear (OQ-02), register a temporary App name like `PolicyCodex-pt-pilot` and we'll re-register before DISC.
 - The Apps API permits transferring ownership to a GitHub org later if you want the canonical PolicyCodex org to own the App.

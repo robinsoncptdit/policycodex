@@ -6,7 +6,6 @@ Source-of-truth log for blockers and pending human decisions during the v0.1 spr
 
 | ID | Question | Owner | Deadline | Status |
 |---|---|---|---|---|
-| OQ-02 | TESS search on PolicyCodex in classes 9 and 42, before first public push. | Chuck | before first public push | re-opened 2026-05-11 after rename; prior form ("PolicyWonk" trademark) marked resolved below |
 | OQ-04 | Monolithic vs split prompt (AI-04/05/06) | Chuck, after Plan subagent recommends | 2026-05-08 EOD (slipped from 2026-05-06) | Plan subagent returned: **KEEP MONOLITHIC** (already passes 60% gate at 70.9%; reframe AI-04/05/06 as eval-set tickets; AI-11+AI-12 layer in as context). Plan B if retention &lt;0.70 after AI-12: split retention sub-prompt. See `PolicyWonk-Prompt-Architecture-Decision.md`. Awaiting Chuck. |
 | OQ-05 | LA contact's role in README | Chuck | 2026-05-15 (Week 2) | open |
 | OQ-06 | PT diocesan leadership sign-off for handbook subdomain | Chuck | Week 4 | raised |
@@ -21,7 +20,8 @@ Source-of-truth log for blockers and pending human decisions during the v0.1 spr
 | OQ-07 | PT GitHub org availability or creation | Resolved 2026-05-11: PT lives at `https://github.com/Diocese-of-Pensacola-Tallahassee`. REPO-04 unblocked. |
 | OQ-03 | Web framework choice (APP-01) | Resolved 2026-05-11: **Python + Django** (per Plan subagent recommendation in `PolicyWonk-Framework-Evaluation.md`). APP-01 skeleton + APP-02 unblocked. |
 | OQ-09 | Static-site generator (PUBLISH-01) | Resolved 2026-05-11: **Astro** (Chuck overrode the Explore subagent's Hugo recommendation). Driver: parish web teams forking the handbook theme will find Astro's component model more approachable than Hugo's Go templates. PUBLISH-01 build-it work + PUBLISH-02 URL scheme unblocked. Subagent rationale and trade-offs preserved in `PolicyWonk-SSG-Evaluation.md` for the record. |
-| OQ-02 (prior form) | "PolicyWonk" trademark availability | Resolved 2026-05-11. PolicyWonk did not clear; project renamed to PolicyCodex. Reopened above as the new TESS search on PolicyCodex (classes 9 and 42). |
+| OQ-02 (prior form) | "PolicyWonk" trademark availability | Resolved 2026-05-11. PolicyWonk did not clear; project renamed to PolicyCodex. Reopened as the new TESS search on PolicyCodex (classes 9 and 42); see below. |
+| OQ-02 | TESS search on PolicyCodex in classes 9 and 42, before first public push. | Resolved 2026-05-11. Chuck ran the USPTO TESS search on "PolicyCodex" and "Policy Codex" in classes 9 (downloadable software) and 42 (SaaS). **No wordmark hits.** First-public-push trademark gate clear. No registration filed yet; revisit if the project ever monetizes under the PolicyCodex name. |
 
 ## Conventions
 

@@ -651,7 +651,7 @@ Mirror the Week-1 plan structure: capacity, sprint backlog, risks, definition of
 
 Run:
 ```bash
-git -C /Users/chuck/PolicyWonk remote add origin git@github.com:<chuck-org-or-user>/policycodex.git
+git -C /Users/chuck/PolicyWonk remote add origin https://github.com/robinsoncptdit/policycodex.git
 git -C /Users/chuck/PolicyWonk push -u origin main
 ```
 
