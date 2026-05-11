@@ -1,6 +1,7 @@
 # REPO-04: PT Diocesan Policy Repo Settings
 
-**For:** Chuck (action item; ~10 minutes in the GitHub UI, after PT GitHub org exists per OQ-07)
+**For:** Chuck (action item; ~10 minutes in the GitHub UI)
+**PT GitHub org:** [`Diocese-of-Pensacola-Tallahassee`](https://github.com/Diocese-of-Pensacola-Tallahassee) (OQ-07 resolved 2026-05-11)
 **Author:** Scarlet, Friday-night Phase 3 prep
 **Reference ticket:** REPO-04 in `PolicyWonk-v0.1-Tickets.md`
 
@@ -10,13 +11,11 @@ The PT diocese's policy repo. **Separate** from the public PolicyCodex app repo.
 
 ## Step-by-step
 
-1. Confirm the PT GitHub organization name (OQ-07). Suggested: `diocesept` or `pensacola-tallahassee-diocese`. Whichever PT IT prefers.
-
-2. Create the repo:
+1. Create the repo under [`Diocese-of-Pensacola-Tallahassee`](https://github.com/Diocese-of-Pensacola-Tallahassee):
 
    | Field | Value |
    |---|---|
-   | Owner | `<pt-org>` (the PT diocesan GitHub org) |
+   | Owner | `Diocese-of-Pensacola-Tallahassee` |
    | Repository name | `pt-policy` |
    | Visibility | **Private** |
    | Initialize with README | yes (we overwrite the contents in step 4) |
@@ -77,8 +76,7 @@ The PT diocese's policy repo. **Separate** from the public PolicyCodex app repo.
 ## Outputs to share with Scarlet
 
 When done, share in chat:
-- The full repo URL: `https://github.com/<pt-org>/pt-policy`
-- The org name (whether `diocesept`, `pensacola-tallahassee-diocese`, or other)
+- Confirmation that the repo was created at `https://github.com/Diocese-of-Pensacola-Tallahassee/pt-policy`
 - Confirmation that the GitHub App is installed on the org and scoped to `pt-policy`
 - The handbook subdomain PT plans to use (Week 4 dependency, OQ-06; useful to know now even if the DNS isn't live)
 

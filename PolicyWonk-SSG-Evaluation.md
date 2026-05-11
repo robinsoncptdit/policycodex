@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-08
 **Author:** Explore subagent (Claude, Friday-night Phase 2 dispatch)
-**Status:** Recommendation; awaiting Chuck's sign-off (OQ-09)
+**Status:** Resolved 2026-05-11. Chuck overrode the Hugo recommendation and picked **Astro**. Driver: parish web teams forking the handbook theme will find Astro's component model more approachable than Hugo's Go templates. Build-speed and GitHub Actions ergonomics are acceptable losses given the handbook ships through CI either way. The Hugo analysis below is preserved as-written for the record; treat it as the dissenting opinion, not the active plan.
 
 ## Evaluation Criteria
 

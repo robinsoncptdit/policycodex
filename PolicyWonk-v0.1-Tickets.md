@@ -98,7 +98,7 @@ Scope per the v0.1 PRD: **Local folder ingest only.** Native SharePoint, OneDriv
 
 | ID | Title | Size | Week | Depends on |
 |----|-------|------|------|-----------|
-| PUBLISH-01 | Pick a static-site generator (Astro or Hugo recommended) and prove it builds from a sample markdown directory | M | 1-2 | None |
+| PUBLISH-01 | Prove Astro builds from a sample markdown directory (Astro picked per OQ-09 2026-05-11) | M | 1-2 | None |
 | PUBLISH-02 | Chapter-section-item URL scheme and page templates | M | 2 | PUBLISH-01 |
 | PUBLISH-03 | Default theme modeled on the LA handbook | M | 3 | PUBLISH-02 |
 | PUBLISH-04 | Changelog page generated from `git log` of the policy repo | S | 3 | PUBLISH-02 |
@@ -148,11 +148,11 @@ If any of the two true blockers slips past Friday of week 1, the timeline slips 
 
 These are spec-level open questions, not tickets. Resolve them in week 1:
 
-- License (REPO-01)
-- Web framework (APP-01)
-- Static-site generator (PUBLISH-01)
+- ~~License (REPO-01)~~ **Resolved 2026-05-11: AGPL-3.0.**
+- ~~Web framework (APP-01)~~ **Resolved 2026-05-11: Python + Django.**
+- ~~Static-site generator (PUBLISH-01)~~ **Resolved 2026-05-11: Astro.**
 - Git operations library: shell out to `git` binary, or `libgit2` bindings (recommend shelling out for v0.1)
-- Trademark and naming (is "PolicyCodex" available?)
-- LA contact's role in the README (advisor, design reviewer, co-author)
-- PT diocesan leadership approval for the public handbook subdomain
-- PT GitHub organization availability (or creation)
+- Trademark and naming (is "PolicyCodex" available?) — open as OQ-02; TESS search pending.
+- LA contact's role in the README (advisor, design reviewer, co-author) — open as OQ-05.
+- PT diocesan leadership approval for the public handbook subdomain — open as OQ-06.
+- ~~PT GitHub organization availability (or creation)~~ **Resolved 2026-05-11: `Diocese-of-Pensacola-Tallahassee`.**

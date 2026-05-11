@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-08
 **Author:** Plan subagent (Claude, Friday-night Phase 2 dispatch)
-**Status:** Recommendation; awaiting Chuck's sign-off (OQ-03)
+**Status:** Resolved 2026-05-11. Chuck signed off on Django. APP-01 skeleton + APP-02 unblocked for Week 2 dispatch.
 
 ## Recommendation: Python + Django
 

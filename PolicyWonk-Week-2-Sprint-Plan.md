@@ -18,16 +18,16 @@ Same as Week 1. See `docs/superpowers/specs/2026-05-05-agent-led-execution-desig
 
 These OQs need Chuck's call before related tickets can dispatch:
 
-| OQ | Decision | Blocks |
-|---|---|---|
-| OQ-01 | License (MIT/Apache 2.0/AGPL, fallback AGPL) | Public push to GitHub |
-| OQ-03 | Sign off on **Python + Django** (or counter-pick) | APP-01 skeleton, APP-02 |
-| OQ-04 | Sign off on **KEEP MONOLITHIC** prompt (or commit to split) | AI-04 eval-set ticket |
-| OQ-09 | Sign off on **Hugo** for SSG (or counter-pick) | PUBLISH-01 build-it work, PUBLISH-02 |
-| OQ-07 | PT GitHub org status | REPO-04 execution |
-| OQ-02 | Trademark check on "PolicyCodex" | Public push to GitHub |
+| OQ | Decision | Blocks | Status |
+|---|---|---|---|
+| OQ-01 | License (MIT/Apache 2.0/AGPL) | Public push to GitHub | **Resolved 2026-05-11: AGPL-3.0** |
+| OQ-03 | Web framework (APP-01) | APP-01 skeleton, APP-02 | **Resolved 2026-05-11: Python + Django** |
+| OQ-04 | Sign off on **KEEP MONOLITHIC** prompt (or commit to split) | AI-04 eval-set ticket | Awaiting Chuck |
+| OQ-09 | Static-site generator (PUBLISH-01) | PUBLISH-01 build-it work, PUBLISH-02 | **Resolved 2026-05-11: Astro** (overrode subagent's Hugo recommendation) |
+| OQ-07 | PT GitHub org status | REPO-04 execution | **Resolved 2026-05-11: `Diocese-of-Pensacola-Tallahassee`** |
+| OQ-02 | TESS trademark check on "PolicyCodex" (classes 9 and 42) | Public push to GitHub | Awaiting Chuck |
 
-If any of OQ-01/02/07 slip past Tuesday, parts of the public-push chain slip into Week 3.
+Remaining Monday-morning blockers: OQ-04 (prompt architecture) and OQ-02 (TESS trademark). Everything else is unblocked.
 
 ## Sprint Backlog
 
