@@ -5,6 +5,22 @@
 **Author:** Scarlet, Friday-night Phase 3 prep
 **Reference ticket:** REPO-04 in `PolicyWonk-v0.1-Tickets.md`
 
+## Status (2026-05-11): partial; only OQ-10 remains
+
+Done:
+- `pt-policy` exists on `Diocese-of-Pensacola-Tallahassee` (private, `main` default).
+- Ruleset on `main` configured per the rule choices in step 3.
+- Initial README + `policies/.gitkeep` + `references/.gitkeep` + `.github/.gitkeep` committed.
+- PolicyCodex GitHub App installed on the org, scoped to `pt-policy` (step 6).
+- Step 7 (collaborator add) not applicable — Chuck is an Owner of the org.
+
+Remaining (all gated on **OQ-10**, the Free → Team upgrade, currently deferred):
+1. Enforcement status: Disabled → Active.
+2. Target branches: add `main`.
+3. Underlying upgrade: GitHub Free → Team so (1) takes effect.
+
+App-lane work against `pt-policy` (clone, branch, commit, push, open PR) functions today without enforcement. Branch protection is the audit-trail mechanism for PRD G3; it needs to be enforcing before week 4 lane acceptance, not before APP-04 starts.
+
 ## What this is
 
 The PT diocese's policy repo. **Separate** from the public PolicyCodex app repo. Contains PT's actual policies as markdown. PolicyCodex-the-app talks to it via the GitHub App from REPO-03.
@@ -69,9 +85,9 @@ The PT diocese's policy repo. **Separate** from the public PolicyCodex app repo.
    - `references/.gitkeep` — empty file
    - `.github/.gitkeep` — empty file (workflows land in PUBLISH-06)
 
-6. Install the PolicyCodex GitHub App on this org (per REPO-03 step 8). Restrict the App to just `pt-policy` if PT prefers least-privilege.
+6. Install the PolicyCodex GitHub App on this org. Public App URL: <https://github.com/apps/policycodex>. Click **Install** → pick `Diocese-of-Pensacola-Tallahassee` → choose **Only select repositories** → `pt-policy` (least-privilege) → confirm. Capture the Installation ID into `~/.config/policycodex/config.env` as `POLICYCODEX_GH_INSTALLATION_ID=<id>`; APP-04 needs it. (The ID appears in the install's settings URL: `https://github.com/organizations/Diocese-of-Pensacola-Tallahassee/settings/installations/<id>`.)
 
-7. Add the PolicyCodex maintainer (Chuck's GitHub account, for now) as a collaborator with **Maintain** role for the v0.1 sprint. Reduce to **Triage** post-launch.
+7. **Not applicable for v0.1.** Chuck is an Owner of `Diocese-of-Pensacola-Tallahassee` (confirmed 2026-05-11), so he already has Admin on every repo in the org. No collaborator add is needed. Revisit if maintainership transfers to a non-Owner contributor later.
 
 ## Outputs to share with Scarlet
 

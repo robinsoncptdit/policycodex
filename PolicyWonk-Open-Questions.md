@@ -11,6 +11,7 @@ Source-of-truth log for blockers and pending human decisions during the v0.1 spr
 | OQ-05 | LA contact's role in README | Chuck | 2026-05-15 (Week 2) | open |
 | OQ-06 | PT diocesan leadership sign-off for handbook subdomain | Chuck | Week 4 | raised |
 | OQ-08 | PT policy corpus exported to a local folder (full inventory beyond spike's 19 PDFs) | Chuck | Week 4 (raised Week 1) | open |
+| OQ-10 | Upgrade PT GitHub org from Free to Team tier (~$4/user/month) to enable private-repo branch protection. | Chuck + PT IT director | before week 4 lane acceptance | **Deferred 2026-05-11** by Chuck. Ruleset stays configured but unenforced on `pt-policy` for now. APP-04 development is unblocked. Must resolve before week 4 lane acceptance to satisfy PRD G3 (audit trail). Re-raise when budget conversation with PT IT director happens. |
 
 ## Resolved
 

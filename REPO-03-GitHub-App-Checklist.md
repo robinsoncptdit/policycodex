@@ -3,6 +3,8 @@
 **For:** Chuck (action item; ~15 minutes in the GitHub UI)
 **Author:** Scarlet, Friday-night Phase 3 prep
 **Reference ticket:** REPO-03 in `PolicyWonk-v0.1-Tickets.md`
+**App live at:** <https://github.com/apps/policycodex> (public install URL; share with other dioceses for their installs)
+**Owner-side settings:** <https://github.com/settings/apps/PolicyCodex> (Chuck-only)
 
 ## What this is
 
@@ -57,20 +59,30 @@ PolicyCodex authenticates to each diocese's GitHub.com organization via a GitHub
    - The App's **Client ID** appears on the same page. Save it.
    - Generate a **Client secret** if you want OAuth-style user-on-behalf-of flows. Save it.
 
-8. Install the App on the PT GitHub org once it exists (REPO-04 prep doc covers org creation):
+8. Install the App on the PT GitHub org [`Diocese-of-Pensacola-Tallahassee`](https://github.com/Diocese-of-Pensacola-Tallahassee). Run REPO-04 first so the `pt-policy` repo exists, then:
    - From the App's settings page, click "Install App."
-   - Select the PT org, choose "All repositories" or just `pt-policy`, and confirm.
+   - Select `Diocese-of-Pensacola-Tallahassee`, choose "Only select repositories" → `pt-policy` (least-privilege), and confirm.
 
-## Outputs to share with Scarlet
+## Outputs
 
-When done, share these in chat:
-- App ID (numeric)
-- Path to the `.pem` file (e.g., `~/.config/policycodex/github-app.pem`)
-- Client ID
-- Client secret (if generated)
-- The exact App name (in case the trademark check forces a rename)
+**Credentials stay local.** App ID, Client ID, Client secret, and the `.pem` are stored under `~/.config/policycodex/` and **not** shared in chat. APP-04's `GitHubProvider` reads them at runtime from that directory (or from `POLICYCODEX_GH_*` environment variables for containerized deploys).
 
-These wire into APP-04's `GitHubProvider` implementation in Week 2.
+**Share with Scarlet in chat (non-secret only):**
+- The exact registered App name (in case the OQ-02 trademark check forces a rename).
+- Confirmation the App was created and the `.pem` is saved at `~/.config/policycodex/github-app.pem` (`chmod 600`).
+
+**Expected files under `~/.config/policycodex/` after this checklist:**
+- The downloaded `.pem` private key. Keep GitHub's original filename (e.g., `policycodex.YYYY-MM-DD.private-key.pem`) so the generation date is encoded in the name for rotation audits. **`chmod 600`.**
+- `config.env` — plain text key/value pairs:
+  ```
+  POLICYCODEX_GH_APP_ID=<numeric app id>
+  POLICYCODEX_GH_CLIENT_ID=<client id>
+  POLICYCODEX_GH_CLIENT_SECRET=<client secret, if generated>
+  POLICYCODEX_GH_APP_NAME=<exact app name>
+  POLICYCODEX_GH_INSTALLATION_ID=<per-org install id, captured at install time>
+  POLICYCODEX_GH_PRIVATE_KEY_PATH=<absolute path to the .pem file>
+  ```
+  **`chmod 600`.** Never committed; this directory is outside the repo. APP-04's `GitHubProvider` reads this file (or the equivalent env vars in containerized deploys) at startup.
 
 ## Notes
 

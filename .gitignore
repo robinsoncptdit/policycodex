@@ -3,6 +3,10 @@
 __pycache__/
 *.pyc
 venv/
+.env
+.env.*
+!.env.example
+*.pem
 spike/.env
 spike/outputs/
 spike/venv/
