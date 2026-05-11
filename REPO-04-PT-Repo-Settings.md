@@ -6,7 +6,7 @@
 
 ## What this is
 
-The PT diocese's policy repo. **Separate** from the public PolicyWonk app repo. Contains PT's actual policies as markdown. PolicyWonk-the-app talks to it via the GitHub App from REPO-03.
+The PT diocese's policy repo. **Separate** from the public PolicyCodex app repo. Contains PT's actual policies as markdown. PolicyCodex-the-app talks to it via the GitHub App from REPO-03.
 
 ## Step-by-step
 
@@ -48,13 +48,13 @@ The PT diocese's policy repo. **Separate** from the public PolicyWonk app repo. 
    # PT Diocesan Policy Repo
 
    This repository holds the active policies, procedures, and by-laws for the
-   Diocese of Pensacola-Tallahassee. It is managed by PolicyWonk
-   (https://github.com/<polciywonk-org>/policywonk) on behalf of the
+   Diocese of Pensacola-Tallahassee. It is managed by PolicyCodex
+   (https://github.com/<policycodex-org>/policycodex) on behalf of the
    diocesan IT and Document Control teams.
 
    - `policies/` — markdown files, one per policy, with YAML front matter.
    - `references/` — source-of-truth reference documents (e.g., the
-     diocesan retention policy) used by PolicyWonk's AI extraction.
+     diocesan retention policy) used by PolicyCodex's AI extraction.
    - `.github/workflows/` — GitHub Actions workflow that builds and
      deploys the public handbook on every merge to `main`.
 
@@ -70,9 +70,9 @@ The PT diocese's policy repo. **Separate** from the public PolicyWonk app repo. 
    - `references/.gitkeep` — empty file
    - `.github/.gitkeep` — empty file (workflows land in PUBLISH-06)
 
-6. Install the PolicyWonk GitHub App on this org (per REPO-03 step 8). Restrict the App to just `pt-policy` if PT prefers least-privilege.
+6. Install the PolicyCodex GitHub App on this org (per REPO-03 step 8). Restrict the App to just `pt-policy` if PT prefers least-privilege.
 
-7. Add the PolicyWonk maintainer (Chuck's GitHub account, for now) as a collaborator with **Maintain** role for the v0.1 sprint. Reduce to **Triage** post-launch.
+7. Add the PolicyCodex maintainer (Chuck's GitHub account, for now) as a collaborator with **Maintain** role for the v0.1 sprint. Reduce to **Triage** post-launch.
 
 ## Outputs to share with Scarlet
 

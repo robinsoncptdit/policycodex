@@ -1,4 +1,4 @@
-# PolicyWonk Sprint Plan: Week 2
+# PolicyCodex Sprint Plan: Week 2
 
 **Dates:** Monday, May 11, 2026 through Friday, May 15, 2026 (5 working days)
 **Operating model:** Agent-led (per `docs/superpowers/specs/2026-05-05-agent-led-execution-design.md`)
@@ -25,7 +25,7 @@ These OQs need Chuck's call before related tickets can dispatch:
 | OQ-04 | Sign off on **KEEP MONOLITHIC** prompt (or commit to split) | AI-04 eval-set ticket |
 | OQ-09 | Sign off on **Hugo** for SSG (or counter-pick) | PUBLISH-01 build-it work, PUBLISH-02 |
 | OQ-07 | PT GitHub org status | REPO-04 execution |
-| OQ-02 | Trademark check on "PolicyWonk" | Public push to GitHub |
+| OQ-02 | Trademark check on "PolicyCodex" | Public push to GitHub |
 
 If any of OQ-01/02/07 slip past Tuesday, parts of the public-push chain slip into Week 3.
 
@@ -64,7 +64,7 @@ Tickets ordered by priority and dependency. The "Owner" column reflects who actu
 | Priority | Ticket | Owner | Estimate | Depends on |
 |---|---|---|---|---|
 | P0 | REPO-01 LICENSE file | Chuck + subagent | 0.5 day | OQ-01 sign-off |
-| P0 | First public push of PolicyWonk repo to GitHub | Chuck (action) + Scarlet | 0.5 day | REPO-01, OQ-02, OQ-03 |
+| P0 | First public push of PolicyCodex repo to GitHub | Chuck (action) + Scarlet | 0.5 day | REPO-01, OQ-02, OQ-03 |
 
 ### Stretch (P2; carry to Week 3 if not landed)
 

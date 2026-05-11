@@ -1,4 +1,4 @@
-# PolicyWonk v0.1 Engineering Tickets
+# PolicyCodex v0.1 Engineering Tickets
 
 *P0 work broken into sprint-board tickets, mapped to the four lanes. Architecture is Git-backed: every policy is a markdown file in a private GitHub repo per diocese, every edit is a commit, every gate is a PR state, every publish runs in GitHub Actions.*
 
@@ -25,17 +25,17 @@ Six weeks, four lanes. Hard scope freeze at the end of Week 2.
 
 | ID | Title | Size | Week | Notes |
 |----|-------|------|------|-------|
-| REPO-01 | Decide license (MIT, Apache 2.0, or AGPL) and add LICENSE file to PolicyWonk repo | S | 1 | **Blocking.** All hands sign off. |
+| REPO-01 | Decide license (MIT, Apache 2.0, or AGPL) and add LICENSE file to PolicyCodex repo | S | 1 | **Blocking.** All hands sign off. |
 | REPO-02 | README skeleton (status, quick start, design principles, Git-backed architecture, acks) | S | 1 | Use draft from `PolicyWonk-README-Draft.md` |
-| REPO-03 | Register a PolicyWonk GitHub App for delegated diocese installs | S | 1 | **Blocking.** Owner: App lane. |
+| REPO-03 | Register a PolicyCodex GitHub App for delegated diocese installs | S | 1 | **Blocking.** Owner: App lane. |
 | REPO-04 | Create the PT diocesan policy repo (private) and configure branch protection | S | 1 | Owner: IT director (PT) plus App lane support |
 | REPO-05 | Docker Compose and one-command install script | M | 4-5 | App or Publish lane owns |
 | REPO-06 | CONTRIBUTING.md naming the configurable-vs-opinionated split | S | 5 | Single owner |
-| REPO-07 | Issue and PR templates on the PolicyWonk repo | S | 5 | Single owner |
+| REPO-07 | Issue and PR templates on the PolicyCodex repo | S | 5 | Single owner |
 
 ## Ingest Lane (P0.1)
 
-Scope per the v0.1 PRD: **Local folder ingest only.** Native SharePoint, OneDrive, Google Drive, Box, and Dropbox connectors are deferred to v0.2 per P1.2. Any export from those systems lands in a folder of files that PolicyWonk can ingest.
+Scope per the v0.1 PRD: **Local folder ingest only.** Native SharePoint, OneDrive, Google Drive, Box, and Dropbox connectors are deferred to v0.2 per P1.2. Any export from those systems lands in a folder of files that PolicyCodex can ingest.
 
 | ID | Title | Size | Week | Depends on |
 |----|-------|------|------|-----------|
@@ -92,7 +92,7 @@ Scope per the v0.1 PRD: **Local folder ingest only.** Native SharePoint, OneDriv
 | APP-18 | Approve action in UI calls GitHub review API on behalf of authenticated reviewer | S | 3 | APP-04 |
 | APP-19 | Publish action in UI merges PR (requires merge permission) | S | 3 | APP-04 |
 
-**Lane acceptance (week 4):** A new admin can complete the seven-screen wizard (including pointing PolicyWonk at the diocese's retention policy as a source-of-truth reference), ingest from a local folder of exported policies, see policies appear as drafts in the policy repo with retention values sourced from the reference document, edit a policy through the form (which opens a PR), have a reviewer approve via the UI, and publish (which merges the PR and triggers the handbook build).
+**Lane acceptance (week 4):** A new admin can complete the seven-screen wizard (including pointing PolicyCodex at the diocese's retention policy as a source-of-truth reference), ingest from a local folder of exported policies, see policies appear as drafts in the policy repo with retention values sourced from the reference document, edit a policy through the form (which opens a PR), have a reviewer approve via the UI, and publish (which merges the PR and triggers the handbook build).
 
 ## Publish Lane (P0.5)
 
@@ -152,7 +152,7 @@ These are spec-level open questions, not tickets. Resolve them in week 1:
 - Web framework (APP-01)
 - Static-site generator (PUBLISH-01)
 - Git operations library: shell out to `git` binary, or `libgit2` bindings (recommend shelling out for v0.1)
-- Trademark and naming (is "PolicyWonk" available?)
+- Trademark and naming (is "PolicyCodex" available?)
 - LA contact's role in the README (advisor, design reviewer, co-author)
 - PT diocesan leadership approval for the public handbook subdomain
 - PT GitHub organization availability (or creation)

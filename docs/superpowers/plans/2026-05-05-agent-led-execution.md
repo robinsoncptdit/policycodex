@@ -1,4 +1,4 @@
-# PolicyWonk Agent-Led Execution: Week 1 Implementation Plan
+# PolicyCodex Agent-Led Execution: Week 1 Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -69,7 +69,7 @@ Expected: `.gitignore:1:.obsidian/	.obsidian`
 
 Write to `/Users/chuck/PolicyWonk/PolicyWonk-Open-Questions.md`:
 ```markdown
-# PolicyWonk Open Questions
+# PolicyCodex Open Questions
 
 Source-of-truth log for blockers and pending human decisions during the v0.1 sprint. Scarlet writes this; Chuck reads, decides, and confirms in chat.
 
@@ -78,7 +78,7 @@ Source-of-truth log for blockers and pending human decisions during the v0.1 spr
 | ID | Question | Owner | Deadline | Status |
 |---|---|---|---|---|
 | OQ-01 | License: MIT, Apache 2.0, or AGPL? Fallback AGPL. | Chuck | 2026-05-08 EOD | open |
-| OQ-02 | "PolicyWonk" trademark availability | Chuck | 2026-05-08 EOD | open |
+| OQ-02 | "PolicyCodex" trademark availability | Chuck | 2026-05-08 EOD | open |
 | OQ-03 | Web framework choice (APP-01) | Chuck, after Plan subagent recommends | 2026-05-06 EOD | open, Plan subagent pending |
 | OQ-04 | Monolithic vs split prompt (AI-04/05/06) | Chuck, after Plan subagent recommends | 2026-05-06 EOD | open, Plan subagent pending |
 | OQ-05 | LA contact's role in README | Chuck | 2026-05-15 (Week 2) | open |
@@ -114,7 +114,7 @@ Expected: file exists, non-zero size.
 
 Write to `/Users/chuck/PolicyWonk/PolicyWonk-Daily-Log.md`:
 ```markdown
-# PolicyWonk Daily Log
+# PolicyCodex Daily Log
 
 Append-only log of merges, dispatches, and major events. Scarlet writes; Chuck skims for situational awareness.
 
@@ -239,7 +239,7 @@ Use the Agent tool with:
 
 Prompt:
 ```
-You are evaluating web frameworks for a v0.1 admin web app for PolicyWonk, a Catholic-diocese policy lifecycle tool. Read the PRD at /Users/chuck/PolicyWonk/PolicyWonk-v0.1-Spec.md and the tickets at /Users/chuck/PolicyWonk/PolicyWonk-v0.1-Tickets.md.
+You are evaluating web frameworks for a v0.1 admin web app for PolicyCodex, a Catholic-diocese policy lifecycle tool. Read the PRD at /Users/chuck/PolicyWonk/PolicyWonk-v0.1-Spec.md and the tickets at /Users/chuck/PolicyWonk/PolicyWonk-v0.1-Tickets.md.
 
 Three candidate frameworks per the spec's Open Questions:
 1. Python + Django
@@ -285,7 +285,7 @@ Use the Agent tool with:
 
 Prompt:
 ```
-You are deciding the prompt architecture for the v0.1 AI inventory pass for PolicyWonk. Read:
+You are deciding the prompt architecture for the v0.1 AI inventory pass for PolicyCodex. Read:
 - /Users/chuck/PolicyWonk/PolicyWonk-v0.1-Spec.md (P0.2 AI Inventory Pass)
 - /Users/chuck/PolicyWonk/PolicyWonk-Spike-Plan.md (full spike including the recorded results section)
 - /Users/chuck/PolicyWonk/spike/extract.py (the working monolithic prompt)
@@ -333,7 +333,7 @@ Use the Agent tool with:
 
 Prompt:
 ```
-You are implementing AI-01 (LLM provider abstraction interface) for PolicyWonk. Acceptance criteria from the PRD (P0.2 AI Inventory Pass):
+You are implementing AI-01 (LLM provider abstraction interface) for PolicyCodex. Acceptance criteria from the PRD (P0.2 AI Inventory Pass):
 
 > Claude default. LLM provider abstracted via a single interface supporting OpenAI, Gemini, Azure OpenAI, and local Llama as alternates.
 
@@ -402,7 +402,7 @@ Add: `- HH:MM PT — AI-01 merged: LLM provider abstraction.`
 
 Same pattern as Task 8. Prompt:
 ```
-You are implementing APP-03 (Git provider abstraction interface) for PolicyWonk. Acceptance criteria implied by the PRD (P0.3) and tickets (APP-03):
+You are implementing APP-03 (Git provider abstraction interface) for PolicyCodex. Acceptance criteria implied by the PRD (P0.3) and tickets (APP-03):
 
 > Git provider abstracted so GitHub Enterprise, GitLab, and self-hosted Gitea can be added later. APP-04 (GitHub provider implementation) consumes this interface.
 
@@ -450,7 +450,7 @@ Use the Agent tool with:
 
 Prompt:
 ```
-You are implementing REPO-02 (README skeleton) for PolicyWonk. Acceptance: a public-facing README at the repo root.
+You are implementing REPO-02 (README skeleton) for PolicyCodex. Acceptance: a public-facing README at the repo root.
 
 Source: copy the content of /Users/chuck/PolicyWonk/PolicyWonk-README-Draft.md verbatim to /Users/chuck/PolicyWonk/README.md, with two changes:
 1. The "License" section near the bottom currently says "License decision pending (MIT vs. Apache 2.0 vs. AGPL)." Leave it pending; the LICENSE file will land in REPO-01 before the public push.
@@ -483,7 +483,7 @@ Use the Agent tool with:
 
 Prompt:
 ```
-You are evaluating static-site generators for the PolicyWonk handbook publication lane (PUBLISH-01..06). Read:
+You are evaluating static-site generators for the PolicyCodex handbook publication lane (PUBLISH-01..06). Read:
 - /Users/chuck/PolicyWonk/PolicyWonk-v0.1-Spec.md (P0.5 Handbook Static-Site Generator)
 - /Users/chuck/PolicyWonk/PolicyWonk-v0.1-Tickets.md (PUBLISH-01..08)
 
@@ -493,7 +493,7 @@ Candidates per the spec's Open Questions:
 3. Eleventy (simple, JS-based)
 
 Evaluate each against:
-- Markdown plus YAML front matter ingestion (PolicyWonk's content format)
+- Markdown plus YAML front matter ingestion (PolicyCodex's content format)
 - Chapter.section.item URL scheme (e.g., /5/2/8/) and stable per-policy URLs
 - RSS feed support
 - Changelog page generation from `git log` of the policy repo
@@ -533,12 +533,12 @@ Read the GitHub App docs (via Context7 or web fetch) for:
 - Installation scope: organization-only (for diocese installs).
 
 Write the checklist file with:
-- App name: "PolicyWonk"
+- App name: "PolicyCodex"
 - Homepage URL: placeholder for now (the future public repo)
 - Callback URL: `http://localhost:8080/auth/github/callback` for local dev; subdomain TBD for prod
 - Required permissions (full list with explanations)
 - Required webhook events
-- Step-by-step instructions for Chuck: navigate to https://github.com/settings/apps/new, fill in fields, generate private key, save key to `~/.config/policywonk/github-app.pem`, install on PT GitHub org once it exists.
+- Step-by-step instructions for Chuck: navigate to https://github.com/settings/apps/new, fill in fields, generate private key, save key to `~/.config/policycodex/github-app.pem`, install on PT GitHub org once it exists.
 
 - [ ] **Step 2: Surface to Chuck in chat**
 
@@ -566,7 +566,7 @@ Write the file with:
   - Require signed commits: optional (Chuck's call)
   - Allow force pushes: no
   - Allow deletions: no
-- Initial commit content: an empty `policies/` directory with a `.gitkeep`, plus a `references/` directory with a `.gitkeep`, plus a `README.md` saying "PT diocesan policy repo. Managed by PolicyWonk."
+- Initial commit content: an empty `policies/` directory with a `.gitkeep`, plus a `references/` directory with a `.gitkeep`, plus a `README.md` saying "PT diocesan policy repo. Managed by PolicyCodex."
 - Step-by-step for Chuck: create repo at https://github.com/<pt-org>, apply settings above, push initial commit. Estimated time: 10 minutes.
 
 - [ ] **Step 2: Surface to Chuck.**
@@ -586,7 +586,7 @@ These tasks run Friday afternoon (May 8) once Phase 2 is largely complete and th
 
 Structure:
 ```markdown
-# PolicyWonk Week 1 Demo
+# PolicyCodex Week 1 Demo
 
 **Date:** 2026-05-08
 
@@ -651,7 +651,7 @@ Mirror the Week-1 plan structure: capacity, sprint backlog, risks, definition of
 
 Run:
 ```bash
-git -C /Users/chuck/PolicyWonk remote add origin git@github.com:<chuck-org-or-user>/policywonk.git
+git -C /Users/chuck/PolicyWonk remote add origin git@github.com:<chuck-org-or-user>/policycodex.git
 git -C /Users/chuck/PolicyWonk push -u origin main
 ```
 

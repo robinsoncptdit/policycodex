@@ -1,4 +1,4 @@
-# PolicyWonk Week 1 Demo
+# PolicyCodex Week 1 Demo
 
 **Date:** 2026-05-08
 **Operating model:** Agent-led (per `docs/superpowers/specs/2026-05-05-agent-led-execution-design.md`)
@@ -31,7 +31,7 @@ The push landed cleanly. Both Plan-subagent decisions are back and ready for Chu
 | OQ | Decision area | Why slipped |
 |---|---|---|
 | OQ-01 | License (MIT/Apache 2.0/AGPL) | Chuck not yet decided; fallback AGPL stands |
-| OQ-02 | "PolicyWonk" trademark check | Chuck still investigating |
+| OQ-02 | "PolicyCodex" trademark check | Chuck still investigating |
 | OQ-07 | PT GitHub org availability | Awaiting PT IT confirmation |
 | OQ-08 | PT corpus full export to local folder | Week 4 dependency, raised early |
 | OQ-05 | LA contact's role in README | Week 2 deadline |

@@ -1,4 +1,4 @@
-# PolicyWonk: Project Summary
+# PolicyCodex: Project Summary
 
 *Working name. The spirit, not the spec.*
 

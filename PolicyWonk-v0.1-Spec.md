@@ -1,6 +1,8 @@
-# PolicyWonk v0.1 PRD
+# PolicyCodex v0.1 PRD
 
 *Target: working demo + public repo by DISC mid-June 2026.*
+
+*Renamed from PolicyWonk to PolicyCodex on 2026-05-11. Primary domain: `policycodex.org`. Working folder path stays `/Users/chuck/PolicyWonk/` to avoid breaking subagent prompts and config.*
 
 ## Problem Statement
 
@@ -8,11 +10,15 @@ Most Catholic dioceses keep hundreds of policies, procedures, and by-laws scatte
 
 ## Architecture in Brief
 
-PolicyWonk is **Git-backed**. Every policy is a markdown file in a private GitHub repo per diocese. Every edit is a commit. Every approval gate is a pull request state. Every published handbook is a static site built by GitHub Actions on merge to main.
+PolicyCodex is **Git-backed**. Every policy is a markdown file in a private GitHub repo per diocese. Every edit is a commit. Every approval gate is a pull request state. Every published handbook is a static site built by GitHub Actions on merge to main.
 
-This means version control, audit, branch-protected approvals, backups, and CI/CD are handled by GitHub, not by us. PolicyWonk is the friendly layer on top: ingest, AI inventory, web-based editing for non-technical users, onboarding wizard, and a default handbook theme. Non-technical users (a CFO editing one section) never see Git. They see a form. The IT director can drop into the GitHub UI any time they want.
+This means version control, audit, branch-protected approvals, backups, and CI/CD are handled by GitHub, not by us. PolicyCodex is the friendly layer on top: ingest, AI inventory, web-based editing for non-technical users, onboarding wizard, and a default handbook theme. Non-technical users (a CFO editing one section) never see Git. They see a form. The IT director can drop into the GitHub UI any time they want.
 
 GitHub.com is the v0.1 default. The Git provider is abstracted so GitHub Enterprise, GitLab, and self-hosted Gitea can be added later.
+
+## Licensing
+
+PolicyCodex is released under the **GNU Affero General Public License v3 (AGPL-3.0)**, resolved on 2026-05-11. AGPL preserves the maintainer-mode services-revenue model: anyone forking PolicyCodex and offering a hosted version to other dioceses must release their modifications under the same terms. Dioceses self-hosting unmodified PolicyCodex on their own VM operate freely and have no release obligations. The `LICENSE` file lands at the repo root before the first public push.
 
 ## Goals
 
@@ -20,7 +26,7 @@ GitHub.com is the v0.1 default. The Git provider is abstracted so GitHub Enterpr
 2. **Every published policy carries five required metadata fields:** owner, effective date, last review, next review, retention period. Measure: percentage of published policies with complete metadata.
 3. **Every policy change is auditable down to the commit, with a named approver.** Measure: 100% of published policies have a corresponding merged PR with at least one approving review.
 4. **DISC mid-June 2026 attendees can clone, install, and run a meaningful demo in under 30 minutes.** Measure: qualitative feedback at the conference plus install-success reports.
-5. **At least one diocese beyond Pensacola-Tallahassee installs PolicyWonk in production by August 2026.** Measure: a public deployment record.
+5. **At least one diocese beyond Pensacola-Tallahassee installs PolicyCodex in production by August 2026.** Measure: a public deployment record.
 6. **Pensacola-Tallahassee uses the published handbook as its canonical policy reference within 60 days of v0.1 release.** Measure: link from ptdiocese.org or an internal staff portal page.
 
 ## Non-Goals
@@ -38,11 +44,11 @@ GitHub.com is the v0.1 default. The Git provider is abstracted so GitHub Enterpr
 
 ### Primary persona: Diocesan IT Director (installer and admin)
 
-- As a diocesan IT director, I want to install PolicyWonk on a self-hosted VM in under an afternoon so I can demo it internally without a procurement cycle.
-- As a diocesan IT director, I want PolicyWonk to commit every policy edit to a private GitHub repo so version control, audit, and CI/CD live on infrastructure I already trust.
-- As a diocesan IT director, I want to drop a folder of exported policies onto the PolicyWonk VM and get a structured inventory of every file so I can see the full landscape for the first time. (Native connectors for SharePoint, OneDrive, Google Drive, and others are deferred to v0.2.)
+- As a diocesan IT director, I want to install PolicyCodex on a self-hosted VM in under an afternoon so I can demo it internally without a procurement cycle.
+- As a diocesan IT director, I want PolicyCodex to commit every policy edit to a private GitHub repo so version control, audit, and CI/CD live on infrastructure I already trust.
+- As a diocesan IT director, I want to drop a folder of exported policies onto the PolicyCodex VM and get a structured inventory of every file so I can see the full landscape for the first time. (Native connectors for SharePoint, OneDrive, Google Drive, and others are deferred to v0.2.)
 - As a diocesan IT director, I want to choose between LA-style chapter numbering and Catholic-healthcare-style department codes during onboarding so I can match my diocese's existing convention.
-- As a diocesan IT director, I want to choose which LLM provider PolicyWonk uses (Claude default, optional OpenAI, Gemini, Azure, or local) so I can match my diocese's data sovereignty requirements.
+- As a diocesan IT director, I want to choose which LLM provider PolicyCodex uses (Claude default, optional OpenAI, Gemini, Azure, or local) so I can match my diocese's data sovereignty requirements.
 
 ### Secondary persona: Document Control Owner (admin user)
 
@@ -65,7 +71,7 @@ GitHub.com is the v0.1 default. The Git provider is abstracted so GitHub Enterpr
 
 ### Open-source contributor (DISC attendee, post-demo)
 
-- As a DISC attendee, I want to clone the PolicyWonk repo and run it against sample data so I can decide whether to adopt or contribute.
+- As a DISC attendee, I want to clone the PolicyCodex repo and run it against sample data so I can decide whether to adopt or contribute.
 - As a contributor, I want a README that names the design principles and the configurable-vs-opinionated split so I do not waste time proposing changes that conflict with the core philosophy.
 
 ## Requirements
@@ -76,7 +82,7 @@ GitHub.com is the v0.1 default. The Git provider is abstracted so GitHub Enterpr
 
 Behavior: Read source documents from a local directory (path passed via CLI argument or config). Walk the directory recursively. Read file contents (PDF, DOCX, MD, TXT). Track source path and content hash for incremental re-runs.
 
-Filesystem-agnostic by design. Any export from SharePoint, OneDrive, Google Drive, Box, Dropbox, a network share, or a scanned filing cabinet ends up as a folder of files that PolicyWonk can ingest. Native cloud connectors are deferred to v0.2 per P1.2.
+Filesystem-agnostic by design. Any export from SharePoint, OneDrive, Google Drive, Box, Dropbox, a network share, or a scanned filing cabinet ends up as a folder of files that PolicyCodex can ingest. Native cloud connectors are deferred to v0.2 per P1.2.
 
 Acceptance:
 - Given a directory containing 50+ policy files, when ingest runs, then it returns a structured manifest of every file with source paths and content hashes within 5 minutes.
@@ -94,7 +100,7 @@ Acceptance:
 
 **P0.X Single Source of Truth Reference Documents**
 
-Behavior: During onboarding, the diocese can designate one or more existing documents as "source of truth" references that the AI inventory pass uses to ground its proposals. The Document Retention Policy is the canonical example: pointed at it, the AI reads the retention schedule, the document-type taxonomy, and uses both to constrain its suggestions for retention period, category, and (when no separate address scheme is provided) a starter chapter ordering. If the diocese has no such policy, PolicyWonk offers a starter retention schedule derived from USCCB norms plus state nonprofit law that the diocese can adapt.
+Behavior: During onboarding, the diocese can designate one or more existing documents as "source of truth" references that the AI inventory pass uses to ground its proposals. The Document Retention Policy is the canonical example: pointed at it, the AI reads the retention schedule, the document-type taxonomy, and uses both to constrain its suggestions for retention period, category, and (when no separate address scheme is provided) a starter chapter ordering. If the diocese has no such policy, PolicyCodex offers a starter retention schedule derived from USCCB norms plus state nonprofit law that the diocese can adapt.
 
 Reference documents also drive gap detection: any policy in the catalog that is not represented in the retention schedule is flagged for human review.
 
@@ -103,11 +109,11 @@ Acceptance:
 
 **P0.3 GitHub Provider Integration**
 
-Behavior: PolicyWonk authenticates to GitHub.com using a GitHub App. It can create or connect to a private repo per diocese, clone it locally as a working copy, create branches, commit changes, open pull requests on behalf of authenticated users, and read PR state. Branch protection on `main` is configured to require at least one approving review.
+Behavior: PolicyCodex authenticates to GitHub.com using a GitHub App. It can create or connect to a private repo per diocese, clone it locally as a working copy, create branches, commit changes, open pull requests on behalf of authenticated users, and read PR state. Branch protection on `main` is configured to require at least one approving review.
 
 Acceptance:
-- Given a GitHub App installed on a diocese's GitHub organization, when PolicyWonk is configured with a target repo, then it can clone, branch, commit, push, and open PRs for any authenticated admin action that modifies a policy.
-- Given an open PR, when a reviewer approves it in GitHub or in the PolicyWonk UI, then PolicyWonk can detect the approval and reflect the gate state.
+- Given a GitHub App installed on a diocese's GitHub organization, when PolicyCodex is configured with a target repo, then it can clone, branch, commit, push, and open PRs for any authenticated admin action that modifies a policy.
+- Given an open PR, when a reviewer approves it in GitHub or in the PolicyCodex UI, then PolicyCodex can detect the approval and reflect the gate state.
 
 **P0.4 Admin Web App with PR-Backed Approval UI**
 
@@ -120,7 +126,7 @@ Behavior: Display the policy catalog as a sortable, filterable list, reading fro
 Authenticated user required for any state change. The user's identity attaches to the commit author.
 
 Acceptance:
-- Given an authenticated admin, when they edit a metadata or content field and click "Submit for Review," then PolicyWonk creates a branch, commits the change as that user, and opens a PR. The PR's state is reflected in the admin UI.
+- Given an authenticated admin, when they edit a metadata or content field and click "Submit for Review," then PolicyCodex creates a branch, commits the change as that user, and opens a PR. The PR's state is reflected in the admin UI.
 - Given an open PR for a policy, when a designated reviewer clicks "Approve" in the UI, then a GitHub review is recorded against the PR and the policy moves to Reviewed in the UI.
 - Given a Reviewed policy, when an admin with merge permission clicks "Publish," then the PR merges, the handbook builds, and the policy moves to Published.
 
@@ -133,17 +139,17 @@ Acceptance:
 
 **P0.6 Onboarding Wizard**
 
-Behavior: Seven screens covering (1) GitHub repository, (2) address scheme, (3) versioning convention, (4) reviewer roles and required approvers, (5) retention defaults, (6) LLM provider, (7) source-of-truth reference documents (the diocese can point at an existing retention policy or similar canonical document; PolicyWonk uses it to ground AI extractions per P0.X). Each screen has a sensible default, an "AI suggest based on my org" affordance where it makes sense, and a "show alternatives" path. Choices persist as configuration files inside the policy repo (so the configuration itself is versioned alongside the content).
+Behavior: Seven screens covering (1) GitHub repository, (2) address scheme, (3) versioning convention, (4) reviewer roles and required approvers, (5) retention defaults, (6) LLM provider, (7) source-of-truth reference documents (the diocese can point at an existing retention policy or similar canonical document; PolicyCodex uses it to ground AI extractions per P0.X). Each screen has a sensible default, an "AI suggest based on my org" affordance where it makes sense, and a "show alternatives" path. Choices persist as configuration files inside the policy repo (so the configuration itself is versioned alongside the content).
 
 Acceptance:
 - Given a fresh install, when a new admin completes the wizard, then a private GitHub repo is created or connected, branch protection is configured, all seven settings are committed to the repo as configuration, any designated reference documents are stored in a `references/` directory in the repo, and the inventory pass and handbook generator use them on first run.
 
 **P0.7 Public Repo and README**
 
-Behavior: Public GitHub repo for PolicyWonk itself (the application). README names the design principles, the configurable-vs-opinionated split, supported filesystems, supported LLM providers, and the Git-backed architecture. One-command install (Docker Compose or shell script).
+Behavior: Public GitHub repo for PolicyCodex itself (the application). README names the design principles, the configurable-vs-opinionated split, supported filesystems, supported LLM providers, and the Git-backed architecture. One-command install (Docker Compose or shell script).
 
 Acceptance:
-- Given a fresh VM with Docker installed, when a developer follows the README, then PolicyWonk is running on a configured port within 30 minutes.
+- Given a fresh VM with Docker installed, when a developer follows the README, then PolicyCodex is running on a configured port within 30 minutes.
 
 ### Nice-to-Have (P1)
 
@@ -184,7 +190,7 @@ Acceptance:
 ### Lagging Indicators (60 to 90 days post-DISC)
 
 - Install-ones: 2+ dioceses beyond PT running v0.1 in production.
-- Community pull requests merged on the PolicyWonk repo: 5+.
+- Community pull requests merged on the PolicyCodex repo: 5+.
 - Services revenue signal: 1+ paid setup or support engagement booked.
 - Handbook usage at PT: linked from at least one staff portal page or internal newsletter.
 
@@ -204,13 +210,12 @@ Acceptance:
 
 ### Legal
 
-- **Open-source license for PolicyWonk itself**: MIT, Apache 2.0, or AGPL? AGPL preserves services-revenue moat. MIT maximizes adoption. **Blocking before public repo creation.**
-- **Trademark and naming**: is "PolicyWonk" available, and does it need to clear before DISC? **Blocking before DISC.**
+- **Trademark search on "PolicyCodex"** at `https://tmsearch.uspto.gov`. Confirm no live mark exists in classes 9 (software) or 42 (SaaS) before the first public push to GitHub. The product name resolved on 2026-05-11 (replacing the working name "PolicyWonk"); `policycodex.org` domain registered. **Blocking before first public push.**
 
 ### Stakeholder
 
 - Does the LA contact agree to be named as design reviewer or co-author in the README? **Blocking before DISC.**
-- Does PT diocesan leadership agree to PolicyWonk publishing a handbook subdomain on its behalf? **Blocking before public demo.**
+- Does PT diocesan leadership agree to PolicyCodex publishing a handbook subdomain on its behalf? **Blocking before public demo.**
 - Does PT have an existing GitHub organization for the diocese, or do we need to create one? **Blocking before week 1.**
 
 ### Data
@@ -232,7 +237,7 @@ If only three coders are available, fold Publish into App.
 
 **Suggested phasing within six weeks:**
 
-- **Week 1**: Lane setup. Local folder ingest working end to end on the PT corpus. AI inventory pass producing first markdown file with YAML front matter. GitHub App registered. License decision made. PolicyWonk public repo created. PT diocese's policy repo created (private).
+- **Week 1**: Lane setup. Local folder ingest working end to end on the PT corpus. AI inventory pass producing first markdown file with YAML front matter. GitHub App registered. License decision made. PolicyCodex public repo created. PT diocese's policy repo created (private).
 - **Week 2**: App skeleton with list view reading from a local working copy of the policy repo. Static-site generator producing a single chapter page. GitHub Actions workflow scaffolded. Compliance framework directory seeded with one checklist. **Scope freeze at end of week 2.**
 - **Week 3**: Edit form opens PRs end to end. Gate states reflect PR states. Handbook generator produces full chapter hierarchy with RSS. Onboarding wizard skeleton.
 - **Week 4**: AI inventory pass tested against full PT corpus. Onboarding wizard complete (six screens). Handbook deployed to a real subdomain via GitHub Actions.

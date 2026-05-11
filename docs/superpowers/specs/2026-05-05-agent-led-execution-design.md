@@ -1,4 +1,4 @@
-# PolicyWonk Agent-Led Execution: Design
+# PolicyCodex Agent-Led Execution: Design
 
 **Date:** 2026-05-05
 **Status:** Approved (by Chuck Robinson, in conversation)
@@ -7,7 +7,7 @@
 
 ## Context
 
-PolicyWonk's six-week sprint to DISC was originally scoped for one human lead (Chuck) plus three coder friends, with four parallel lanes (Ingest, AI, App, Publish) and roughly 50 tickets between May 5 and June 16, 2026.
+PolicyCodex's six-week sprint to DISC was originally scoped for one human lead (Chuck) plus three coder friends, with four parallel lanes (Ingest, AI, App, Publish) and roughly 50 tickets between May 5 and June 16, 2026.
 
 On Day 1 of Week 1, the human owner decided to run the project with AI agents in place of the human team. This document specifies the operating model for that shift. It does not change the PRD, the architecture, or the schedule.
 
@@ -115,7 +115,7 @@ Hybrid by risk, per the human's preference.
 
 **Two repos in scope, kept distinct:**
 
-1. **PolicyWonk app repo** = this folder. Open source eventually. Contains application code, tickets, sprint plans, PRD, spike, demo notes, design specs.
+1. **PolicyCodex app repo** = this folder. Open source eventually. Contains application code, tickets, sprint plans, PRD, spike, demo notes, design specs.
 2. **PT diocesan policy repo** = separate, created at `REPO-04` in PT's GitHub org. Private. Contains PT's actual policies as markdown. The app code talks to it via the GitHub App.
 
 The app repo never contains diocese-specific data.
@@ -158,7 +158,7 @@ Today is Tuesday May 5, 2026. Original sprint plan covers May 5–8 (~3.5 workin
 - `REPO-03` GitHub App registration (human acts in GitHub UI; Scarlet drafts the permissions checklist)
 - `REPO-04` PT policy repo creation (human acts in PT GitHub org; Scarlet drafts branch-protection settings)
 - PT policy corpus export to a local folder (INGEST-06 dependency by Week 4; spike's 19 PDFs cover Week 1 development)
-- Trademark check on "PolicyWonk"
+- Trademark check on "PolicyCodex"
 - LA contact's role in README
 - PT diocesan leadership approval for handbook subdomain (Week 4 dependency, raised now)
 
@@ -199,7 +199,7 @@ Today is Tuesday May 5, 2026. Original sprint plan covers May 5–8 (~3.5 workin
 | ID | Question | Owner | Deadline |
 |---|---|---|---|
 | OQ-01 | License: MIT, Apache 2.0, or AGPL? Fallback AGPL. | Human | Friday May 8 EOD |
-| OQ-02 | "PolicyWonk" trademark availability | Human | Friday May 8 EOD |
+| OQ-02 | "PolicyCodex" trademark availability | Human | Friday May 8 EOD |
 | OQ-03 | Web framework choice (`APP-01`) | Human, after Plan subagent recommends | Wednesday May 6 EOD |
 | OQ-04 | Monolithic vs split prompt (`AI-04/05/06`) | Human, after Plan subagent recommends | Wednesday May 6 EOD |
 | OQ-05 | LA contact's role in README (advisor / reviewer / co-author) | Human | Friday May 15 (Week 2) |

@@ -1,4 +1,4 @@
-# PolicyWonk Sprint Plan: Week 1
+# PolicyCodex Sprint Plan: Week 1
 
 **Dates:** Tuesday, May 5, 2026 through Friday, May 8, 2026 (4 working days, soft start)
 **Team:** Agent-led. Chuck (human owner) plus Scarlet (project lead) plus per-ticket subagents.
@@ -27,7 +27,7 @@ Tickets and outcomes from the Friday-evening Week 1 push. Owners reflect the age
 | Priority | Ticket | Owner | Outcome |
 |---|---|---|---|
 | P0 | REPO-01 Decide license (MIT, Apache 2.0, AGPL) and add LICENSE | Chuck | Open at end of Week 1; fallback AGPL stands |
-| P0 | REPO-03 Register PolicyWonk GitHub App | Chuck (Scarlet drafts checklist) | Checklist drafted; Chuck executes when ready |
+| P0 | REPO-03 Register PolicyCodex GitHub App | Chuck (Scarlet drafts checklist) | Checklist drafted; Chuck executes when ready |
 | P0 | REPO-04 Create PT policy repo (private) and configure branch protection | Chuck (Scarlet drafts settings) | Settings drafted; Chuck executes when PT GitHub org confirmed |
 | P0 | APP-01 Web framework choice and project skeleton | Plan subagent → Chuck | Plan subagent recommendation pending review |
 | P0 | INGEST-01 Local folder reader (recursive walk, CLI/config path) | subagent | Slipped to Week 2 (not dispatched in Friday push; Ingest lane prioritized below AI/App scaffolding) |

@@ -1,4 +1,4 @@
-# PolicyWonk Open Questions
+# PolicyCodex Open Questions
 
 Source-of-truth log for blockers and pending human decisions during the v0.1 sprint. Scarlet writes this; Chuck reads, decides, and confirms in chat.
 
@@ -6,8 +6,7 @@ Source-of-truth log for blockers and pending human decisions during the v0.1 spr
 
 | ID | Question | Owner | Deadline | Status |
 |---|---|---|---|---|
-| OQ-01 | License: MIT, Apache 2.0, or AGPL? Fallback AGPL. | Chuck | 2026-05-08 EOD | open |
-| OQ-02 | "PolicyWonk" trademark availability | Chuck | 2026-05-08 EOD | open |
+| OQ-02 | TESS search on PolicyCodex in classes 9 and 42, before first public push. | Chuck | before first public push | re-opened 2026-05-11 after rename; prior form ("PolicyWonk" trademark) marked resolved below |
 | OQ-03 | Web framework choice (APP-01) | Chuck, after Plan subagent recommends | 2026-05-08 EOD (slipped from 2026-05-06) | Plan subagent returned: **Python + Django** (in-process import of Friday's Python interfaces; FormWizard fits the seven-screen wizard). See `PolicyWonk-Framework-Evaluation.md`. Awaiting Chuck. |
 | OQ-04 | Monolithic vs split prompt (AI-04/05/06) | Chuck, after Plan subagent recommends | 2026-05-08 EOD (slipped from 2026-05-06) | Plan subagent returned: **KEEP MONOLITHIC** (already passes 60% gate at 70.9%; reframe AI-04/05/06 as eval-set tickets; AI-11+AI-12 layer in as context). Plan B if retention &lt;0.70 after AI-12: split retention sub-prompt. See `PolicyWonk-Prompt-Architecture-Decision.md`. Awaiting Chuck. |
 | OQ-05 | LA contact's role in README | Chuck | 2026-05-15 (Week 2) | open |
@@ -18,7 +17,10 @@ Source-of-truth log for blockers and pending human decisions during the v0.1 spr
 
 ## Resolved
 
-(None yet.)
+| ID | Question | Resolution |
+|---|---|---|
+| OQ-01 | License: MIT, Apache 2.0, or AGPL? | Resolved 2026-05-11: AGPL-3.0. PRD updated with a new Licensing section; canonical AGPL-3.0 text committed as `LICENSE` (REPO-01). |
+| OQ-02 (prior form) | "PolicyWonk" trademark availability | Resolved 2026-05-11. PolicyWonk did not clear; project renamed to PolicyCodex. Reopened above as the new TESS search on PolicyCodex (classes 9 and 42). |
 
 ## Conventions
 

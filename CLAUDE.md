@@ -1,10 +1,12 @@
 # CLAUDE.md
 
-Standing context for the PolicyWonk project. Read this first when working in this folder.
+Standing context for the PolicyCodex project. Read this first when working in this folder.
+
+*Renamed from PolicyWonk to PolicyCodex on 2026-05-11. Primary domain: `policycodex.org`. The working folder path stays `/Users/chuck/PolicyWonk/` and existing `PolicyWonk-*.md` file names stay as-is, to avoid breaking subagent prompts and configs.*
 
 ## What This Project Is
 
-PolicyWonk is a tool that helps Catholic dioceses (and adjacent mission-driven nonprofits) manage the full lifecycle of their governing documents: inventory, review, approval, publication, and ongoing maintenance.
+PolicyCodex is a tool that helps Catholic dioceses (and adjacent mission-driven nonprofits) manage the full lifecycle of their governing documents: inventory, review, approval, publication, and ongoing maintenance.
 
 The product summary lives in `PolicyWonk-Project-Summary.md`. The active spec lives in `PolicyWonk-v0.1-Spec.md`. The sprint board lives in `PolicyWonk-v0.1-Tickets.md`. Read the spec before doing any substantive work in this folder.
 
@@ -48,7 +50,7 @@ Do not reopen these without new information:
 **Business model**
 - Maintainer mode: open source plus services revenue (setup, support, customization)
 - Single-tenant self-hosted VM per diocese, not multi-tenant SaaS
-- License decision still open: MIT vs. Apache 2.0 vs. AGPL
+- License: AGPL-3.0 (resolved 2026-05-11). Canonical text committed as `LICENSE`.
 
 **Wedge and audience**
 - v0.1 wedge is inventory cleanup plus handbook publication

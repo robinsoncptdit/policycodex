@@ -1,4 +1,4 @@
-# PolicyWonk Daily Log
+# PolicyCodex Daily Log
 
 Append-only log of merges, dispatches, and major events. Scarlet writes; Chuck skims for situational awareness.
 
@@ -30,3 +30,8 @@ Format: `- HH:MM PT — short description`
 - 14:25 PT — REPO-02 dispatched. Subagent wrote README.md (149 lines, +2 over draft). Scarlet committed: REPO-02 merged at cad3fbb.
 - 14:30 PT — Phase 3 prep docs written: `REPO-03-GitHub-App-Checklist.md` and `REPO-04-PT-Repo-Settings.md`.
 - 14:40 PT — Phase 4 wrap: `PolicyWonk-Week-1-Demo.md` and `PolicyWonk-Week-2-Sprint-Plan.md` written. Friday push complete.
+
+## 2026-05-11 (Mon, Day 1 of Week 2)
+
+- 16:23 PT — Product renamed PolicyWonk → PolicyCodex. Domain `policycodex.org` registered. PM updated the PRD (global rename, header breadcrumb, OQ-02 rewrite). Scarlet swept CLAUDE.md, both READMEs, Project Summary, tickets, Week-1 + Week-2 sprint plans, this log, open-questions log, Week-1 demo, agent-led design + plan in `docs/superpowers/`, REPO-03, and REPO-04. File names and the working folder path remain `PolicyWonk-*` / `/Users/chuck/PolicyWonk/`. OQ-02 resolved for "PolicyWonk" and re-opened as a TESS search on "PolicyCodex" in classes 9 and 42.
+- 16:50 PT — OQ-01 resolved: AGPL-3.0. PRD got a new Licensing section. REPO-01 landed: canonical AGPL-3.0 text (661 lines, gnu.org source) committed as `LICENSE`. README and README draft License sections updated from "decision pending" to an AGPL-3.0 statement with a one-paragraph network-use explainer. CLAUDE.md "Reconsidered and Locked" bullet flipped to the resolved status. First-public-push gate now waits only on OQ-02 (TESS trademark check) plus Chuck's confirmation that everything else in Phase 2 has landed.
