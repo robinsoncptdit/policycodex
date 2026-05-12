@@ -13,3 +13,4 @@ spike/outputs/
 spike/venv/
 docs/superpowers/.cache/
 internal/superpowers/.cache/
+.claude/
