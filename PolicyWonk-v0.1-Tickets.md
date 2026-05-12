@@ -28,10 +28,11 @@ Six weeks, four lanes. Hard scope freeze at the end of Week 2.
 | REPO-01 | Decide license (MIT, Apache 2.0, or AGPL) and add LICENSE file to PolicyCodex repo | S | 1 | **Blocking.** All hands sign off. |
 | REPO-02 | README skeleton (status, quick start, design principles, Git-backed architecture, acks) | S | 1 | Use draft from `PolicyWonk-README-Draft.md` |
 | REPO-03 | Register a PolicyCodex GitHub App for delegated diocese installs | S | 1 | **Blocking.** Owner: App lane. |
-| REPO-04 | Create the PT diocesan policy repo (private) and configure branch protection | S | 1 | Owner: IT director (PT) plus App lane support |
+| REPO-04 | Create the PT diocesan policy repo (private) and configure branch protection. **Status:** partial; repo + ruleset configured, enforcement gated on REPO-08. | S | 1 | Owner: IT director (PT) plus App lane support |
 | REPO-05 | Docker Compose and one-command install script | M | 4-5 | App or Publish lane owns |
 | REPO-06 | CONTRIBUTING.md naming the configurable-vs-opinionated split | S | 5 | Single owner |
 | REPO-07 | Issue and PR templates on the PolicyCodex repo | S | 5 | Single owner |
+| REPO-08 | Upgrade `Diocese-of-Pensacola-Tallahassee` GitHub org from Free to Team tier (~$4/user/month) so branch protection on private `pt-policy` becomes enforceable. Tracked previously as OQ-10. **Must close before week 4 lane acceptance** to satisfy PRD G3 (audit trail). Chuck + PT IT director action. | S | 4 | REPO-04 |
 
 ## Ingest Lane (P0.1)
 
@@ -56,15 +57,17 @@ Scope per the v0.1 PRD: **Local folder ingest only.** Native SharePoint, OneDriv
 | AI-02 | Claude implementation of the provider interface | S | 1 | AI-01 |
 | AI-03 | Stub implementations for OpenAI, Gemini, Azure, local Llama | S | 5 | AI-01 |
 | AI-04 | Category extraction eval set against the monolithic prompt (OQ-04 resolved 2026-05-12: monolithic kept; deliverable is labeled eval set + scoring harness + regression baseline, not a separate prompt file) | S | 1-2 | AI-02 |
-| AI-05 | Owner, effective date, review date, retention extraction eval sets against the monolithic prompt | M | 2 | AI-02 |
+| AI-05 | Owner, effective date, review date, retention extraction eval sets against the monolithic prompt | M | 2 | AI-02, AI-14 |
 | AI-06 | Chapter-section-item address suggestion eval set against the monolithic prompt | S | 2 | AI-02 |
 | AI-07 | Confidence scoring on all extraction outputs | S | 3 | AI-04, AI-05, AI-06 |
 | AI-08 | Markdown plus YAML front matter emitter | S | 2 | AI-04, AI-05, AI-06 |
 | AI-09 | Wire AI-suggest buttons into the onboarding wizard | S | 4 | APP-08 (wizard skeleton) |
 | AI-10 | Inventory pass orchestrator: runs all extractions on a manifest, commits markdown to the diocese policy repo as initial drafts | M | 3 | All AI tickets, APP-04 (Git ops) |
-| AI-11 | Inject diocese's chosen address taxonomy (LA chapters by default) into the extraction prompt context | S | 1 | AI-04, AI-06 |
-| AI-12 | Inject the diocese's retention policy (and any other source-of-truth reference documents) into the extraction prompt context. Resolves the 0.144 retention score from the spike. | M | 2 | AI-05, APP-08 |
+| AI-11 | Inject diocese's chosen address taxonomy (LA chapters by default) into the extraction prompt context. **Success criterion:** address-field eval score above 0.700 baseline (per `internal/PolicyWonk-Spike-Plan.md`). | S | 1 | AI-04, AI-06 |
+| AI-12 | Inject the diocese's retention policy (and any other source-of-truth reference documents) into the extraction prompt context. Resolves the 0.144 retention score from the spike. **For first land, use a hardcoded path to PT's retention policy on disk.** APP-15 (wizard screen 7) wires the path into the UI later. | M | 2 | AI-05 |
 | AI-13 | Gap-detection pass: flag any policy whose type is not represented in the diocese's retention schedule | S | 3 | AI-12 |
+| AI-14 | AI-04 followup: harden eval harness before AI-05. Strict `label_status` validation (raise on unknowns), row-shape validation (missing keys distinguishable from null), try/except around per-row fetch in both `--offline` and `--live` modes so one failure does not discard the rest of the run, decide per-row vs per-field `label_status` schema before a second JSONL exists, move `BASELINE_THRESHOLD` into the dispatch table as a per-field value, add comparator unit tests (`_int_eq`, `_iso_date_eq` happy/unhappy/null) and a threshold-boundary test, add `spike/eval/README.md` covering invocation and how to add rows. Drop or rename the dead `extracted_category` / `human_score` columns in `category_eval.jsonl`. **Must land before AI-05 starts** so the schema and error handling don't get retro-fixed under time pressure. | S | 2 | AI-04 |
+| AI-15 | Label or drop the 4 `needs_review` rows in `spike/eval/category_eval.jsonl` (`Appendix 16 Code of Business Conduct`, `Appendix 19 Whistleblower`, `Appendix 2 Pastoral Council`, `Document Retention Policy`). Without resolution, AI-05 inherits an inconsistent ground-truth dataset. **Chuck action:** ~10 min review against the cached `outputs/*.json`. | S | 2 | AI-04 |
 
 **Lane acceptance (week 4):** Given a manifest of 50+ files, the inventory pass produces matching markdown files with complete YAML front matter, commits them to the diocese policy repo on a draft branch, and opens a single bulk PR. AI suggestion acceptance rate is measurable against a human-reviewed PT subset.
 

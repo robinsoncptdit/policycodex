@@ -6,10 +6,10 @@ Source-of-truth log for blockers and pending human decisions during the v0.1 spr
 
 | ID | Question | Owner | Deadline | Status |
 |---|---|---|---|---|
-| OQ-05 | LA contact's role in README | Chuck | 2026-05-15 (Week 2) | open |
-| OQ-06 | PT diocesan leadership sign-off for handbook subdomain | Chuck | Week 4 | raised |
-| OQ-08 | PT policy corpus exported to a local folder (full inventory beyond spike's 19 PDFs) | Chuck | Week 4 (raised Week 1) | open |
-| OQ-10 | Upgrade PT GitHub org from Free to Team tier (~$4/user/month) to enable private-repo branch protection. | Chuck + PT IT director | before week 4 lane acceptance | **Deferred 2026-05-11** by Chuck. Ruleset stays configured but unenforced on `pt-policy` for now. APP-04 development is unblocked. Must resolve before week 4 lane acceptance to satisfy PRD G3 (audit trail). Re-raise when budget conversation with PT IT director happens. |
+| OQ-05 | LA contact's role in README | Chuck | 2026-05-15 (Week 2) | **open.** Next action (Chuck): message Patrick this week to confirm whether he's named as "design reviewer," "design partner," or another role; loop the language back. README update is a small follow-up commit once decided. |
+| OQ-06 | PT diocesan leadership sign-off for handbook subdomain | Chuck | Week 4 | raised. Start the conversation by Week 3 to absorb diocese-side approval lead time. |
+| OQ-08 | PT policy corpus exported to a local folder (full inventory beyond spike's 19 PDFs) | Chuck | Week 4 (raised Week 1) | **open.** Next action (Chuck): pick a target date for export, ideally end of Week 2. INGEST scale test (Week 4) and AI eval ground-truth volume both depend on this. The 19 spike PDFs are enough to develop against in the meantime. |
+| OQ-10 | Upgrade PT GitHub org from Free to Team tier (~$4/user/month) to enable private-repo branch protection. | Chuck + PT IT director | before week 4 lane acceptance | **Graduated to ticket REPO-08 on 2026-05-12.** Original deferral context: Ruleset stays configured but unenforced on `pt-policy`. APP-04 development unblocked. Must resolve before week 4 lane acceptance to satisfy PRD G3 (audit trail). Re-raise when budget conversation with PT IT director happens. Track via REPO-08 going forward. |
 
 ## Resolved
 
