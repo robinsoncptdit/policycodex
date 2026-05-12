@@ -55,9 +55,9 @@ Scope per the v0.1 PRD: **Local folder ingest only.** Native SharePoint, OneDriv
 | AI-01 | LLM provider abstraction interface | M | 1 | None |
 | AI-02 | Claude implementation of the provider interface | S | 1 | AI-01 |
 | AI-03 | Stub implementations for OpenAI, Gemini, Azure, local Llama | S | 5 | AI-01 |
-| AI-04 | Category extraction prompt with eval set | S | 1-2 | AI-02 |
-| AI-05 | Owner, effective date, review date, retention extraction prompts | M | 2 | AI-02 |
-| AI-06 | Chapter-section-item address suggestion prompt | S | 2 | AI-02 |
+| AI-04 | Category extraction eval set against the monolithic prompt (OQ-04 resolved 2026-05-12: monolithic kept; deliverable is labeled eval set + scoring harness + regression baseline, not a separate prompt file) | S | 1-2 | AI-02 |
+| AI-05 | Owner, effective date, review date, retention extraction eval sets against the monolithic prompt | M | 2 | AI-02 |
+| AI-06 | Chapter-section-item address suggestion eval set against the monolithic prompt | S | 2 | AI-02 |
 | AI-07 | Confidence scoring on all extraction outputs | S | 3 | AI-04, AI-05, AI-06 |
 | AI-08 | Markdown plus YAML front matter emitter | S | 2 | AI-04, AI-05, AI-06 |
 | AI-09 | Wire AI-suggest buttons into the onboarding wizard | S | 4 | APP-08 (wizard skeleton) |

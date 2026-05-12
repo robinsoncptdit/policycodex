@@ -1,8 +1,8 @@
 # PolicyWonk AI Prompt Architecture Decision (AI-04/05/06)
 
-**Date:** 2026-05-08
+**Date:** 2026-05-08 (recommendation); 2026-05-12 (signed off)
 **Author:** Plan subagent (Claude, Friday-night Phase 2 dispatch)
-**Status:** Recommendation; awaiting Chuck's sign-off (OQ-04)
+**Status:** Resolved 2026-05-12. Chuck signed off on KEEP MONOLITHIC. OQ-04 closed.
 
 ## Recommendation: KEEP MONOLITHIC
 

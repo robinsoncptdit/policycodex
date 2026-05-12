@@ -22,12 +22,12 @@ These OQs need Chuck's call before related tickets can dispatch:
 |---|---|---|---|
 | OQ-01 | License (MIT/Apache 2.0/AGPL) | Public push to GitHub | **Resolved 2026-05-11: AGPL-3.0** |
 | OQ-03 | Web framework (APP-01) | APP-01 skeleton, APP-02 | **Resolved 2026-05-11: Python + Django** |
-| OQ-04 | Sign off on **KEEP MONOLITHIC** prompt (or commit to split) | AI-04 eval-set ticket | Awaiting Chuck |
+| OQ-04 | Sign off on **KEEP MONOLITHIC** prompt (or commit to split) | AI-04 eval-set ticket | **Resolved 2026-05-12: KEEP MONOLITHIC** |
 | OQ-09 | Static-site generator (PUBLISH-01) | PUBLISH-01 build-it work, PUBLISH-02 | **Resolved 2026-05-11: Astro** (overrode subagent's Hugo recommendation) |
 | OQ-07 | PT GitHub org status | REPO-04 execution | **Resolved 2026-05-11: `Diocese-of-Pensacola-Tallahassee`** |
 | OQ-02 | TESS trademark check on "PolicyCodex" (classes 9 and 42) | Public push to GitHub | Awaiting Chuck |
 
-Remaining Monday-morning blockers: OQ-04 (prompt architecture) and OQ-02 (TESS trademark). Everything else is unblocked.
+All Monday-morning OQ blockers are resolved. Week-2 dispatch is unblocked.
 
 ## Sprint Backlog
 
@@ -43,7 +43,7 @@ Tickets ordered by priority and dependency. The "Owner" column reflects who actu
 | P0 | APP-02 Local user auth + identity-to-Git-author mapping | subagent | 1 day | APP-01 |
 | P1 | INGEST-02 Connector interface (LocalFolderConnector + v0.2 plug points) | subagent | 1 day | INGEST-01 |
 | P1 | INGEST-03 File extraction (PDF, DOCX, MD, TXT) | subagent | 2 days | None |
-| P1 | AI-04 Category extraction eval set against monolithic prompt | subagent | 1 day | OQ-04 sign-off |
+| P1 | AI-04 Category extraction eval set against monolithic prompt | subagent | 1 day | AI-02 |
 | P1 | AI-11 Inject diocese's chosen address taxonomy into prompt context | subagent | 1 day | AI-04 |
 | P1 | PUBLISH-01 Prove the SSG builds from a sample markdown directory | subagent | 1 day | OQ-09 sign-off |
 
