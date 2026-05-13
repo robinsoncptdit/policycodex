@@ -183,5 +183,25 @@ class GitHubProvider(GitProvider):
             "state": pr.state,
         }
 
-    def read_pr_state(self, pr_number, working_dir):
-        raise NotImplementedError
+    def read_pr_state(self, pr_number: int, working_dir: Path) -> str:
+        get_url = subprocess.run(
+            ["git", "remote", "get-url", "origin"],
+            cwd=working_dir,
+            capture_output=True,
+        )
+        if get_url.returncode != 0:
+            raise RuntimeError(
+                f"git remote get-url failed (exit {get_url.returncode}): "
+                f"{get_url.stderr.decode(errors='replace')}"
+            )
+        owner_repo = _parse_owner_repo(get_url.stdout.decode())
+        repo = self._client.get_repo(owner_repo)
+        pr = repo.get_pull(pr_number)
+        if pr.merged:
+            return "published"
+        if pr.state == "closed":
+            return "closed"
+        approvals = sum(
+            1 for r in pr.get_reviews() if getattr(r, "state", None) == "APPROVED"
+        )
+        return "reviewed" if approvals >= 1 else "drafted"

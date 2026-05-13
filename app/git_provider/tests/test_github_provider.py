@@ -199,3 +199,34 @@ def test_open_pr_uses_repo_from_origin_and_returns_metadata(tmp_path):
         "url": "https://github.com/foo/bar/pull/42",
         "state": "open",
     }
+
+
+@pytest.mark.parametrize("pr_state,merged,approvals,expected", [
+    ("open", False, 0, "drafted"),
+    ("open", False, 1, "reviewed"),
+    ("open", False, 3, "reviewed"),
+    ("closed", True, 0, "published"),
+    ("closed", True, 2, "published"),
+    ("closed", False, 0, "closed"),
+    ("closed", False, 1, "closed"),
+])
+def test_read_pr_state_mapping(tmp_path, pr_state, merged, approvals, expected):
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    wd = tmp_path / "wd"
+    review_mocks = []
+    for _ in range(approvals):
+        rv = MagicMock(); rv.state = "APPROVED"; review_mocks.append(rv)
+    noise = MagicMock(); noise.state = "COMMENTED"
+    review_mocks.append(noise)
+    fake_pr = MagicMock(state=pr_state, merged=merged)
+    fake_pr.get_reviews.return_value = review_mocks
+    fake_repo = MagicMock()
+    fake_repo.get_pull.return_value = fake_pr
+    fake_client = MagicMock()
+    fake_client.get_repo.return_value = fake_repo
+    with patch("app.git_provider.github_provider.subprocess.run") as run:
+        run.return_value = MagicMock(returncode=0, stdout=b"https://github.com/foo/bar.git\n")
+        p = GitHubProvider(config=cfg, github_client=fake_client)
+        assert p.read_pr_state(123, wd) == expected
+    fake_repo.get_pull.assert_called_once_with(123)
