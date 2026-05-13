@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Sign in - PolicyCodex</title>
+</head>
+<body>
+    <h1>Sign in</h1>
+
+    {% if form.errors %}
+    <p class="errors">Your username and password didn't match. Please try again.</p>
+    {% endif %}
+
+    {% if next %}
+    {% if user.is_authenticated %}
+    <p>Your account doesn't have access to this page. To proceed, please sign in with an account that has access.</p>
+    {% else %}
+    <p>Please sign in to see this page.</p>
+    {% endif %}
+    {% endif %}
+
+    <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        <p>
+            <label for="id_username">Username</label>
+            <input type="text" name="username" id="id_username" autocomplete="username" required>
+        </p>
+        <p>
+            <label for="id_password">Password</label>
+            <input type="password" name="password" id="id_password" autocomplete="current-password" required>
+        </p>
+        <input type="hidden" name="next" value="{{ next }}">
+        <button type="submit">Sign in</button>
+    </form>
+</body>
+</html>
