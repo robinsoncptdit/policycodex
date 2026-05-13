@@ -2,6 +2,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from run_eval import EVAL_DIR, run_eval
 
 CATEGORY_EVAL = EVAL_DIR / "category_eval.jsonl"
@@ -57,3 +59,32 @@ def test_threshold_boundary_passes_at_exact_value():
     from run_eval import _result_passed
     assert _result_passed(weighted_avg=0.85, threshold=0.85) is True
     assert _result_passed(weighted_avg=0.8499999, threshold=0.85) is False
+
+
+def test_load_eval_set_rejects_unknown_label_status(tmp_path, monkeypatch):
+    from run_eval import load_eval_set
+    eval_file = tmp_path / "category_eval.jsonl"
+    eval_file.write_text(
+        '{"source_file": "x.pdf", "label_status": "maybe", "ground_truth_category": "HR"}\n'
+    )
+    monkeypatch.setattr("run_eval.EVAL_DIR", tmp_path)
+    with pytest.raises(ValueError, match="label_status"):
+        load_eval_set("category")
+
+
+def test_load_eval_set_rejects_missing_required_keys(tmp_path, monkeypatch):
+    from run_eval import load_eval_set
+    eval_file = tmp_path / "category_eval.jsonl"
+    eval_file.write_text('{"label_status": "verified", "ground_truth_category": "HR"}\n')
+    monkeypatch.setattr("run_eval.EVAL_DIR", tmp_path)
+    with pytest.raises(ValueError, match="source_file"):
+        load_eval_set("category")
+
+
+def test_load_eval_set_distinguishes_missing_vs_null_ground_truth(tmp_path, monkeypatch):
+    from run_eval import load_eval_set
+    eval_file = tmp_path / "category_eval.jsonl"
+    eval_file.write_text('{"source_file": "x.pdf", "label_status": "needs_review"}\n')
+    monkeypatch.setattr("run_eval.EVAL_DIR", tmp_path)
+    with pytest.raises(ValueError, match="ground_truth_category"):
+        load_eval_set("category")

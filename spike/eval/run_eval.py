@@ -22,6 +22,8 @@ SPIKE_DIR = EVAL_DIR.parent
 OUTPUTS_DIR = SPIKE_DIR / "outputs"
 INPUTS_DIR = SPIKE_DIR / "inputs"
 
+VALID_LABEL_STATUSES = frozenset({"verified", "needs_review"})
+
 def _result_passed(weighted_avg: float, threshold: float) -> bool:
     return weighted_avg >= threshold
 
@@ -88,16 +90,32 @@ FIELD_DISPATCH: dict[str, dict[str, Any]] = {
 
 
 def load_eval_set(field: str) -> list[dict]:
+    if field not in FIELD_DISPATCH:
+        raise ValueError(f"Unknown field '{field}'")
+    gt_key = FIELD_DISPATCH[field]["ground_truth_key"]
     path = EVAL_DIR / f"{field}_eval.jsonl"
     if not path.exists():
         raise FileNotFoundError(f"No eval set found at {path}")
     rows = []
     with path.open(encoding="utf-8") as fh:
-        for line in fh:
+        for n, line in enumerate(fh, start=1):
             line = line.strip()
             if not line:
                 continue
-            rows.append(json.loads(line))
+            row = json.loads(line)
+            if "source_file" not in row:
+                raise ValueError(f"Row {n}: missing 'source_file'")
+            if "label_status" not in row:
+                raise ValueError(f"Row {n}: missing 'label_status'")
+            if row["label_status"] not in VALID_LABEL_STATUSES:
+                raise ValueError(
+                    f"Row {n}: label_status={row['label_status']!r}, expected one of {sorted(VALID_LABEL_STATUSES)}"
+                )
+            if gt_key not in row:
+                raise ValueError(
+                    f"Row {n}: missing '{gt_key}' key (use null for needs_review rows)"
+                )
+            rows.append(row)
     return rows
 
 
