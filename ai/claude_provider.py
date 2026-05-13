@@ -31,4 +31,13 @@ class ClaudeProvider(LLMProvider):
         self._client = client or Anthropic()
 
     def complete(self, prompt: str, max_tokens: int) -> str:
-        raise NotImplementedError  # implemented in Task 2
+        response = self._client.messages.create(
+            model=self.model,
+            max_tokens=max_tokens,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        parts: list[str] = []
+        for block in response.content:
+            if getattr(block, "type", None) == "text":
+                parts.append(block.text)
+        return "".join(parts)
