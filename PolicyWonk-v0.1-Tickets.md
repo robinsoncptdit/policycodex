@@ -31,7 +31,7 @@ Six weeks, four lanes. Hard scope freeze at the end of Week 2.
 | REPO-02 | README skeleton (status, quick start, design principles, Git-backed architecture, acks) | S | 1 | Use draft from `PolicyWonk-README-Draft.md` |
 | REPO-03 | Register a PolicyCodex GitHub App for delegated diocese installs | S | 1 | **Blocking.** Owner: App lane. |
 | REPO-04 | Create the PT diocesan policy repo (private) and configure branch protection. **Status:** partial; repo + ruleset configured, enforcement gated on REPO-08. | S | 1 | Owner: IT director (PT) plus App lane support |
-| REPO-05 | Docker Compose and one-command install script | M | 4-5 | App or Publish lane owns |
+| REPO-05 | Docker Compose and one-command install script. Must produce both (a) a Compose file that pulls a published image — the boxed-ship Profile B path for non-developer dioceses — and (b) a Compose file that builds from source (Profile A). Container image must be PT-free; per-diocese config enters via the wizard and persists in a mounted volume. AGPL footer "View Source" link to the public repo lands as part of this work. See [`project_boxed_ship_container`](#) memory + REPO-10 audit. Image publishing to a registry is a post-DISC follow-up. | M | 4-5 | App or Publish lane owns |
 | REPO-06 | CONTRIBUTING.md naming the configurable-vs-opinionated split | S | 5 | Single owner |
 | REPO-07 | Issue and PR templates on the PolicyCodex repo | S | 5 | Single owner |
 | REPO-08 | Upgrade `Diocese-of-Pensacola-Tallahassee` GitHub org from Free to Team tier (~$4/user/month) so branch protection on private `pt-policy` becomes enforceable. Tracked previously as OQ-10. **Must close before week 4 lane acceptance** to satisfy PRD G3 (audit trail). Chuck + PT IT director action. | S | 4 | REPO-04 |
