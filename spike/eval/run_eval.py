@@ -156,19 +156,26 @@ def run_eval(field: str, mode: str) -> dict:
     threshold: float = config["threshold"]
 
     eval_rows = load_eval_set(field)
-    fetch = get_live_extraction if mode == "live" else get_offline_extraction
 
     scored = 0
     skipped = 0
     total_score = 0.0
     failures: list[tuple[str, Any, Any]] = []
+    errors: list[tuple[str, str]] = []
 
     for row in eval_rows:
         if row.get("label_status") != "verified":
             skipped += 1
             continue
         source_file = row["source_file"]
-        extraction = fetch(source_file)
+        # Resolve fetch per-row from module globals so tests can monkeypatch
+        # get_offline_extraction / get_live_extraction.
+        fetch = get_live_extraction if mode == "live" else get_offline_extraction
+        try:
+            extraction = fetch(source_file)
+        except Exception as exc:
+            errors.append((source_file, f"{type(exc).__name__}: {exc}"))
+            continue
         actual = extraction.get(extracted_key)
         expected = row.get(gt_key)
         ok = compare(expected, actual)
@@ -184,9 +191,11 @@ def run_eval(field: str, mode: str) -> dict:
         "mode": mode,
         "scored": scored,
         "skipped": skipped,
+        "errored": len(errors),
         "weighted_avg": weighted_avg,
         "passed": _result_passed(weighted_avg, threshold),
         "failures": failures,
+        "errors": errors,
         "threshold": threshold,
     }
 
@@ -202,6 +211,10 @@ def print_result(result: dict) -> None:
         print("Failures:")
         for source_file, expected, actual in result["failures"]:
             print(f"  {source_file}: expected={expected!r} actual={actual!r} score=0.0")
+    if result["errors"]:
+        print("Errors:")
+        for source_file, exc_text in result["errors"]:
+            print(f"  {source_file}: {exc_text}")
     print(f"Weighted average: {result['weighted_avg']:.3f}")
     status = "PASS" if result["passed"] else "FAIL"
     print(f"Baseline threshold: {result['threshold']:.2f} -> {status}")

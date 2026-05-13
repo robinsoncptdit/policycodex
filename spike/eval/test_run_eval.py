@@ -88,3 +88,29 @@ def test_load_eval_set_distinguishes_missing_vs_null_ground_truth(tmp_path, monk
     monkeypatch.setattr("run_eval.EVAL_DIR", tmp_path)
     with pytest.raises(ValueError, match="ground_truth_category"):
         load_eval_set("category")
+
+
+def test_run_eval_isolates_per_row_fetch_failures(tmp_path, monkeypatch):
+    """A single bad row must not discard the rest of the run."""
+    from run_eval import run_eval
+    eval_file = tmp_path / "category_eval.jsonl"
+    eval_file.write_text(
+        '{"source_file": "good.pdf", "label_status": "verified", "ground_truth_category": "HR"}\n'
+        '{"source_file": "missing.pdf", "label_status": "verified", "ground_truth_category": "HR"}\n'
+        '{"source_file": "good2.pdf", "label_status": "verified", "ground_truth_category": "HR"}\n'
+    )
+    monkeypatch.setattr("run_eval.EVAL_DIR", tmp_path)
+
+    def fake_fetch(source_file):
+        if source_file == "missing.pdf":
+            raise FileNotFoundError(source_file)
+        return {"category": "HR"}
+
+    monkeypatch.setattr("run_eval.get_offline_extraction", fake_fetch)
+
+    result = run_eval("category", "offline")
+    assert result["scored"] == 2
+    assert result["errored"] == 1
+    assert result["weighted_avg"] == 1.0
+    assert len(result["errors"]) == 1
+    assert result["errors"][0][0] == "missing.pdf"
