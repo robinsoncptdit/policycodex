@@ -1,6 +1,7 @@
 """GitHub implementation of the GitProvider abstraction."""
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
 from typing import Optional
 
@@ -36,8 +37,26 @@ class GitHubProvider(GitProvider):
     def _installation_token(self) -> str:
         return _build_installation_token(self._config)
 
-    def clone(self, repo_url, dest):
-        raise NotImplementedError
+    def clone(self, repo_url: str, dest: Path) -> None:
+        if not repo_url.startswith("https://github.com/"):
+            raise ValueError(
+                f"GitHubProvider only supports https://github.com/ URLs, got {repo_url}"
+            )
+        token = self._installation_token()
+        tokenized = repo_url.replace(
+            "https://github.com/",
+            f"https://x-access-token:{token}@github.com/",
+            1,
+        )
+        result = subprocess.run(
+            ["git", "clone", tokenized, str(dest)],
+            capture_output=True,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"git clone failed (exit {result.returncode}): "
+                f"{result.stderr.decode(errors='replace')}"
+            )
 
     def branch(self, name, working_dir):
         raise NotImplementedError
