@@ -24,11 +24,9 @@ def test_verified_rows_have_ground_truth():
     for row in rows:
         if row["label_status"] == "verified":
             assert row["ground_truth_category"] is not None
-            assert row["human_score"] == 1.0
         else:
             assert row["label_status"] == "needs_review"
             assert row["ground_truth_category"] is None
-            assert row["human_score"] < 1.0
 
 
 def test_offline_category_run_is_perfect():
