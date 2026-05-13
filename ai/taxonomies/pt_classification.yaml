@@ -1,0 +1,1362 @@
+# Diocese of Pensacola-Tallahassee — classification + retention seed
+#
+# Sourced from `internal/Document Retention Policy.pdf` (rev. Aug, 2022).
+# Section 3.0 -> classifications. Appendix A -> retention_schedule.
+#
+# In v0.1, classifications and retention_schedule are independent axes.
+# The AI extraction prompt receives both as context (see AI-11).
+#
+# Retention values are FREE-TEXT STRINGS preserved verbatim from the PDF.
+# v0.1 does not normalize ("Permanent", "Termination + 4 years", etc.).
+#
+# When the Week-3 foundational-policy bundle scaffolding lands, this file
+# moves to `policies/document-retention/data.yaml`. The schema is unchanged.
+
+classifications:
+  - id: administrative
+    name: Administrative
+  - id: personnel
+    name: Personnel
+  - id: financial
+    name: Financial
+  - id: legal
+    name: Legal
+  - id: property
+    name: Property
+  - id: cemetery
+    name: Cemetery
+  - id: publications
+    name: Publications
+  - id: sacramental
+    name: Sacramental
+
+retention_schedule:
+  # ---- Administrative Records (ALL Departments) ----
+  - group: Administrative Records (ALL Departments)
+    type: Administrative Records — records originating in the organization that document policy, procedure, rules or regulations
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Administrative Records (ALL Departments)
+    type: Administrative Records — records that document routine activities
+    retention: 2 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Administrative Records (ALL Departments)
+    type: Abstracts, deeds (property)
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Administrative Records (ALL Departments)
+    type: Annual reports to Pastoral Center (Status Animarum)
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Administrative Records (ALL Departments)
+    type: Articles of Incorporation (of the church corporation, parish)
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Administrative Records (ALL Departments)
+    type: Bequest and estate papers
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Administrative Records (ALL Departments)
+    type: Bishop's Decrees
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Administrative Records (ALL Departments)
+    type: Communications from the bishop regarding the parish
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Administrative Records (ALL Departments)
+    type: Constitution and Bylaws (Diocesan Agencies)
+    retention: Dissolution + 7 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Administrative Records (ALL Departments)
+    type: Correspondence, legal
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Administrative Records (ALL Departments)
+    type: Correspondence, official (paper and email) regarding diocesan directives and/or procedures
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Administrative Records (ALL Departments)
+    type: Correspondence, routine
+    retention: Biennial review
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Administrative Records (ALL Departments)
+    type: Donor lists
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Administrative Records (ALL Departments)
+    type: Finance Committee Minutes
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Administrative Records (ALL Departments)
+    type: Insurance policies
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Administrative Records (ALL Departments)
+    type: Inventories of property and equipment
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Administrative Records (ALL Departments)
+    type: Leases
+    retention: Expiration + 7 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Administrative Records (ALL Departments)
+    type: Office files, general
+    retention: Biennial review
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Administrative Records (ALL Departments)
+    type: Diocesan Pastoral Council constitutions
+    retention: Until superseded
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Administrative Records (ALL Departments)
+    type: Diocesan Pastoral Council minutes
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Administrative Records (ALL Departments)
+    type: Policy statements
+    retention: Superseded + 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Administrative Records (ALL Departments)
+    type: Subject files (memos, rules, schedules, etc.)
+    retention: Annual review
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Administrative Records (ALL Departments)
+    type: Wills, testaments, codicils
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+
+  # ---- Archives ----
+  - group: Archives
+    type: Parish History Files
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Archives
+    type: Deceased Clergy Files
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Archives
+    type: Photo Files (priests, parishes, institutions, general)
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Archives
+    type: Clergy Card Files
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Archives
+    type: Clergy Information Files
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Archives
+    type: Baptism Record Index Files
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Archives
+    type: Official Catholic Directories
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Archives
+    type: Former Bishops' Files
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Archives
+    type: Annuario Pontificio Directories
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Archives
+    type: Parish Boundaries, Decrees and Maps
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Archives
+    type: Historical Material (clippings, photos, booklets, etc. related to diocese and parishes)
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Archives
+    type: Diocesan Directories (file copies)
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+
+  # ---- Publications ----
+  - group: Publications
+    type: Diocesan/Parish Histories
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Publications
+    type: Diocesan/Parish Anniversary Books
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Publications
+    type: Newsletters (diocesan, parish, affiliated organizations)
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Publications
+    type: Parish Directories
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Publications
+    type: Parish Bulletins
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+
+  # ---- Bishop's Office ----
+  - group: Bishop's Office
+    type: Bishop's Calendar
+    retention: 1 year
+    medium: Paper
+    retained_at: On-site/Off-site
+    disposal: Archives
+  - group: Bishop's Office
+    type: General Correspondence
+    retention: Perm->file
+    medium: Paper
+    retained_at: On-site/Off-site
+    disposal: Archives
+  - group: Bishop's Office
+    type: Holy See/Nuncio Correspondence
+    retention: Perm->file
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Bishop's Office
+    type: Official Diocesan Correspondence
+    retention: Perm->file
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Bishop's Office
+    type: USCCB Correspondence
+    retention: Perm->file
+    medium: Paper
+    retained_at: On-site/Off-site
+
+  # ---- Catholic Schools Office ----
+  - group: Catholic Schools Office
+    sub_group: General
+    type: Standardized Test Results
+    retention: 10 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Catholic Schools Office
+    type: Curriculum Standards
+    retention: Until superseded
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Catholic Schools Office
+    type: School Calendar
+    retention: Current year
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Catholic Schools Office
+    type: Crisis Management
+    retention: 1 year
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Catholic Schools Office
+    type: DEET Financial Assistance Requests
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Catholic Schools Office
+    type: Enrollment Data
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Catholic Schools Office
+    type: Civil Rights/Title IX Reports
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Catholic Schools Office
+    type: SEVIS/I-20 Foreign Student Program
+    retention: 3 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Catholic Schools Office
+    type: Diocesan School Board Minutes
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Catholic Schools Office
+    type: Diocesan School Board By-Laws
+    retention: Until superseded
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Catholic Schools Office
+    type: Federal Program Requirements
+    retention: 5 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Catholic Schools Office
+    type: Articles of Incorporations/Trusts
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Catholic Schools Office
+    type: NCEA Reports
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Catholic Schools Office
+    type: AHERA School Management Plans
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site/School
+  - group: Catholic Schools Office
+    type: Periodic Surveillance Reports
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site/School
+  - group: Catholic Schools Office
+    type: Abatement Documents & Manifests
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site/School
+  - group: Catholic Schools Office
+    sub_group: TCCED
+    type: School Annual Report for Continued Accreditation
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site/School
+  - group: Catholic Schools Office
+    sub_group: TCCED
+    type: School Self-Study Document
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site/School
+  - group: Catholic Schools Office
+    sub_group: TCCED
+    type: VT Consensus Report/Notification of Status
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site/School
+  - group: Catholic Schools Office
+    sub_group: TCCED
+    type: School Required Actions
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site/School
+  - group: Catholic Schools Office
+    sub_group: TCCED
+    type: Interim Reports
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site/School
+  - group: Catholic Schools Office
+    sub_group: TCCED
+    type: Guide to Quality and Effectiveness Manual
+    retention: Until superseded + 5 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site/School
+  - group: Catholic Schools Office
+    sub_group: TCCED
+    type: TCCED Health Manual
+    retention: Until superseded
+    medium: Paper/Elec
+    retained_at: On-site/Off-site/School
+  - group: Catholic Schools Office
+    sub_group: TCCED
+    type: Individual Deficiency Removal Plans/Verification
+    retention: Termination + 5 years
+    medium: Paper
+    retained_at: On-site/Off-site/School
+  - group: Catholic Schools Office
+    sub_group: Education Personnel
+    type: Certificates and Licenses
+    retention: Termination + 4 years
+    medium: Paper
+    retained_at: On-site/Off-site/School
+  - group: Catholic Schools Office
+    sub_group: Education Personnel
+    type: Employee Service Record (including wage & salary)
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site/School
+  - group: Catholic Schools Office
+    sub_group: Education Personnel
+    type: Official Teacher Service Record
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site/School
+  - group: Catholic Schools Office
+    sub_group: Education Personnel
+    type: Employment Applications (non-hires)
+    retention: 1 year from receipt
+    medium: Paper/Elec
+    retained_at: On-site
+  - group: Catholic Schools Office
+    sub_group: Education Personnel
+    type: Official Transcripts
+    retention: Termination + 4 years
+    medium: Paper
+    retained_at: On-site/Off-site/School
+  - group: Catholic Schools Office
+    sub_group: Education Personnel
+    type: Employment Contracts
+    retention: Last eff. date + 4 years
+    medium: Paper
+    retained_at: On-site/Off-site/School
+  - group: Catholic Schools Office
+    sub_group: Education Personnel
+    type: Grievance Records (not EEOC)
+    retention: 2 years
+    medium: Paper
+    retained_at: On-site/Off-site/School
+  - group: Catholic Schools Office
+    sub_group: Education Personnel
+    type: Training and Educational Attainment Records
+    retention: Termination + 4 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site/School
+  - group: Catholic Schools Office
+    sub_group: Education Personnel
+    type: CPE Course Rosters
+    retention: Termination + 4 years
+    medium: Paper/Elec
+    retained_at: On-site
+
+  # ---- Catechetical Services ----
+  - group: Catechetical Services
+    type: Catechetical Student Database
+    retention: Death of student
+    medium: Electronic
+    retained_at: On-site/Off-site
+  - group: Catechetical Services
+    type: Contracts with Educational Institutions
+    retention: Termination + 7 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Catechetical Services
+    type: Course Evaluation
+    retention: 3 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Catechetical Services
+    type: Diocesan Ministry Day Program Booklet
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Catechetical Services
+    type: Handbooks and Manuals
+    retention: 3 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Catechetical Services
+    type: Institutes (Christ the Servant and John Paul II)
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Catechetical Services
+    type: Parish Catechetical Profile
+    retention: 5 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Catechetical Services
+    type: Renew/Why Catholic? Training Material
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Catechetical Services
+    type: TCC-RE Annual Reports
+    retention: Permanent
+    medium: Electronic
+    retained_at: On-site/Off-site
+  - group: Catechetical Services
+    type: TCC-RE Diocesan Reports
+    retention: 1 year
+    medium: Electronic
+    retained_at: On-site/Off-site
+  - group: Catechetical Services
+    type: Religious Education Reports (for diocesan offices)
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+
+  # ---- Chancellor ----
+  - group: Chancellor
+    type: Claimant Files
+    retention: Settlement + 10 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Chancellor
+    type: Ordination Records
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Chancellor
+    type: Settlement Files
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Chancellor
+    type: Clergy Assignment Letters (See Priest files)
+    retention: Permanent -> Priests File
+    medium: Paper
+    retained_at: On-site/Off-site
+
+  # ---- Communications ----
+  - group: Communications
+    type: News Media Clippings
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Communications
+    type: Diocesan News Releases
+    retention: 5 years
+    medium: Electronic
+    retained_at: On-site/Off-site
+  - group: Communications
+    type: Pastoral Center News
+    retention: Permanent
+    medium: Electronic
+    retained_at: On-site/Off-site
+  - group: Communications
+    type: Clergy Newsletter
+    retention: Permanent
+    medium: Electronic
+    retained_at: On-site/Off-site
+
+  # ---- Newspaper ----
+  - group: Newspaper
+    type: Newspaper Back Issues
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Newspaper
+    type: Photos
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Newspaper
+    type: Subscription Database
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Newspaper
+    type: Website
+    retention: Permanent
+    medium: Electronic
+    retained_at: On-site/Off-site
+  - group: Newspaper
+    type: Freelancer Information
+    retention: Permanent
+    medium: Electronic
+    retained_at: On-site/Off-site
+  - group: Newspaper
+    type: Advertising Contracts
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+
+  # ---- Financial and Accounting ----
+  - group: Financial and Accounting
+    sub_group: Risk Management
+    type: Incident Reports (accidents/injury)
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Risk Management
+    type: Employee Medical Complaints
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Risk Management
+    type: Employee Medical Records
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Risk Management
+    type: Environmental Test Records/Reports
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Risk Management
+    type: Hazardous Exposure Records
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Risk Management
+    type: Toxic Substance Exposure Reports
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Risk Management
+    type: Workers Compensation Records
+    retention: 12 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Payroll
+    type: Permanent Earnings and Records
+    retention: Termination + 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Payroll
+    type: Attendance Records
+    retention: Termination + 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Payroll
+    type: Employee Contracts
+    retention: Termination + 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Payroll
+    type: Employee Deduction Authorization
+    retention: Termination + 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Payroll
+    type: Employee Salary Schedules
+    retention: Termination + 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Payroll
+    type: Labor Contracts
+    retention: Termination + 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Payroll
+    type: W-2 Forms
+    retention: Filing + 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Payroll
+    type: W-4 Forms
+    retention: Filing + 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Payroll
+    type: Time Cards
+    retention: Filing + 3 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Payroll
+    type: Time Records
+    retention: Filing + 3 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Banking
+    type: Bank Deposits
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Banking
+    type: Bank Statements
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Banking
+    type: Cancelled Checks
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Banking
+    type: Check Registers/Stubs
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: General
+    type: Audit Reports
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: General
+    type: Balance Sheets, Annual
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: General
+    type: Balance Sheets, Monthly/Quarterly
+    retention: 1 year
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: General
+    type: Budgets, Approved, Revised
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: General
+    type: Financial Reports, Annual
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: General
+    type: Financial Reports, Monthly
+    retention: 1 year
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: General
+    type: Financial Statements
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Investment/Insurance
+    type: Certificates of Deposit, Cancelled
+    retention: Redemption + 3 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Investment/Insurance
+    type: Insurance Policies
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Investment/Insurance
+    type: Mortgage Records
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Investment/Insurance
+    type: Letters of Credit
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Investment/Insurance
+    type: Securities Sales
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Investment/Insurance
+    type: Stock Investment
+    retention: Sale + 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Accounting
+    type: Accounts Payable, Invoices
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Accounting
+    type: Accounts Payable, Ledgers
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Accounting
+    type: Accounts Receivable, Ledgers
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Accounting
+    type: Credit Card Statements/Charge Slips
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Accounting
+    type: Invoices and Paid Bills, Major Building Construction
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Accounting
+    type: Invoices and Paid Bills, General Accounts
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Accounting
+    type: Cash Books
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Accounting
+    type: Cash Journals
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Accounting
+    type: Cash Journal, Receipts on Offerings and Pledges
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Accounting
+    type: Receipts
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Accounting
+    type: Mortgage Payments
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Accounting
+    type: Chart of Accounts
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Other Records
+    type: General Ledger, Annual
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Other Records
+    type: Journals, General and Specific Funds
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Other Records
+    type: Journal Entry Sheets
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Other Records
+    type: Ledgers, Subsidiary
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Other Records
+    type: Payroll Journals
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Other Records
+    type: Payroll Registers (summary schedule of earnings, deductions & accrued leave)
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Other Records
+    type: Pension Records
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Other Records
+    type: Pledge Registers/Ledgers
+    retention: 3 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Other Records
+    type: Permanently Restricted Gift Documents
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Other Records
+    type: Temporarily Restricted Gift Documents
+    retention: 3 years after restrictions
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Tax Records
+    type: Employment Taxes (Contributions and payments including withholding & FICA)
+    retention: File + 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Tax Records
+    type: W-2 Forms
+    retention: File + 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Tax Records
+    type: W-4 Forms
+    retention: File + 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Tax Records
+    type: IRS Exemption Determination Letters (other than OCD listed organizations)
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Tax Records
+    type: Form 990
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Tax Records
+    type: IRS Exemption Determination Letters (income, excise, property, sales, use, etc.)
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Financial and Accounting
+    sub_group: Tax Records
+    type: Form 641
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+
+  # ---- Property Records ----
+  - group: Property Records
+    type: Architectural Records, Blueprints, Building Designs, Specifications
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Property Records
+    type: Architectural Drawings
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Property Records
+    type: Deeds Files
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Property Records
+    type: Mortgage Documents
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Property Records
+    type: Property Appraisals
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Property Records
+    type: Real Estate Surveys/Plots, Plans
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Property Records
+    type: Title Search Papers and Certificates
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+
+  # ---- Cemetery Records ----
+  - group: Cemetery Records
+    type: Account Cards (record of lot ownership and payments)
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Cemetery Records
+    type: Annual Report
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Cemetery Records
+    type: Bank Statements
+    retention: 7 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Cemetery Records
+    type: Board Minutes
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Cemetery Records
+    type: Burial Cards (record of interred's name, date of burial, etc.)
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Cemetery Records
+    type: Contracts Documenting Lot Ownership
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Cemetery Records
+    type: Correspondence
+    retention: BANR
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Cemetery Records
+    type: General Ledger
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Cemetery Records
+    type: Lot Maps
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+
+  # ---- Human Resources ----
+  - group: Human Resources
+    sub_group: Administrative Records
+    type: Employee Policy Manual
+    retention: Superseded + 4 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Administrative Records
+    type: Job Descriptions
+    retention: Superseded + 4 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Administrative Records
+    type: Organizational Chart
+    retention: While Current
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Administrative Records
+    type: I-9 Audit
+    retention: Permanent
+    medium: Electronic
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Administrative Records
+    type: Rejected Applications/Resumes
+    retention: 1 year after receipt
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Personnel Records
+    type: Employee Application
+    retention: Termination + 4 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Personnel Records
+    type: Resume
+    retention: Termination + 4 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Personnel Records
+    type: Employee Contracts/Offer Letters
+    retention: Termination + 4 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Personnel Records
+    type: Salary Information
+    retention: Termination + 4 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Personnel Records
+    type: Attendance Records (jury, PTO, STD, LTD, FMLA, Bereavement)
+    retention: Termination + 4 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Personnel Records
+    type: Eligibility Verification Form I-9
+    retention: Termination + 4 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Personnel Records
+    type: Performance Reviews
+    retention: Termination + 4 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Personnel Records
+    type: Write-Ups
+    retention: Termination + 4 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Personnel Records
+    type: Promotions/Transfers
+    retention: Termination + 4 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Benefit Records
+    type: Open Enrollment
+    retention: Termination + 4 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Benefit Records
+    type: New Hire
+    retention: Termination + 4 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Benefit Records
+    type: Life Event
+    retention: Termination + 4 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Benefit Records
+    type: Cont. of Benefits
+    retention: Termination + 4 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Benefit Records
+    type: Term. of Benefits
+    retention: Termination + 4 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Benefit Records
+    type: Disability Records STD/LTD
+    retention: Termination + 4 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Benefit Records
+    type: FMLA
+    retention: Termination + 4 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Benefit Records
+    type: 403(b) Retirement Plan
+    retention: Termination + 4 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Benefit Records
+    type: Life Insurance Policies
+    retention: Termination + 4 years
+    medium: Electronic
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Benefit Records
+    type: Benefit Plan Description
+    retention: Rollout + 4 years
+    medium: Electronic
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Benefit Records
+    type: Benefit Plan Annual Reports
+    retention: 6 years
+    medium: Electronic
+    retained_at: On-site/Off-site
+  - group: Human Resources
+    sub_group: Benefit Records
+    type: Personnel File
+    retention: Termination + 4 years
+    medium: Paper
+    retained_at: On-site/Off-site
+
+  # ---- Pastoral Planning ----
+  - group: Pastoral Planning
+    type: Ad Limina Reports (Quinquennial Report)
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Pastoral Planning
+    type: Annual Vatican Report
+    retention: 5 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Pastoral Planning
+    type: Official Catholic Directory Report
+    retention: 5 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Pastoral Planning
+    type: Official Catholic Directory Entity Financials
+    retention: Current + 1 year
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Pastoral Planning
+    type: May and October Mass Counts
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Pastoral Planning
+    type: Census Records (Parish)
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+
+  # ---- Safe Environment ----
+  - group: Safe Environment
+    type: Application
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Safe Environment
+    type: Screening Form
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Safe Environment
+    type: Interviews
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Safe Environment
+    type: References
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Safe Environment
+    type: Criminal Background Check
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Safe Environment
+    type: Training Records
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Safe Environment
+    type: Policy Acknowledgement
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Safe Environment
+    type: Computer/Internal Policy
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Safe Environment
+    type: CPS Notifications
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Safe Environment
+    type: Good Standing Records
+    retention: Current + 1 year
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Safe Environment
+    type: Non-Parish Organization Files
+    retention: ACT + 3 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Safe Environment
+    type: Parish/School Audits
+    retention: Permanent
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+
+  # ---- Tribunal ----
+  - group: Tribunal
+    type: Prenuptial Files
+    retention: 6 years paper then electronic
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+  - group: Tribunal
+    type: Nulity File Decision
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Tribunal
+    type: Nulity File Acta (other than decisions)
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Tribunal
+    type: Canonical Affairs Committee Records
+    retention: 5 years
+    medium: Paper/Elec
+    retained_at: On-site/Off-site
+
+  # ---- Vicar for Clergy ----
+  - group: Vicar for Clergy
+    type: Priests' Personnel Files
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Vicar for Clergy
+    type: Deacons' Personnel Files
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Vicar for Clergy
+    type: Clergy Rescript Files
+    retention: Permanent
+    medium: Paper
+    retained_at: On-site/Off-site
+
+  # ---- Youth Ministry ----
+  - group: Youth Ministry
+    type: Waiver of Liability Forms
+    retention: 7 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Youth Ministry
+    type: Medical Release Forms
+    retention: 7 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Youth Ministry
+    type: Code of Conduct Forms
+    retention: 7 years
+    medium: Paper
+    retained_at: On-site/Off-site
+  - group: Youth Ministry
+    type: Incident Report Forms
+    retention: 7 years after resolution
+    medium: Paper
+    retained_at: On-site/Off-site
