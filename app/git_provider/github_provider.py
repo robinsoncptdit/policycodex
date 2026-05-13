@@ -70,8 +70,49 @@ class GitHubProvider(GitProvider):
                 f"{result.stderr.decode(errors='replace')}"
             )
 
-    def commit(self, message, files, author_name, author_email, working_dir):
-        raise NotImplementedError
+    def commit(
+        self,
+        message: str,
+        files: list[Path],
+        author_name: str,
+        author_email: str,
+        working_dir: Path,
+    ) -> str:
+        for f in files:
+            result = subprocess.run(
+                ["git", "add", str(f)],
+                cwd=working_dir,
+                capture_output=True,
+            )
+            if result.returncode != 0:
+                raise RuntimeError(
+                    f"git add {f} failed (exit {result.returncode}): "
+                    f"{result.stderr.decode(errors='replace')}"
+                )
+        commit_cmd = [
+            "git",
+            "-c", f"user.name={author_name}",
+            "-c", f"user.email={author_email}",
+            "commit",
+            "-m", message,
+        ]
+        result = subprocess.run(commit_cmd, cwd=working_dir, capture_output=True)
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"git commit failed (exit {result.returncode}): "
+                f"{result.stderr.decode(errors='replace')}"
+            )
+        rev = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=working_dir,
+            capture_output=True,
+        )
+        if rev.returncode != 0:
+            raise RuntimeError(
+                f"git rev-parse HEAD failed (exit {rev.returncode}): "
+                f"{rev.stderr.decode(errors='replace')}"
+            )
+        return rev.stdout.decode().strip()
 
     def push(self, branch, working_dir):
         raise NotImplementedError

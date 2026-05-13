@@ -90,3 +90,45 @@ def test_branch_raises_on_nonzero_exit(tmp_path):
         p = GitHubProvider(config=cfg, github_client=MagicMock())
         with pytest.raises(RuntimeError, match="git checkout"):
             p.branch("dupe", tmp_path / "wd")
+
+
+def test_commit_stages_files_then_commits_with_identity(tmp_path):
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    wd = tmp_path / "wd"
+    files = [Path("policies/hr/onboarding.md"), Path("policies/finance/budget.md")]
+    with patch("app.git_provider.github_provider.subprocess.run") as run:
+        run.side_effect = [
+            MagicMock(returncode=0),
+            MagicMock(returncode=0),
+            MagicMock(returncode=0),
+            MagicMock(returncode=0, stdout=b"abc1234567890\n"),
+        ]
+        p = GitHubProvider(config=cfg, github_client=MagicMock())
+        sha = p.commit(
+            message="Update HR onboarding",
+            files=files,
+            author_name="Pat Editor",
+            author_email="pat@diocese-pt.example",
+            working_dir=wd,
+        )
+    assert sha == "abc1234567890"
+    add1 = run.call_args_list[0]
+    assert add1[0][0] == ["git", "add", "policies/hr/onboarding.md"]
+    assert add1[1]["cwd"] == wd
+    commit_call = run.call_args_list[2]
+    cmd = commit_call[0][0]
+    assert cmd[:5] == ["git", "-c", "user.name=Pat Editor", "-c", "user.email=pat@diocese-pt.example"]
+    assert "commit" in cmd
+    assert "-m" in cmd
+    assert "Update HR onboarding" in cmd
+
+
+def test_commit_raises_on_nonzero_exit(tmp_path):
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    with patch("app.git_provider.github_provider.subprocess.run") as run:
+        run.side_effect = [MagicMock(returncode=0), MagicMock(returncode=1, stderr=b"nothing to commit")]
+        p = GitHubProvider(config=cfg, github_client=MagicMock())
+        with pytest.raises(RuntimeError, match="git commit"):
+            p.commit("msg", [Path("a.md")], "n", "e", tmp_path / "wd")
