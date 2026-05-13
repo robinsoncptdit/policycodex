@@ -166,3 +166,36 @@ def test_push_raises_on_nonzero_exit(tmp_path):
             p = GitHubProvider(config=cfg, github_client=MagicMock())
             with pytest.raises(RuntimeError, match="git push"):
                 p.push("br", tmp_path / "wd")
+
+
+def test_open_pr_uses_repo_from_origin_and_returns_metadata(tmp_path):
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    wd = tmp_path / "wd"
+    fake_pr = MagicMock(number=42, html_url="https://github.com/foo/bar/pull/42", state="open")
+    fake_repo = MagicMock()
+    fake_repo.create_pull.return_value = fake_pr
+    fake_client = MagicMock()
+    fake_client.get_repo.return_value = fake_repo
+    with patch("app.git_provider.github_provider.subprocess.run") as run:
+        run.return_value = MagicMock(returncode=0, stdout=b"https://github.com/foo/bar.git\n")
+        p = GitHubProvider(config=cfg, github_client=fake_client)
+        result = p.open_pr(
+            title="Draft: policies/hr/onboarding.md",
+            body="Opened by PolicyCodex on behalf of Pat Editor",
+            head_branch="policycodex/draft-foo",
+            base_branch="main",
+            working_dir=wd,
+        )
+    fake_client.get_repo.assert_called_once_with("foo/bar")
+    fake_repo.create_pull.assert_called_once_with(
+        title="Draft: policies/hr/onboarding.md",
+        body="Opened by PolicyCodex on behalf of Pat Editor",
+        head="policycodex/draft-foo",
+        base="main",
+    )
+    assert result == {
+        "pr_number": 42,
+        "url": "https://github.com/foo/bar/pull/42",
+        "state": "open",
+    }

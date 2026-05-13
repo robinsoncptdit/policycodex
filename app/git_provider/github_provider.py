@@ -1,6 +1,7 @@
 """GitHub implementation of the GitProvider abstraction."""
 from __future__ import annotations
 
+import re
 import subprocess
 from pathlib import Path
 from typing import Optional
@@ -9,6 +10,16 @@ from github import Auth, Github
 
 from app.git_provider.base import GitProvider
 from app.git_provider.github_config import GitHubConfig, load_github_config
+
+
+_REPO_RE = re.compile(r"^https://github\.com/([^/]+)/([^/.]+)(?:\.git)?/?$")
+
+
+def _parse_owner_repo(origin_url: str) -> str:
+    m = _REPO_RE.match(origin_url.strip())
+    if not m:
+        raise ValueError(f"Cannot parse owner/repo from origin URL: {origin_url}")
+    return f"{m.group(1)}/{m.group(2)}"
 
 
 def _build_installation_token(config: GitHubConfig) -> str:
@@ -145,8 +156,32 @@ class GitHubProvider(GitProvider):
                 f"{result.stderr.decode(errors='replace')}"
             )
 
-    def open_pr(self, title, body, head_branch, base_branch, working_dir):
-        raise NotImplementedError
+    def open_pr(
+        self,
+        title: str,
+        body: str,
+        head_branch: str,
+        base_branch: str,
+        working_dir: Path,
+    ) -> dict:
+        get_url = subprocess.run(
+            ["git", "remote", "get-url", "origin"],
+            cwd=working_dir,
+            capture_output=True,
+        )
+        if get_url.returncode != 0:
+            raise RuntimeError(
+                f"git remote get-url failed (exit {get_url.returncode}): "
+                f"{get_url.stderr.decode(errors='replace')}"
+            )
+        owner_repo = _parse_owner_repo(get_url.stdout.decode())
+        repo = self._client.get_repo(owner_repo)
+        pr = repo.create_pull(title=title, body=body, head=head_branch, base=base_branch)
+        return {
+            "pr_number": pr.number,
+            "url": pr.html_url,
+            "state": pr.state,
+        }
 
     def read_pr_state(self, pr_number, working_dir):
         raise NotImplementedError
