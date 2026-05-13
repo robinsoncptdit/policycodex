@@ -54,6 +54,26 @@ def test_walk_does_not_follow_symlinks(tmp_path):
     assert result == ["real.txt"]
 
 
+def test_walk_does_not_descend_into_dir_symlinks(tmp_path):
+    """Dir-symlinks must not have their contents yielded as resolved files.
+
+    Verified safe across Python 3.11, 3.13, 3.14 (3.11 proxies 3.12,
+    which we can't install locally; 3.13+ made `recurse_symlinks=False`
+    the explicit default for `Path.rglob`).
+    """
+    real_dir = tmp_path / "real_dir"
+    real_dir.mkdir()
+    (real_dir / "inside.txt").write_text("real content")
+    link_to_dir = tmp_path / "link_to_dir"
+    link_to_dir.symlink_to(real_dir)
+    (tmp_path / "regular.txt").write_text("regular")
+    result = sorted(
+        p.relative_to(tmp_path).as_posix()
+        for p in LocalFolderConnector(tmp_path).walk()
+    )
+    assert result == ["real_dir/inside.txt", "regular.txt"]
+
+
 def test_walk_raises_filenotfound_on_missing_root(tmp_path):
     missing = tmp_path / "does_not_exist"
     with pytest.raises(FileNotFoundError, match=re.escape(str(missing))):
