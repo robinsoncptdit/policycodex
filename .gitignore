@@ -14,3 +14,7 @@ spike/venv/
 docs/superpowers/.cache/
 internal/superpowers/.cache/
 .claude/
+.venv/
+db.sqlite3
+*.sqlite3
+staticfiles/
