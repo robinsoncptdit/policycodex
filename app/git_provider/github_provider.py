@@ -6,7 +6,7 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
-from github import Auth, Github
+from github import Auth, Github, GithubIntegration
 
 from app.git_provider.base import GitProvider
 from app.git_provider.github_config import GitHubConfig, load_github_config
@@ -26,8 +26,9 @@ def _build_installation_token(config: GitHubConfig) -> str:
     """Fetch a fresh installation access token (no caching)."""
     private_key = config.private_key_path.read_text(encoding="utf-8")
     app_auth = Auth.AppAuth(config.app_id, private_key)
-    install_auth = app_auth.get_installation_auth(config.installation_id)
-    return install_auth.token
+    integration = GithubIntegration(auth=app_auth)
+    access = integration.get_access_token(config.installation_id)
+    return access.token
 
 
 class GitHubProvider(GitProvider):
@@ -42,8 +43,12 @@ class GitHubProvider(GitProvider):
         else:
             private_key = self._config.private_key_path.read_text(encoding="utf-8")
             app_auth = Auth.AppAuth(self._config.app_id, private_key)
-            install_auth = app_auth.get_installation_auth(self._config.installation_id)
-            self._client = Github(auth=install_auth)
+            integration = GithubIntegration(auth=app_auth)
+            install_auth = integration.get_github_for_installation(
+                self._config.installation_id
+            )
+            # get_github_for_installation returns a Github instance directly
+            self._client = install_auth
 
     def _installation_token(self) -> str:
         return _build_installation_token(self._config)
