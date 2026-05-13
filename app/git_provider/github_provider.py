@@ -58,8 +58,17 @@ class GitHubProvider(GitProvider):
                 f"{result.stderr.decode(errors='replace')}"
             )
 
-    def branch(self, name, working_dir):
-        raise NotImplementedError
+    def branch(self, name: str, working_dir: Path) -> None:
+        result = subprocess.run(
+            ["git", "checkout", "-b", name],
+            cwd=working_dir,
+            capture_output=True,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"git checkout -b failed (exit {result.returncode}): "
+                f"{result.stderr.decode(errors='replace')}"
+            )
 
     def commit(self, message, files, author_name, author_email, working_dir):
         raise NotImplementedError

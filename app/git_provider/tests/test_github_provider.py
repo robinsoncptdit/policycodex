@@ -68,3 +68,25 @@ def test_clone_raises_on_nonzero_exit(tmp_path):
             p = GitHubProvider(config=cfg, github_client=MagicMock())
             with pytest.raises(RuntimeError, match="git clone"):
                 p.clone("https://github.com/foo/bar.git", tmp_path / "dest")
+
+
+def test_branch_creates_new_branch_in_working_dir(tmp_path):
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    with patch("app.git_provider.github_provider.subprocess.run") as run:
+        run.return_value = MagicMock(returncode=0)
+        p = GitHubProvider(config=cfg, github_client=MagicMock())
+        p.branch("policycodex/draft-foo", tmp_path / "wd")
+    args, kwargs = run.call_args
+    assert args[0] == ["git", "checkout", "-b", "policycodex/draft-foo"]
+    assert kwargs["cwd"] == tmp_path / "wd"
+
+
+def test_branch_raises_on_nonzero_exit(tmp_path):
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    with patch("app.git_provider.github_provider.subprocess.run") as run:
+        run.return_value = MagicMock(returncode=128, stderr=b"branch exists")
+        p = GitHubProvider(config=cfg, github_client=MagicMock())
+        with pytest.raises(RuntimeError, match="git checkout"):
+            p.branch("dupe", tmp_path / "wd")
