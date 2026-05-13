@@ -47,11 +47,11 @@ Ordered by dispatch readiness, not priority. All P0 for the sprint.
 | AI-02 Claude provider impl | subagent | 1 day | AI-01 (done) | **DONE 2026-05-13** (merged `73511b9`, 10 tests). |
 | APP-04 GitHub provider (clone, branch, commit, push, open_pr, read_pr_state) | subagent | 3 days | APP-03 (done), REPO-03 (done), REPO-04 partial-ok | **DONE 2026-05-13** (merged `e0e6b41`, 36 tests, live smoke against PT succeeded; plus cleanup `7b54dc2`). Cleared Thu-noon checkpoint ~24h early. |
 | INGEST-01 Local folder reader | subagent | 1 day | None | **DONE 2026-05-13** (merged `c9d6f7e`, 10 tests, OQ-11 resolved at `c0858ad`). |
-| AI-05 Owner / effective-date / review-date / retention eval sets | subagent | 2 days | AI-02 (done), AI-14 (done) | **Ready for Fri.** Both deps closed. |
-| AI-11 Address taxonomy injection | subagent | 1 day | AI-04 (done) | **Ready for Fri.** Success criterion: address eval >0.700. |
-| INGEST-03 File content extraction (PDF, DOCX, MD, TXT) | subagent | 2 days | INGEST-01 (done) | **Ready for Fri.** |
-| APP-02 Local auth + identity-to-Git-author | subagent | 1 day | APP-01 (done) | **Ready for Fri.** |
-| AI-08 Markdown + YAML front-matter emitter | subagent | 1 day | AI-04 (done) | **Ready for Fri.** Fill-in when capacity opens. |
+| AI-05 Owner / effective-date / review-date / retention eval sets | subagent | 2 days | AI-02 (done), AI-14 (done) | **DONE 2026-05-13** (cherry-picked `529c59e`, 4 JSONLs × 17 rows, 13 needs_review across all 4 fields based on AI's own confidence/notes signals). |
+| AI-11 Address taxonomy injection | subagent | 1 day | AI-04 (done) | **DONE 2026-05-13** (cherry-picked `bf6e45d`/`39099d4`/`66a4179` + Important review fixes at `2c5fc06`/`033c5df`). Taxonomy sourced from PT's own retention policy (not LA chapter list — deferred to when LA onboards). Eval seed withdrawn at review (Critical issues); AI-06 (Week 3) delivers it. AI-04 category eval still 1.000 (no regression). |
+| INGEST-03 File content extraction (PDF, DOCX, MD, TXT) | subagent | 2 days | INGEST-01 (done) | **DONE 2026-05-13** (merged `7bdf386`, 11 tests, pypdf+python-docx lifted from spike with shared ABC + extension dispatch). |
+| APP-02 Local auth + identity-to-Git-author | subagent | 1 day | APP-01 (done) | **DONE 2026-05-13** (merged `30a4d0c`, 16 tests, Django LoginView/LogoutView + `core.git_identity.get_git_author`). |
+| AI-08 Markdown + YAML front-matter emitter | subagent | 1 day | AI-04 (done) | **DONE 2026-05-13** (merged `6778c8a`, 12 tests, `ai.emit.to_markdown` with stable key order + safe_dump + confidence-key filtering + force-quote of `version_stamp` / `suggested_chapter_section_item`). |
 
 ### Stretch (only if Committed tracks ahead; carry to Week 3 otherwise)
 
@@ -63,7 +63,7 @@ Ordered by dispatch readiness, not priority. All P0 for the sprint.
 | PUBLISH-01 Astro proof | subagent | 2 days | OQ-09 (done) | |
 | APP-05 Local working copy mgmt | subagent | 1 day | APP-04 | Only viable if APP-04 lands by Thu noon. |
 | APP-06 Catalog list view | subagent | 2 days | APP-01, APP-05 | Only viable if APP-04 + APP-05 land Thu. |
-| AI-15 Label AI-04 needs_review rows | Chuck (action) | 10 min | AI-04 (done) | Cheap; unblock AI-05 ground truth. |
+| AI-15 Label AI-04 needs_review rows | Chuck (action, delegated to Scarlet) | 10 min | AI-04 (done) | **DONE 2026-05-13** (`654d284`): 3 verified (HR, HR, "Parish Operations"), 1 dropped (Document Retention Policy — now the source-of-truth reference doc per the foundational-policy design, not an inventory policy). |
 
 ## Discipline Rules (from 05-12 replan)
 
@@ -101,8 +101,9 @@ Ordered by dispatch readiness, not priority. All P0 for the sprint.
 | Tue May 12 PM | (Dispatch slipped to Wed AM — session ended without firing.) |
 | Wed May 13 AM | **Done.** AI-14, APP-01, AI-02 merged in parallel via worktree isolation. 35/35 tests pass. |
 | Wed May 13 PM | **Done.** APP-04 + INGEST-01 dispatched a day early (Thu work pulled forward). Both merged with code-review approval. APP-04 live smoke against PT succeeded. OQ-11 raised and resolved. 73/73 tests pass. Real PR #1 on PT closed by Chuck. |
-| Thu May 14 | (Open.) Slate originally planned for Thu is now Fri's: AI-05, AI-11, INGEST-03, APP-02, AI-08. Some or all dispatch Fri AM. |
-| Fri May 15 | Hard scope freeze EOD. Dispatch the remaining 5 Committed tickets in parallel waves. AI-12 decision. AI-15 close-out. OQ-05 / OQ-08 next steps. Week 3 plan written. |
+| Thu May 14 | (Pre-empted.) Chuck triggered early dispatch Wed afternoon instead of waiting for Friday. |
+| Wed May 13 PM (late) | **Done.** Week 2 sprint closed two days ahead of plan. Wave 1 (INGEST-03, APP-02, AI-11) and Wave 2 (AI-05, AI-08) dispatched as parallel subagents with worktree isolation, code-reviewed by spawned reviewer subagents before merge per discipline. AI-15 delegated from Chuck and resolved (3 labels + 1 drop). AI-11 review found 2 Critical issues with the eval-seed commit; resolution was to cherry-pick the 3 keeper commits and skip the eval-seed commit `750656c`; the address eval set carries forward to AI-06 (Week 3) where it properly belongs. 3 follow-up "fix(AI-11)" commits landed the Important review fixes (em dashes, deterministic sample selection, tests for the new `--outputs` flag). Plus the 2026-05-13 foundational-policy brainstorm produced an approved design (`internal/PolicyWonk-Foundational-Policy-Design.md`) and six Week-3+ tickets (INGEST-07, APP-20, APP-21, REPO-09, AI-12-revised, APP-15-revised) folded into `PolicyWonk-v0.1-Tickets.md`. **Final: 10/10 Committed merged, 116 tests passing (was 73 going in), AI-04 category eval still 1.000 (no regression).** All 47 session commits pushed to `origin/main` (HEAD `9d550bd`). |
+| Thu May 14 / Fri May 15 | No sprint activity needed. Week 3 plan to be written when Week 3 kicks off. |
 
 ## What This Plan Does Not Cover
 

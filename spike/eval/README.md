@@ -20,10 +20,20 @@ not flip pass/fail; investigate them before trusting the result.
 a separate folder, e.g. `spike/outputs-ai11/` after a prompt change.
 Also overridable via the `POLICYCODEX_EVAL_OUTPUTS` env var.
 
-Currently scored fields: `category`, `suggested_chapter_section_item`
-(seeded by AI-11). Fields wired into `FIELD_DISPATCH` but awaiting eval
-sets: `owner_role`, `effective_date`, `last_review_date`,
-`retention_period_years` (AI-05, AI-06).
+Currently scored fields (5):
+
+- `category` (AI-04, refined by AI-15) — 17 verified rows, weighted_avg 1.000 baseline.
+- `owner_role` (AI-05) — 10 verified, 7 needs_review.
+- `effective_date` (AI-05) — 16 verified, 1 needs_review.
+- `last_review_date` (AI-05) — 16 verified, 1 needs_review.
+- `retention_period_years` (AI-05) — 12 verified, 5 needs_review.
+
+Fields wired into `FIELD_DISPATCH` but awaiting an eval JSONL:
+
+- `suggested_chapter_section_item` (AI-06, Week 3). AI-11 already
+  injected the PT taxonomy into the extraction prompt; the formal eval
+  set is deferred to AI-06 so it can be built against the post-AI-11
+  outputs and labeled under the AI-14 hardened schema.
 
 ## Eval-set schema (one JSONL per field)
 

@@ -14,9 +14,9 @@ The active spec lives in `PolicyWonk-v0.1-Spec.md`. The sprint board lives in `P
 
 ## Current Status
 
-Active. Brainstorm complete, v0.1 spec and engineering tickets locked, riskiest-assumption spike passed (70.9% acceptance excluding always-null fields, recorded in `internal/PolicyWonk-Spike-Plan.md`). Week 2 of a six-week sprint is in progress, targeting a public demo at DISC (Diocesan Information Systems Conference) mid-June 2026. Pensacola-Tallahassee is install zero. The Archdiocese of Los Angeles is the reference design partner.
+Active. Brainstorm complete, v0.1 spec and engineering tickets locked, riskiest-assumption spike passed (70.9% acceptance excluding always-null fields, recorded in `internal/PolicyWonk-Spike-Plan.md`). Targeting a public demo at DISC (Diocesan Information Systems Conference) mid-June 2026. Pensacola-Tallahassee is install zero. The Archdiocese of Los Angeles is the reference design partner.
 
-**Week-2 progress as of 2026-05-13 EOD:** 6 of 10 Committed tickets merged (AI-04, AI-14, APP-01, AI-02, INGEST-01, APP-04). 73 tests passing on main. APP-04 (the central 3-day bottleneck) cleared a day ahead of the Thu-noon checkpoint; live smoke against the PT repo succeeded end-to-end. Remaining for Friday's sprint freeze: AI-05, AI-11, INGEST-03, APP-02, AI-08.
+**Week-2 status (closed 2026-05-13, two days ahead of Friday's planned freeze):** all 10 Committed tickets merged: AI-04, AI-14, APP-01, AI-02, INGEST-01, APP-04 in the first wave; INGEST-03, APP-02, AI-11, AI-05, AI-08 in the second. Plus AI-15 (delegated from Chuck) resolved. 116 tests passing on main (was 73 going in). APP-04 cleared its 3-day bottleneck a day early; live smoke against PT succeeded. Code review (`superpowers:requesting-code-review`) ran on every subagent's output before merge per discipline. **The 2026-05-13 foundational-policy brainstorm** (Chuck: "the Document Retention Policy IS a policy AND is the source of app configuration variables") produced an approved architectural design captured in `internal/PolicyWonk-Foundational-Policy-Design.md`; six new tickets land in Week 3+ (INGEST-07, APP-20, APP-21, REPO-09, AI-12-revised, APP-15-revised).
 
 The project is open source under a maintainer model (the maintainer earns through setup, support, and customization, not through licensing).
 
@@ -28,13 +28,13 @@ The project is open source under a maintainer model (the maintainer earns throug
 - `PolicyWonk-v0.1-Tickets.md` is the engineering sprint board
 - `README.md` is the public-facing GitHub README
 - `LICENSE` is the AGPL-3.0 text
-- `ai/` holds the LLM provider abstraction (`provider.py`) and the Claude implementation (`claude_provider.py`)
-- `app/` holds App-lane code; currently `app/git_provider/` (`GitProvider` ABC + `GitHubProvider`) and `app/requirements.txt`
-- `ingest/` holds the Ingest-lane code; currently `LocalFolderConnector` (`local_folder.py`) with a `python -m ingest.local_folder <path>` CLI
-- `core/` is the stub Django app with the `/health/` smoke view
-- `manage.py` plus `policycodex_site/` is the Django 5+ project skeleton (SQLite default; APP-02 will plumb env-driven config)
+- `ai/` holds the LLM provider abstraction (`provider.py`), Claude implementation (`claude_provider.py`), `emit.py` (markdown + YAML front-matter emitter), `taxonomies/` (per-diocese classification + retention seeds; `pt_classification.yaml` is install-zero's), and `ai/tests/`
+- `app/` holds App-lane code: `app/git_provider/` (`GitProvider` ABC + `GitHubProvider` with clone, branch, commit, push, open-PR, read-PR-state) and `app/requirements.txt`
+- `ingest/` holds the Ingest-lane code: `local_folder.py` (`LocalFolderConnector` with the `python -m ingest.local_folder <path>` CLI), `extractors/` (PDF via pypdf, DOCX via python-docx, MD/TXT via `read_text`; dispatched by extension via `from ingest.extractors import extract`), and `ingest/tests/`
+- `core/` is the project-wide Django app: `/health/` smoke view, `/login/` and `/logout/` (Django's built-in LoginView/LogoutView with a spartan template), `git_identity.py` (the `get_git_author(user)` mapper that feeds `GitHubProvider.commit`), and `core/tests/`
+- `manage.py` plus `policycodex_site/` is the Django 5+ project skeleton (SQLite default; deployment-hardening of `SECRET_KEY` deferred per REPO-05/PUBLISH-07)
 - `pytest.ini` wires pytest-django for the whole repo
-- `spike/` contains the runnable extraction script (`extract.py`), input PDFs, per-policy JSON outputs, and the `spike/eval/` regression harness (per-field eval sets, scoring CLI, README)
+- `spike/` contains the runnable extraction script (`extract.py`, now loading PT taxonomy from `ai/taxonomies/pt_classification.yaml` and injecting it into the prompt per AI-11), per-policy JSON outputs (gitignored), and the `spike/eval/` regression harness (per-field eval sets for category/owner_role/dates/retention, scoring CLI with `--outputs DIR` / `POLICYCODEX_EVAL_OUTPUTS` flag, README)
 
 **`internal/` (tracked, sprint workspace):**
 
@@ -98,7 +98,15 @@ Do not reopen these without new information:
 - The AI inventory pass receives two pieces of injected context per extraction: (1) the chosen address taxonomy, (2) any source-of-truth reference documents the diocese has designated
 - The Document Retention Policy is the canonical source-of-truth example. It supplies retention periods, document-type taxonomy, and gap-detection signal in one document
 - Without that context, retention extraction quality drops to 0.144 on the rubric. With it, the extraction passes 60% acceptance comfortably
-- Reference documents live in a `references/` directory inside the diocese's policy repo
+
+**Foundational-policy bundle pattern (approved 2026-05-13)**
+- Policies that are simultaneously inventory documents AND sources of app configuration variables (the Document Retention Policy is the canonical example) live as a directory bundle: `policies/<slug>/policy.md` (narrative + frontmatter declaring `foundational: true` and `provides: [...]`) plus `policies/<slug>/data.yaml` (canonical machine-readable variables). Both reviewed in the same PR; the app reads `data.yaml` directly with no markdown parsing.
+- Live sync via PR merge: a CFO edit to the retention policy opens a PR, reviewer approves, publisher merges; the handbook rebuilds AND the app's local working copy pulls AND the next AI extraction sees the new taxonomy.
+- Four protection layers against accidental deletion: L0 Git branch protection (existing), L1 app UI hides Delete (APP-20), L2 pre-merge CI guard (REPO-09), L3 app startup self-check (APP-21).
+- Removing a classification is **soft-delete only** (`deprecated: true` keeps the id valid for existing references). Hard remove requires re-classifying dependents first. No auto-re-extraction of orphaned policies in v0.1.
+- Non-data-bearing policies stay as flat `policies/<slug>.md` files. The bundle pattern is opt-in via the `foundational: true` frontmatter flag.
+- Other source-of-truth reference docs that are NOT policies in the inventory (e.g., a category cheatsheet) may still live in a `references/` directory; the bundle pattern is for documents that play both roles.
+- Full design: `internal/PolicyWonk-Foundational-Policy-Design.md`.
 
 **Design principle**
 - Opinionated by default. Configurable where dioceses have legitimate variation. AI-assisted throughout.
