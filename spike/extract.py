@@ -15,6 +15,7 @@ import os
 import sys
 from pathlib import Path
 
+import yaml
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
@@ -23,11 +24,106 @@ load_dotenv()
 # Switch to "claude-opus-4-6" if Sonnet acceptance is marginal.
 MODEL = os.getenv("POLICYWONK_MODEL", "claude-sonnet-4-6")
 
+# Seed taxonomy for the install-zero diocese (Pensacola-Tallahassee).
+# Built from the diocese's Document Retention Policy (rev. Aug, 2022).
+# When the Week-3 bundle scaffolding lands this file moves to
+# policies/document-retention/data.yaml; the injection logic is the same.
+TAXONOMY_PATH = Path(__file__).resolve().parent.parent / "ai" / "taxonomies" / "pt_classification.yaml"
+
+# Representative sample of retention rows pulled into the prompt. The full
+# ~240-row schedule would bloat context; this curated set spans every
+# group + sub_group so the model has a feel for the taxonomy's shape.
+_RETENTION_SAMPLE_KEYS = {
+    ("Administrative Records (ALL Departments)", None, "Administrative Records — records that document routine activities"),
+    ("Administrative Records (ALL Departments)", None, "Policy statements"),
+    ("Administrative Records (ALL Departments)", None, "Leases"),
+    ("Archives", None, "Parish History Files"),
+    ("Publications", None, "Newsletters (diocesan, parish, affiliated organizations)"),
+    ("Bishop's Office", None, "Bishop's Calendar"),
+    ("Bishop's Office", None, "Holy See/Nuncio Correspondence"),
+    ("Catholic Schools Office", "General", "Standardized Test Results"),
+    ("Catholic Schools Office", "TCCED", "School Self-Study Document"),
+    ("Catholic Schools Office", "Education Personnel", "Certificates and Licenses"),
+    ("Catechetical Services", None, "Catechetical Student Database"),
+    ("Chancellor", None, "Claimant Files"),
+    ("Communications", None, "Diocesan News Releases"),
+    ("Newspaper", None, "Newspaper Back Issues"),
+    ("Financial and Accounting", "Risk Management", "Workers Compensation Records"),
+    ("Financial and Accounting", "Payroll", "W-2 Forms"),
+    ("Financial and Accounting", "Banking", "Bank Statements"),
+    ("Financial and Accounting", "General", "Audit Reports"),
+    ("Financial and Accounting", "Investment/Insurance", "Stock Investment"),
+    ("Financial and Accounting", "Accounting", "Accounts Payable, Invoices"),
+    ("Financial and Accounting", "Tax Records", "Form 990"),
+    ("Property Records", None, "Deeds Files"),
+    ("Cemetery Records", None, "Burial Cards (record of interred's name, date of burial, etc.)"),
+    ("Human Resources", "Personnel Records", "Performance Reviews"),
+    ("Human Resources", "Benefit Records", "403(b) Retirement Plan"),
+    ("Pastoral Planning", None, "Ad Limina Reports (Quinquennial Report)"),
+    ("Safe Environment", None, "Criminal Background Check"),
+    ("Tribunal", None, "Prenuptial Files"),
+    ("Vicar for Clergy", None, "Priests' Personnel Files"),
+    ("Youth Ministry", None, "Waiver of Liability Forms"),
+}
+
+
+def _load_taxonomy(path: Path = TAXONOMY_PATH) -> dict:
+    """Read the PT taxonomy YAML once at import time."""
+    with path.open(encoding="utf-8") as fh:
+        return yaml.safe_load(fh)
+
+
+def _build_taxonomy_section(taxonomy: dict) -> str:
+    """Render the taxonomy into a prompt section.
+
+    Includes all 8 top-level classifications and a curated 30-row
+    sample of the retention schedule spanning every group/sub_group.
+    Keeping the sample small protects the prompt budget; the full
+    schedule lives in the YAML for downstream use.
+    """
+    lines = []
+    lines.append("## Diocese taxonomy reference (Diocese of Pensacola-Tallahassee)")
+    lines.append("")
+    lines.append("Top-level data classifications (Section 3.0 of the diocesan retention policy):")
+    for entry in taxonomy.get("classifications", []):
+        lines.append(f"- {entry['id']}: {entry['name']}")
+    lines.append("")
+    lines.append("Retention schedule (representative sample from Appendix A; the full schedule has ~240 rows):")
+    for row in taxonomy.get("retention_schedule", []):
+        key = (row["group"], row.get("sub_group"), row["type"])
+        if key not in _RETENTION_SAMPLE_KEYS:
+            continue
+        group_label = row["group"]
+        if row.get("sub_group"):
+            group_label = f"{group_label} / {row['sub_group']}"
+        lines.append(f"- {group_label}: {row['type']} -> {row['retention']}")
+    lines.append("")
+    return "\n".join(lines)
+
+
+TAXONOMY = _load_taxonomy()
+TAXONOMY_SECTION = _build_taxonomy_section(TAXONOMY)
+
+
 EXTRACTION_PROMPT = """\
 You are a policy librarian for a Catholic diocese. You read a single
 governing document (policy, procedure, or by-law) and extract structured
 metadata. Be conservative. If a field is not stated or strongly implied
 in the text, leave it null and lower your confidence.
+
+""" + TAXONOMY_SECTION + """
+
+When extracting `category` and `suggested_chapter_section_item`, PREFER
+values that align with the diocese taxonomy above. Map your category
+choice to one of the schema-defined category values (Finance, HR, IT,
+Safe Environment, Schools, Worship, Parish Operations, Stewardship,
+By-Laws, Communications, Risk, Other) but choose the one whose meaning
+most closely matches the relevant classification or retention group.
+For `suggested_chapter_section_item`, use a chapter.section.item address
+(e.g., 5.2.8) where the chapter aligns with the classification axis or
+retention group most relevant to the policy. If the policy doesn't
+cleanly fit any provided category or group, use your best judgment and
+note this in `notes`.
 
 Output strictly as JSON, matching this schema:
 
