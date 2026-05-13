@@ -13,6 +13,7 @@ Usage:
 """
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any, Callable
@@ -26,6 +27,20 @@ VALID_LABEL_STATUSES = frozenset({"verified", "needs_review"})
 
 def _result_passed(weighted_avg: float, threshold: float) -> bool:
     return weighted_avg >= threshold
+
+
+def _resolve_outputs_dir() -> Path:
+    """Outputs dir for offline scoring.
+
+    Precedence:
+      1. POLICYCODEX_EVAL_OUTPUTS env var (takes a directory path).
+      2. --outputs arg on the CLI (consumed in main()).
+      3. spike/outputs/ default.
+    """
+    env_override = os.getenv("POLICYCODEX_EVAL_OUTPUTS")
+    if env_override:
+        return Path(env_override).resolve()
+    return OUTPUTS_DIR
 
 
 def _eq(expected: Any, actual: Any) -> bool:
@@ -121,7 +136,8 @@ def load_eval_set(field: str) -> list[dict]:
 
 def get_offline_extraction(source_file: str) -> dict:
     stem = Path(source_file).stem
-    json_path = OUTPUTS_DIR / f"{stem}.json"
+    outputs_dir = _resolve_outputs_dir()
+    json_path = outputs_dir / f"{stem}.json"
     if not json_path.exists():
         raise FileNotFoundError(f"No cached extraction at {json_path}")
     with json_path.open(encoding="utf-8") as fh:
@@ -234,7 +250,20 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Re-run the monolithic prompt against spike/inputs/*.pdf.",
     )
+    parser.add_argument(
+        "--outputs",
+        type=Path,
+        default=None,
+        help=(
+            "Override the offline outputs directory (default: spike/outputs/). "
+            "Also overridable via POLICYCODEX_EVAL_OUTPUTS env var. "
+            "Useful when scoring a fresh re-extraction run kept separate, e.g. "
+            "after a prompt change."
+        ),
+    )
     args = parser.parse_args(argv)
+    if args.outputs is not None:
+        os.environ["POLICYCODEX_EVAL_OUTPUTS"] = str(args.outputs.resolve())
     mode = "live" if args.live else "offline"
     result = run_eval(args.field, mode)
     print_result(result)
