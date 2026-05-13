@@ -8,17 +8,22 @@ JSONL is a per-field eval set; offline mode scores against cached
 ## Invocation
 
 ```
-python spike/eval/run_eval.py <field> [--offline | --live]
+python spike/eval/run_eval.py <field> [--offline | --live] [--outputs DIR]
 ```
 
 Defaults to `--offline`. Exit code is 0 if `weighted_avg >= threshold`,
 1 otherwise. Errored rows (fetch failed) are reported separately and do
 not flip pass/fail; investigate them before trusting the result.
 
-Currently scored fields: `category`. Fields wired into `FIELD_DISPATCH`
-but awaiting eval sets: `owner_role`, `effective_date`,
-`last_review_date`, `retention_period_years`,
-`suggested_chapter_section_item` (AI-05, AI-06).
+`--outputs DIR` overrides the offline outputs directory (default
+`spike/outputs/`). Useful when scoring a fresh re-extraction run kept in
+a separate folder, e.g. `spike/outputs-ai11/` after a prompt change.
+Also overridable via the `POLICYCODEX_EVAL_OUTPUTS` env var.
+
+Currently scored fields: `category`, `suggested_chapter_section_item`
+(seeded by AI-11). Fields wired into `FIELD_DISPATCH` but awaiting eval
+sets: `owner_role`, `effective_date`, `last_review_date`,
+`retention_period_years` (AI-05, AI-06).
 
 ## Eval-set schema (one JSONL per field)
 
