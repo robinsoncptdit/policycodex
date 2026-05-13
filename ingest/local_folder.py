@@ -21,4 +21,7 @@ class LocalFolderConnector:
         for entry in sorted(self._root.rglob("*")):
             if not entry.is_file():
                 continue
+            relative = entry.relative_to(self._root)
+            if any(part.startswith(".") for part in relative.parts):
+                continue
             yield entry
