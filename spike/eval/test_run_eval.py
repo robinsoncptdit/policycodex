@@ -139,3 +139,27 @@ def test_iso_date_eq_happy_unhappy_null():
     assert _iso_date_eq(None, None) is True
     assert _iso_date_eq(None, "2024-01-01") is False
     assert _iso_date_eq("2024-01-01", None) is False
+
+
+def test_resolve_outputs_dir_defaults_to_spike_outputs(monkeypatch):
+    """No env var, no CLI override -> default spike/outputs/ path."""
+    from run_eval import OUTPUTS_DIR, _resolve_outputs_dir
+    monkeypatch.delenv("POLICYCODEX_EVAL_OUTPUTS", raising=False)
+    assert _resolve_outputs_dir() == OUTPUTS_DIR
+
+
+def test_resolve_outputs_dir_honors_env_var(monkeypatch, tmp_path):
+    """POLICYCODEX_EVAL_OUTPUTS env var routes the resolver to a custom dir."""
+    from run_eval import _resolve_outputs_dir
+    monkeypatch.setenv("POLICYCODEX_EVAL_OUTPUTS", str(tmp_path))
+    assert _resolve_outputs_dir() == tmp_path.resolve()
+
+
+def test_get_offline_extraction_reads_from_resolved_dir(monkeypatch, tmp_path):
+    """The offline fetcher reads from the env-overridden dir, not the default."""
+    from run_eval import get_offline_extraction
+    fake = tmp_path / "fake_policy.json"
+    fake.write_text(json.dumps({"category": "Finance"}))
+    monkeypatch.setenv("POLICYCODEX_EVAL_OUTPUTS", str(tmp_path))
+    extraction = get_offline_extraction("fake_policy.pdf")
+    assert extraction == {"category": "Finance"}
