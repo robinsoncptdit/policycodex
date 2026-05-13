@@ -22,7 +22,10 @@ SPIKE_DIR = EVAL_DIR.parent
 OUTPUTS_DIR = SPIKE_DIR / "outputs"
 INPUTS_DIR = SPIKE_DIR / "inputs"
 
-BASELINE_THRESHOLD = 0.85
+VALID_LABEL_STATUSES = frozenset({"verified", "needs_review"})
+
+def _result_passed(weighted_avg: float, threshold: float) -> bool:
+    return weighted_avg >= threshold
 
 
 def _eq(expected: Any, actual: Any) -> bool:
@@ -51,46 +54,68 @@ FIELD_DISPATCH: dict[str, dict[str, Any]] = {
         "extracted_key": "category",
         "ground_truth_key": "ground_truth_category",
         "compare": _eq,
+        "threshold": 0.85,
     },
     "owner_role": {
         "extracted_key": "owner_role",
         "ground_truth_key": "ground_truth_owner_role",
         "compare": _eq,
+        "threshold": 0.85,
     },
     "effective_date": {
         "extracted_key": "effective_date",
         "ground_truth_key": "ground_truth_effective_date",
         "compare": _iso_date_eq,
+        "threshold": 0.85,
     },
     "last_review_date": {
         "extracted_key": "last_review_date",
         "ground_truth_key": "ground_truth_last_review_date",
         "compare": _iso_date_eq,
+        "threshold": 0.85,
     },
     "retention_period_years": {
         "extracted_key": "retention_period_years",
         "ground_truth_key": "ground_truth_retention_period_years",
         "compare": _int_eq,
+        "threshold": 0.85,
     },
     "suggested_chapter_section_item": {
         "extracted_key": "suggested_chapter_section_item",
         "ground_truth_key": "ground_truth_suggested_chapter_section_item",
         "compare": _eq,
+        "threshold": 0.85,
     },
 }
 
 
 def load_eval_set(field: str) -> list[dict]:
+    if field not in FIELD_DISPATCH:
+        raise ValueError(f"Unknown field '{field}'")
+    gt_key = FIELD_DISPATCH[field]["ground_truth_key"]
     path = EVAL_DIR / f"{field}_eval.jsonl"
     if not path.exists():
         raise FileNotFoundError(f"No eval set found at {path}")
     rows = []
     with path.open(encoding="utf-8") as fh:
-        for line in fh:
+        for n, line in enumerate(fh, start=1):
             line = line.strip()
             if not line:
                 continue
-            rows.append(json.loads(line))
+            row = json.loads(line)
+            if "source_file" not in row:
+                raise ValueError(f"Row {n}: missing 'source_file'")
+            if "label_status" not in row:
+                raise ValueError(f"Row {n}: missing 'label_status'")
+            if row["label_status"] not in VALID_LABEL_STATUSES:
+                raise ValueError(
+                    f"Row {n}: label_status={row['label_status']!r}, expected one of {sorted(VALID_LABEL_STATUSES)}"
+                )
+            if gt_key not in row:
+                raise ValueError(
+                    f"Row {n}: missing '{gt_key}' key (use null for needs_review rows)"
+                )
+            rows.append(row)
     return rows
 
 
@@ -128,21 +153,29 @@ def run_eval(field: str, mode: str) -> dict:
     extracted_key: str = config["extracted_key"]
     gt_key: str = config["ground_truth_key"]
     compare: Callable[[Any, Any], bool] = config["compare"]
+    threshold: float = config["threshold"]
 
     eval_rows = load_eval_set(field)
-    fetch = get_live_extraction if mode == "live" else get_offline_extraction
 
     scored = 0
     skipped = 0
     total_score = 0.0
     failures: list[tuple[str, Any, Any]] = []
+    errors: list[tuple[str, str]] = []
 
     for row in eval_rows:
         if row.get("label_status") != "verified":
             skipped += 1
             continue
         source_file = row["source_file"]
-        extraction = fetch(source_file)
+        # Resolve fetch per-row from module globals so tests can monkeypatch
+        # get_offline_extraction / get_live_extraction.
+        fetch = get_live_extraction if mode == "live" else get_offline_extraction
+        try:
+            extraction = fetch(source_file)
+        except Exception as exc:
+            errors.append((source_file, f"{type(exc).__name__}: {exc}"))
+            continue
         actual = extraction.get(extracted_key)
         expected = row.get(gt_key)
         ok = compare(expected, actual)
@@ -158,10 +191,12 @@ def run_eval(field: str, mode: str) -> dict:
         "mode": mode,
         "scored": scored,
         "skipped": skipped,
+        "errored": len(errors),
         "weighted_avg": weighted_avg,
-        "passed": weighted_avg >= BASELINE_THRESHOLD,
+        "passed": _result_passed(weighted_avg, threshold),
         "failures": failures,
-        "threshold": BASELINE_THRESHOLD,
+        "errors": errors,
+        "threshold": threshold,
     }
 
 
@@ -176,6 +211,10 @@ def print_result(result: dict) -> None:
         print("Failures:")
         for source_file, expected, actual in result["failures"]:
             print(f"  {source_file}: expected={expected!r} actual={actual!r} score=0.0")
+    if result["errors"]:
+        print("Errors:")
+        for source_file, exc_text in result["errors"]:
+            print(f"  {source_file}: {exc_text}")
     print(f"Weighted average: {result['weighted_avg']:.3f}")
     status = "PASS" if result["passed"] else "FAIL"
     print(f"Baseline threshold: {result['threshold']:.2f} -> {status}")
