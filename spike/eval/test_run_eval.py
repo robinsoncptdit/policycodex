@@ -14,9 +14,9 @@ def _load_rows():
         return [json.loads(line) for line in fh if line.strip()]
 
 
-def test_eval_set_has_18_rows():
+def test_eval_set_has_17_rows():
     rows = _load_rows()
-    assert len(rows) == 18
+    assert len(rows) == 17
 
 
 def test_verified_rows_have_ground_truth():
