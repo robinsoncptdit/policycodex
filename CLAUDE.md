@@ -14,7 +14,9 @@ The active spec lives in `PolicyWonk-v0.1-Spec.md`. The sprint board lives in `P
 
 ## Current Status
 
-Active. Brainstorm complete, v0.1 spec and engineering tickets locked, riskiest-assumption spike passed (70.9% acceptance excluding always-null fields, recorded in `internal/PolicyWonk-Spike-Plan.md`). Week 1 of a six-week sprint is in progress, targeting a public demo at DISC (Diocesan Information Systems Conference) mid-June 2026. Pensacola-Tallahassee is install zero. The Archdiocese of Los Angeles is the reference design partner.
+Active. Brainstorm complete, v0.1 spec and engineering tickets locked, riskiest-assumption spike passed (70.9% acceptance excluding always-null fields, recorded in `internal/PolicyWonk-Spike-Plan.md`). Week 2 of a six-week sprint is in progress, targeting a public demo at DISC (Diocesan Information Systems Conference) mid-June 2026. Pensacola-Tallahassee is install zero. The Archdiocese of Los Angeles is the reference design partner.
+
+**Week-2 progress as of 2026-05-13 EOD:** 6 of 10 Committed tickets merged (AI-04, AI-14, APP-01, AI-02, INGEST-01, APP-04). 73 tests passing on main. APP-04 (the central 3-day bottleneck) cleared a day ahead of the Thu-noon checkpoint; live smoke against the PT repo succeeded end-to-end. Remaining for Friday's sprint freeze: AI-05, AI-11, INGEST-03, APP-02, AI-08.
 
 The project is open source under a maintainer model (the maintainer earns through setup, support, and customization, not through licensing).
 
@@ -26,8 +28,13 @@ The project is open source under a maintainer model (the maintainer earns throug
 - `PolicyWonk-v0.1-Tickets.md` is the engineering sprint board
 - `README.md` is the public-facing GitHub README
 - `LICENSE` is the AGPL-3.0 text
-- `ai/`, `app/` hold application code
-- `spike/` contains the runnable extraction script (`extract.py`), input PDFs, and per-policy JSON outputs
+- `ai/` holds the LLM provider abstraction (`provider.py`) and the Claude implementation (`claude_provider.py`)
+- `app/` holds App-lane code; currently `app/git_provider/` (`GitProvider` ABC + `GitHubProvider`) and `app/requirements.txt`
+- `ingest/` holds the Ingest-lane code; currently `LocalFolderConnector` (`local_folder.py`) with a `python -m ingest.local_folder <path>` CLI
+- `core/` is the stub Django app with the `/health/` smoke view
+- `manage.py` plus `policycodex_site/` is the Django 5+ project skeleton (SQLite default; APP-02 will plumb env-driven config)
+- `pytest.ini` wires pytest-django for the whole repo
+- `spike/` contains the runnable extraction script (`extract.py`), input PDFs, per-policy JSON outputs, and the `spike/eval/` regression harness (per-field eval sets, scoring CLI, README)
 
 **`internal/` (tracked, sprint workspace):**
 

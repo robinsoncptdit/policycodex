@@ -40,18 +40,18 @@ Already landed this week (closed before Tue replan):
 
 Ordered by dispatch readiness, not priority. All P0 for the sprint.
 
-| Ticket | Owner | Estimate | Depends on | Notes |
+| Ticket | Owner | Estimate | Depends on | Status |
 |---|---|---|---|---|
-| AI-14 Eval harness hardening | subagent | 1 day | AI-04 (done) | **Dispatch first.** Blocks AI-05. |
-| APP-01 Django skeleton | subagent | 1 day | OQ-03 (done) | Parallel with AI-14. |
-| AI-02 Claude provider impl | subagent | 1 day | AI-01 (done) | Parallel with AI-14 / APP-01. |
-| APP-04 GitHub provider (clone, branch, commit, push, open_pr, read_pr_state) | subagent | 3 days | APP-03 (done), REPO-03 (done), REPO-04 partial-ok | Central bottleneck. Dispatch Wed AM. |
-| INGEST-01 Local folder reader | subagent | 1 day | None | Parallel Wed. |
-| AI-05 Owner / effective-date / review-date / retention eval sets | subagent | 2 days | AI-02, AI-14 | Starts Thu after AI-14 merges. |
-| AI-11 Address taxonomy injection | subagent | 1 day | AI-04 (done) | Parallel with AI-05. Success criterion: address eval >0.700. |
-| INGEST-03 File content extraction (PDF, DOCX, MD, TXT) | subagent | 2 days | INGEST-01 | Parallel Thu. |
-| APP-02 Local auth + identity-to-Git-author | subagent | 1 day | APP-01 | Parallel Thu. |
-| AI-08 Markdown + YAML front-matter emitter | subagent | 1 day | AI-04 (done) | Fill-in when capacity opens. |
+| AI-14 Eval harness hardening | subagent | 1 day | AI-04 (done) | **DONE 2026-05-13** (merged `75d8dda`, 13 tests, plus cleanup `b5e050b`). |
+| APP-01 Django skeleton | subagent | 1 day | OQ-03 (done) | **DONE 2026-05-13** (merged `9f555fc`, 1 test, plus cleanup `14e2759`). |
+| AI-02 Claude provider impl | subagent | 1 day | AI-01 (done) | **DONE 2026-05-13** (merged `73511b9`, 10 tests). |
+| APP-04 GitHub provider (clone, branch, commit, push, open_pr, read_pr_state) | subagent | 3 days | APP-03 (done), REPO-03 (done), REPO-04 partial-ok | **DONE 2026-05-13** (merged `e0e6b41`, 36 tests, live smoke against PT succeeded; plus cleanup `7b54dc2`). Cleared Thu-noon checkpoint ~24h early. |
+| INGEST-01 Local folder reader | subagent | 1 day | None | **DONE 2026-05-13** (merged `c9d6f7e`, 10 tests, OQ-11 resolved at `c0858ad`). |
+| AI-05 Owner / effective-date / review-date / retention eval sets | subagent | 2 days | AI-02 (done), AI-14 (done) | **Ready for Fri.** Both deps closed. |
+| AI-11 Address taxonomy injection | subagent | 1 day | AI-04 (done) | **Ready for Fri.** Success criterion: address eval >0.700. |
+| INGEST-03 File content extraction (PDF, DOCX, MD, TXT) | subagent | 2 days | INGEST-01 (done) | **Ready for Fri.** |
+| APP-02 Local auth + identity-to-Git-author | subagent | 1 day | APP-01 (done) | **Ready for Fri.** |
+| AI-08 Markdown + YAML front-matter emitter | subagent | 1 day | AI-04 (done) | **Ready for Fri.** Fill-in when capacity opens. |
 
 ### Stretch (only if Committed tracks ahead; carry to Week 3 otherwise)
 
@@ -74,13 +74,13 @@ Ordered by dispatch readiness, not priority. All P0 for the sprint.
 
 ## Risks
 
-| Risk | Impact | Mitigation |
-|---|---|---|
-| APP-04 slip (M, 3-day, blocks 8+ downstream) | Week 2 stretch collapses; APP-05/APP-06 punt to Week 3 | Thu-noon checkpoint. Decompose into sub-commits (clone, branch+commit, push+open_pr, read_pr_state) so partial landing is possible. |
-| AI-12 retention injection underperforms | Retention stays <0.60 acceptance; Plan B (split retention sub-prompt) needs Week 3 schedule space | Run AI-12 against PT's actual retention policy on disk this week or early Week 3. Decision deadline: end of Week 3. |
-| OQ-08 (full PT corpus) still unexported | INGEST-06 Week-4 acceptance test has no data; AI eval scale-up blocked | Chuck action this week. The 19 spike PDFs are enough to develop against now; INGEST-06 runs Week 4. |
-| Subagent worktree isolation still flaky | Sequential dispatch limits throughput | The 05-08 git-repo-caching bug appears fixed for AI-04. If it resurfaces, accept sequential and replan capacity. |
-| Hard scope freeze Friday EOD | Week 3 work must be defined | Scarlet writes Week 3 plan Friday based on what landed. Anything reframed after Friday is Plan B / v0.2. |
+| Risk | Impact | Mitigation | Status |
+|---|---|---|---|
+| APP-04 slip (M, 3-day, blocks 8+ downstream) | Week 2 stretch collapses; APP-05/APP-06 punt to Week 3 | Thu-noon checkpoint. Decompose into sub-commits so partial landing is possible. | **Retired 2026-05-13.** APP-04 landed a day early; downstream unblocked. |
+| AI-12 retention injection underperforms | Retention stays <0.60 acceptance; Plan B (split retention sub-prompt) needs Week 3 schedule space | Run AI-12 against PT's actual retention policy on disk this week or early Week 3. Decision deadline: end of Week 3. | Active. AI-12 still pending (Stretch); depends on AI-05 landing Fri. |
+| OQ-08 (full PT corpus) still unexported | INGEST-06 Week-4 acceptance test has no data; AI eval scale-up blocked | Chuck action this week. The 19 spike PDFs are enough to develop against now; INGEST-06 runs Week 4. | Active. Surface Fri AM in the next-step prompt. |
+| Subagent worktree isolation still flaky | Sequential dispatch limits throughput | The 05-08 git-repo-caching bug appears fixed for AI-04. If it resurfaces, accept sequential and replan capacity. | **Retired 2026-05-13.** Five successful parallel worktree dispatches this week, zero isolation failures. |
+| Hard scope freeze Friday EOD | Week 3 work must be defined | Scarlet writes Week 3 plan Friday based on what landed. Anything reframed after Friday is Plan B / v0.2. | Active. Friday deliverable. |
 
 ## Definition of Done (Week 2)
 
@@ -98,10 +98,11 @@ Ordered by dispatch readiness, not priority. All P0 for the sprint.
 |---|---|
 | Mon May 11 | Done. AGPL, Django, Astro, monolithic-prompt resolved. REPO-01 / REPO-03 / REPO-04 partial. First public push live. |
 | Tue May 12 AM | Done. OQ-04 resolved; AI-04 landed. **Replan: Committed/Stretch cutline installed.** |
-| Tue May 12 PM | Dispatch in parallel: AI-14, APP-01, AI-02. |
-| Wed May 13 | AI-14 / APP-01 / AI-02 expected to merge. Dispatch APP-04 + INGEST-01. |
-| Thu May 14 | Dispatch AI-05 (after AI-14), AI-11, INGEST-03, APP-02. **APP-04 Thu-noon checkpoint.** AI-08 fill-in. |
-| Fri May 15 | Hard scope freeze EOD. APP-04 finishing. Stretch dispatched only if Committed tracks. AI-12 decision. Week 3 plan written. |
+| Tue May 12 PM | (Dispatch slipped to Wed AM — session ended without firing.) |
+| Wed May 13 AM | **Done.** AI-14, APP-01, AI-02 merged in parallel via worktree isolation. 35/35 tests pass. |
+| Wed May 13 PM | **Done.** APP-04 + INGEST-01 dispatched a day early (Thu work pulled forward). Both merged with code-review approval. APP-04 live smoke against PT succeeded. OQ-11 raised and resolved. 73/73 tests pass. Real PR #1 on PT closed by Chuck. |
+| Thu May 14 | (Open.) Slate originally planned for Thu is now Fri's: AI-05, AI-11, INGEST-03, APP-02, AI-08. Some or all dispatch Fri AM. |
+| Fri May 15 | Hard scope freeze EOD. Dispatch the remaining 5 Committed tickets in parallel waves. AI-12 decision. AI-15 close-out. OQ-05 / OQ-08 next steps. Week 3 plan written. |
 
 ## What This Plan Does Not Cover
 
