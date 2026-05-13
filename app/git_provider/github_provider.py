@@ -69,9 +69,22 @@ class GitHubProvider(GitProvider):
             capture_output=True,
         )
         if result.returncode != 0:
+            # Strip any tokenized URL from stderr before raising
+            stderr = result.stderr.decode(errors="replace").replace(token, "<redacted>")
             raise RuntimeError(
-                f"git clone failed (exit {result.returncode}): "
-                f"{result.stderr.decode(errors='replace')}"
+                f"git clone failed (exit {result.returncode}): {stderr}"
+            )
+        # Reset origin to clean URL so the token is not persisted on disk.
+        # push() fetches a fresh token and rewrites the URL on each call.
+        reset = subprocess.run(
+            ["git", "remote", "set-url", "origin", repo_url],
+            cwd=dest,
+            capture_output=True,
+        )
+        if reset.returncode != 0:
+            raise RuntimeError(
+                f"git remote set-url origin failed (exit {reset.returncode}): "
+                f"{reset.stderr.decode(errors='replace')}"
             )
 
     def branch(self, name: str, working_dir: Path) -> None:
@@ -156,9 +169,9 @@ class GitHubProvider(GitProvider):
             capture_output=True,
         )
         if result.returncode != 0:
+            stderr = result.stderr.decode(errors="replace").replace(token, "<redacted>")
             raise RuntimeError(
-                f"git push failed (exit {result.returncode}): "
-                f"{result.stderr.decode(errors='replace')}"
+                f"git push failed (exit {result.returncode}): {stderr}"
             )
 
     def open_pr(

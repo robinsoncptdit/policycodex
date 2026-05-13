@@ -51,12 +51,29 @@ def test_clone_invokes_git_with_tokenized_url(tmp_path):
             run.return_value = MagicMock(returncode=0)
             p = GitHubProvider(config=cfg, github_client=MagicMock())
             p.clone("https://github.com/foo/bar.git", tmp_path / "dest")
-    args, kwargs = run.call_args
-    cmd = args[0]
+    clone_call = run.call_args_list[0]
+    cmd = clone_call[0][0]
     assert cmd[0] == "git"
     assert cmd[1] == "clone"
     assert any("x-access-token:ghs_TOK@github.com/foo/bar.git" in part for part in cmd)
     assert str(tmp_path / "dest") in cmd
+
+
+def test_clone_resets_origin_to_clean_url(tmp_path):
+    """Token must not be persisted in the on-disk origin URL."""
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    dest = tmp_path / "dest"
+    with patch("app.git_provider.github_provider._build_installation_token", return_value="ghs_TOK"):
+        with patch("app.git_provider.github_provider.subprocess.run") as run:
+            run.return_value = MagicMock(returncode=0)
+            p = GitHubProvider(config=cfg, github_client=MagicMock())
+            p.clone("https://github.com/foo/bar.git", dest)
+    reset_call = run.call_args_list[1]
+    assert reset_call[0][0] == [
+        "git", "remote", "set-url", "origin", "https://github.com/foo/bar.git"
+    ]
+    assert reset_call[1]["cwd"] == dest
 
 
 def test_clone_raises_on_nonzero_exit(tmp_path):
