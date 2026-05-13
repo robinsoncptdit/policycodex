@@ -2,6 +2,8 @@
 
 *P0 work broken into sprint-board tickets, mapped to the four lanes. Architecture is Git-backed: every policy is a markdown file in a private GitHub repo per diocese, every edit is a commit, every gate is a PR state, every publish runs in GitHub Actions.*
 
+*A subset of policies are **foundational** — their structured contents (classifications, retention schedule) drive app configuration. These live as `policies/<slug>/` bundles (`policy.md` + `data.yaml`) and get four layers of deletion protection. Design captured in `internal/PolicyWonk-Foundational-Policy-Design.md` (approved 2026-05-13). Tickets that reference this design: AI-11, AI-12, INGEST-07, APP-15, APP-20, APP-21, REPO-09.*
+
 ## Sizing Convention
 
 - **S** = 1 to 2 days of focused work
@@ -33,6 +35,7 @@ Six weeks, four lanes. Hard scope freeze at the end of Week 2.
 | REPO-06 | CONTRIBUTING.md naming the configurable-vs-opinionated split | S | 5 | Single owner |
 | REPO-07 | Issue and PR templates on the PolicyCodex repo | S | 5 | Single owner |
 | REPO-08 | Upgrade `Diocese-of-Pensacola-Tallahassee` GitHub org from Free to Team tier (~$4/user/month) so branch protection on private `pt-policy` becomes enforceable. Tracked previously as OQ-10. **Must close before week 4 lane acceptance** to satisfy PRD G3 (audit trail). Chuck + PT IT director action. | S | 4 | REPO-04 |
+| REPO-09 | Pre-merge CI guard for foundational policies on the diocese policy repo (GitHub Action). Block any PR diff that (a) deletes a file declaring `foundational: true` in its frontmatter, or (b) empties out a declared `provides:` capability. L2 protection layer per `internal/PolicyWonk-Foundational-Policy-Design.md`. Installed once per diocese repo (likely scaffolded by APP-04 / REPO-04). | S | 3-4 | REPO-04, APP-15 |
 
 ## Ingest Lane (P0.1)
 
@@ -46,6 +49,7 @@ Scope per the v0.1 PRD: **Local folder ingest only.** Native SharePoint, OneDriv
 | INGEST-04 | Source manifest data model (path, hash, last-modified, source label) | S | 2 | None |
 | INGEST-05 | Incremental re-run support (skip unchanged files via hash comparison) | S | 3 | INGEST-04 |
 | INGEST-06 | Test ingest against the full PT policy corpus exported to a local folder | S | 4 | All Ingest tickets |
+| INGEST-07 | Bundle-aware policy reader: when `policies/<slug>/` is a directory containing `policy.md` (frontmatter declares `foundational: true` and `provides: [...]`) plus `data.yaml`, treat the directory as one logical policy in the inventory. Non-data-bearing policies stay as flat `policies/<slug>.md` files. See `internal/PolicyWonk-Foundational-Policy-Design.md`. | S | 3 | INGEST-03 |
 
 **Lane acceptance (week 4):** Given a local directory containing the full PT policy corpus (50+ files), the ingest returns a structured manifest with source paths, content hashes, and timestamps in under 5 minutes. Re-running against the same directory with one file changed re-processes only the changed file. Running against a missing or empty directory fails with a clear error naming the offending path.
 
@@ -58,16 +62,16 @@ Scope per the v0.1 PRD: **Local folder ingest only.** Native SharePoint, OneDriv
 | AI-03 | Stub implementations for OpenAI, Gemini, Azure, local Llama | S | 5 | AI-01 |
 | AI-04 | Category extraction eval set against the monolithic prompt (OQ-04 resolved 2026-05-12: monolithic kept; deliverable is labeled eval set + scoring harness + regression baseline, not a separate prompt file) | S | 1-2 | AI-02 |
 | AI-05 | Owner, effective date, review date, retention extraction eval sets against the monolithic prompt | M | 2 | AI-02, AI-14 |
-| AI-06 | Chapter-section-item address suggestion eval set against the monolithic prompt | S | 2 | AI-02 |
+| AI-06 | Chapter-section-item address suggestion eval set against the monolithic prompt. **Carried forward from Week 2.** AI-11 (Week 2) injected the PT taxonomy but committed without an address eval set (the seed it produced violated the AI-14 schema; see 2026-05-13 review). AI-06 properly delivers it: 18 verified or `needs_review` rows under the AI-14 hardened schema, scored against the post-AI-11 outputs. | S | 3 | AI-02, AI-11 |
 | AI-07 | Confidence scoring on all extraction outputs | S | 3 | AI-04, AI-05, AI-06 |
 | AI-08 | Markdown plus YAML front matter emitter | S | 2 | AI-04, AI-05, AI-06 |
 | AI-09 | Wire AI-suggest buttons into the onboarding wizard | S | 4 | APP-08 (wizard skeleton) |
 | AI-10 | Inventory pass orchestrator: runs all extractions on a manifest, commits markdown to the diocese policy repo as initial drafts | M | 3 | All AI tickets, APP-04 (Git ops) |
-| AI-11 | Inject diocese's chosen address taxonomy (LA chapters by default) into the extraction prompt context. **Success criterion:** address-field eval score above 0.700 baseline (per `internal/PolicyWonk-Spike-Plan.md`). | S | 1 | AI-04, AI-06 |
-| AI-12 | Inject the diocese's retention policy (and any other source-of-truth reference documents) into the extraction prompt context. Resolves the 0.144 retention score from the spike. **For first land, use a hardcoded path to PT's retention policy on disk.** APP-15 (wizard screen 7) wires the path into the UI later. | M | 2 | AI-05 |
+| AI-11 | Inject diocese's chosen address taxonomy into the extraction prompt context. **Resolved 2026-05-13.** For PT (install zero), the taxonomy is sourced from PT's own Document Retention Policy (Section 3.0 + Appendix A). Landed as `ai/taxonomies/pt_classification.yaml` + prompt injection in `spike/extract.py` + a `--outputs` / `POLICYCODEX_EVAL_OUTPUTS` flag on the eval harness. AI-04 category eval still scores 1.000 (no regression). The address eval seed was withdrawn at review (Critical issues); AI-06 (Week 3) delivers it. LA chapter list deferred to when LA onboards. | S | 1 | AI-04 |
+| AI-12 | Wire AI extraction to read `policies/document-retention/data.yaml` from the local working copy of the policy repo (the foundational-policy bundle scaffolded by APP-15). Replaces "hardcoded path to PT retention policy PDF" — the bundle pattern from the 2026-05-13 foundational-policy design (`internal/PolicyWonk-Foundational-Policy-Design.md`) means the structured retention schedule already lives in YAML. AI-11 already lands the taxonomy at `ai/taxonomies/pt_classification.yaml`; AI-12 moves the read location to the policy repo and lets edits flow live. Resolves the 0.144 retention score from the spike. **Shrinks M→S** because PDF parsing moved upstream to APP-15. | S | 3 | AI-05, INGEST-07 |
 | AI-13 | Gap-detection pass: flag any policy whose type is not represented in the diocese's retention schedule | S | 3 | AI-12 |
 | AI-14 | AI-04 followup: harden eval harness before AI-05. Strict `label_status` validation (raise on unknowns), row-shape validation (missing keys distinguishable from null), try/except around per-row fetch in both `--offline` and `--live` modes so one failure does not discard the rest of the run, decide per-row vs per-field `label_status` schema before a second JSONL exists, move `BASELINE_THRESHOLD` into the dispatch table as a per-field value, add comparator unit tests (`_int_eq`, `_iso_date_eq` happy/unhappy/null) and a threshold-boundary test, add `spike/eval/README.md` covering invocation and how to add rows. Drop or rename the dead `extracted_category` / `human_score` columns in `category_eval.jsonl`. **Must land before AI-05 starts** so the schema and error handling don't get retro-fixed under time pressure. | S | 2 | AI-04 |
-| AI-15 | Label or drop the 4 `needs_review` rows in `spike/eval/category_eval.jsonl` (`Appendix 16 Code of Business Conduct`, `Appendix 19 Whistleblower`, `Appendix 2 Pastoral Council`, `Document Retention Policy`). Without resolution, AI-05 inherits an inconsistent ground-truth dataset. **Chuck action:** ~10 min review against the cached `outputs/*.json`. | S | 2 | AI-04 |
+| AI-15 | Label or drop the 4 `needs_review` rows in `spike/eval/category_eval.jsonl`. **Resolved 2026-05-13** (delegated from Chuck): Appendix 16 verified as HR, Appendix 19 verified as HR, Appendix 2 verified as "Parish Operations" (new vocab entry), Document Retention Policy dropped (now the source-of-truth reference doc per the foundational-policy design, not an inventory policy). Eval set now 17 verified rows, 0 needs_review. | S | 2 | AI-04 |
 
 **Lane acceptance (week 4):** Given a manifest of 50+ files, the inventory pass produces matching markdown files with complete YAML front matter, commits them to the diocese policy repo on a draft branch, and opens a single bulk PR. AI suggestion acceptance rate is measurable against a human-reviewed PT subset.
 
@@ -89,11 +93,13 @@ Scope per the v0.1 PRD: **Local folder ingest only.** Native SharePoint, OneDriv
 | APP-12 | Wizard screen 4: reviewer roles and required approvers (writes branch protection rules) | S | 4 | APP-08, APP-04 |
 | APP-13 | Wizard screen 5: retention defaults | S | 4 | APP-08 |
 | APP-14 | Wizard screen 6: LLM provider picker | S | 4 | APP-08 |
-| APP-15 | Wizard screen 7: source-of-truth reference documents (point at retention policy, etc.). Stores uploaded files in `references/` in the policy repo. | S | 4 | APP-08 |
+| APP-15 | Wizard screen 7: upload retention policy PDF, run AI extraction to produce a draft `data.yaml` (8 classifications + retention schedule, per the bundle schema), admin reviews via typed table UI, scaffold `policies/document-retention/` as the diocese's first foundational policy (policy.md with `foundational: true` and `provides: [classifications, retention-schedule]`, data.yaml, and archived source.pdf). Replaces prior scope of "point at retention policy"; the structured-data step is what the AI extraction (AI-11/AI-12) and the app UI consume. **Grows S→M** to absorb PDF parse + admin review UX. See `internal/PolicyWonk-Foundational-Policy-Design.md`. | M | 4 | APP-08, INGEST-03 |
 | APP-16 | Configuration commit: persist wizard choices as a config file in the policy repo | S | 4 | All wizard tickets |
 | APP-17 | PR-state-to-gate mapping: Drafted (open), Reviewed (approved), Published (merged) | S | 3 | APP-04, APP-07 |
 | APP-18 | Approve action in UI calls GitHub review API on behalf of authenticated reviewer | S | 3 | APP-04 |
 | APP-19 | Publish action in UI merges PR (requires merge permission) | S | 3 | APP-04 |
+| APP-20 | Foundational-policy frontmatter recognition + L1 UI gate. App reads `foundational: true` and `provides: [...]` from each policy's frontmatter at catalog-load time. For any foundational policy, the catalog and detail views hide or disable the Delete button and show a "this policy is foundational; edit through the typed-table UI" banner. First protection layer against accidental deletion. See `internal/PolicyWonk-Foundational-Policy-Design.md` for the 4-layer model. | S | 3 | APP-06, INGEST-07 |
+| APP-21 | App startup self-check (L3 protection layer). At Django app boot, validate that every `provides:` capability the app needs (`classifications`, `retention-schedule`) is satisfied by exactly one published foundational policy in the local working copy. On miss or invalid `data.yaml`, refuse to serve and show a clear error pointing at the broken file. See `internal/PolicyWonk-Foundational-Policy-Design.md`. | S | 3 | APP-05, INGEST-07 |
 
 **Lane acceptance (week 4):** A new admin can complete the seven-screen wizard (including pointing PolicyCodex at the diocese's retention policy as a source-of-truth reference), ingest from a local folder of exported policies, see policies appear as drafts in the policy repo with retention values sourced from the reference document, edit a policy through the form (which opens a PR), have a reviewer approve via the UI, and publish (which merges the PR and triggers the handbook build).
 
