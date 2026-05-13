@@ -114,8 +114,36 @@ class GitHubProvider(GitProvider):
             )
         return rev.stdout.decode().strip()
 
-    def push(self, branch, working_dir):
-        raise NotImplementedError
+    def push(self, branch: str, working_dir: Path) -> None:
+        get_url = subprocess.run(
+            ["git", "remote", "get-url", "origin"],
+            cwd=working_dir,
+            capture_output=True,
+        )
+        if get_url.returncode != 0:
+            raise RuntimeError(
+                f"git remote get-url failed (exit {get_url.returncode}): "
+                f"{get_url.stderr.decode(errors='replace')}"
+            )
+        origin_url = get_url.stdout.decode().strip()
+        if not origin_url.startswith("https://github.com/"):
+            raise ValueError(f"Origin is not an https://github.com/ URL: {origin_url}")
+        token = self._installation_token()
+        tokenized = origin_url.replace(
+            "https://github.com/",
+            f"https://x-access-token:{token}@github.com/",
+            1,
+        )
+        result = subprocess.run(
+            ["git", "push", tokenized, branch],
+            cwd=working_dir,
+            capture_output=True,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"git push failed (exit {result.returncode}): "
+                f"{result.stderr.decode(errors='replace')}"
+            )
 
     def open_pr(self, title, body, head_branch, base_branch, working_dir):
         raise NotImplementedError

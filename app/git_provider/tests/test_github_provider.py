@@ -132,3 +132,37 @@ def test_commit_raises_on_nonzero_exit(tmp_path):
         p = GitHubProvider(config=cfg, github_client=MagicMock())
         with pytest.raises(RuntimeError, match="git commit"):
             p.commit("msg", [Path("a.md")], "n", "e", tmp_path / "wd")
+
+
+def test_push_rewrites_remote_url_with_token(tmp_path):
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    wd = tmp_path / "wd"
+    with patch("app.git_provider.github_provider._build_installation_token", return_value="ghs_PUSH"):
+        with patch("app.git_provider.github_provider.subprocess.run") as run:
+            run.side_effect = [
+                MagicMock(returncode=0, stdout=b"https://github.com/foo/bar.git\n"),
+                MagicMock(returncode=0),
+            ]
+            p = GitHubProvider(config=cfg, github_client=MagicMock())
+            p.push("policycodex/draft-foo", wd)
+    push_call = run.call_args_list[1]
+    cmd = push_call[0][0]
+    assert cmd[0] == "git"
+    assert cmd[1] == "push"
+    assert any("x-access-token:ghs_PUSH@github.com/foo/bar.git" in c for c in cmd)
+    assert "policycodex/draft-foo" in cmd
+
+
+def test_push_raises_on_nonzero_exit(tmp_path):
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    with patch("app.git_provider.github_provider._build_installation_token", return_value="t"):
+        with patch("app.git_provider.github_provider.subprocess.run") as run:
+            run.side_effect = [
+                MagicMock(returncode=0, stdout=b"https://github.com/foo/bar.git\n"),
+                MagicMock(returncode=1, stderr=b"rejected"),
+            ]
+            p = GitHubProvider(config=cfg, github_client=MagicMock())
+            with pytest.raises(RuntimeError, match="git push"):
+                p.push("br", tmp_path / "wd")
