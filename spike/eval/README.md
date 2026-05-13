@@ -24,10 +24,10 @@ but awaiting eval sets: `owner_role`, `effective_date`,
 
 Filename: `{field}_eval.jsonl`. One JSON object per line. Required keys:
 
-- `source_file` (string) — filename in `spike/inputs/`.
-- `label_status` (string) — `"verified"` or `"needs_review"`. Strict;
+- `source_file` (string): filename in `spike/inputs/`.
+- `label_status` (string): `"verified"` or `"needs_review"`. Strict;
   unknown values raise at load time.
-- `ground_truth_{field}` — the human-labeled correct value, or `null`
+- `ground_truth_{field}`: the human-labeled correct value, or `null`
   for `needs_review` rows. Key must be present; missing key raises at
   load time.
 
