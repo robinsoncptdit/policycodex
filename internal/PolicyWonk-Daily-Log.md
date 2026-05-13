@@ -56,3 +56,7 @@ Format: `- HH:MM PT — short description`
   - **AI-12 deps loosened**: code dep is AI-05 only; APP-08 is UI wiring later. Will use hardcoded PT retention path for first land.
   - **Week 2 scope**: Committed = 10 tickets (AI-14, APP-01, AI-02, APP-04, INGEST-01, AI-05, AI-11, INGEST-03, APP-02, AI-08). Stretch = AI-12, AI-06, INGEST-02, PUBLISH-01, APP-05, APP-06, AI-15. The original 05-08 Week 2 plan was overcommitted (~13S+6M); this is the tightened cut.
 - 10:45 PT — Replan executed in repo: tickets file got AI-15 (label needs_review rows) and REPO-08 (graduate OQ-10 to a numbered ticket with Week-4 deadline). AI-12 deps narrowed to `AI-05` only. AI-11 success criterion (address eval >0.700) moved from sprint plan into the ticket itself. REPO-04 partial status now explicitly references REPO-08. Week 2 sprint plan rewritten with Committed/Stretch backlog, discipline rules, Tue-Fri dispatch order, and tightened Definition of Done. OQ-05 / OQ-08 got explicit "next action (Chuck)" lines; OQ-10 marked graduated to REPO-08.
+
+## 2026-05-13 (Wed, Day 3 of Week 2)
+
+- 11:22 PT — Session resumed. Status check: no commits since `5da1304` (Tue 10:45 replan), clean working tree, no worktrees beyond main, no in-flight tasks. The Tue-PM parallel dispatch trio (AI-14, APP-01, AI-02) did not go out; sprint plan's "Wed expected to merge" milestone has slipped one day. Carrying it forward to a Wed-AM dispatch under `superpowers:writing-plans` per project convention (no code subagents without a written plan + Chuck's sign-off).
