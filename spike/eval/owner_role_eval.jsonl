@@ -1,0 +1,17 @@
+{"source_file": "101 Internal Controls.pdf", "ground_truth_owner_role": "CFO", "label_status": "verified"}
+{"source_file": "201 Financial Planning-3.pdf", "ground_truth_owner_role": "CFO", "label_status": "verified"}
+{"source_file": "2022 Cybersecurity Policy.pdf", "ground_truth_owner_role": "CFO", "label_status": "verified"}
+{"source_file": "301 Funds Management - Income.pdf", "ground_truth_owner_role": "CFO", "label_status": "verified"}
+{"source_file": "401 Funds Management - Expenditures.pdf", "ground_truth_owner_role": "CFO", "label_status": "verified"}
+{"source_file": "501 Personnel  Payroll Management   Independent Contractors.pdf", "ground_truth_owner_role": null, "label_status": "needs_review"}
+{"source_file": "Acceptable_Use_Policy.pdf", "ground_truth_owner_role": null, "label_status": "needs_review"}
+{"source_file": "Appendix 16  Diocesan Code of Business Conduct Policy.pdf", "ground_truth_owner_role": null, "label_status": "needs_review"}
+{"source_file": "Appendix 18 Diocesan Fraud Policy.pdf", "ground_truth_owner_role": "CFO", "label_status": "verified"}
+{"source_file": "Appendix 19 Diocesan Whistleblower Policy.pdf", "ground_truth_owner_role": null, "label_status": "needs_review"}
+{"source_file": "Appendix 2 Pastoral Council.pdf", "ground_truth_owner_role": null, "label_status": "needs_review"}
+{"source_file": "Appendix 3 Finance Council.pdf", "ground_truth_owner_role": "CFO", "label_status": "verified"}
+{"source_file": "Appendix 5 Handling of Offertory Collections-1.pdf", "ground_truth_owner_role": null, "label_status": "needs_review"}
+{"source_file": "Appendix 8 Coverage Under FLSA.pdf", "ground_truth_owner_role": "HR Director", "label_status": "verified"}
+{"source_file": "InformationOrSecurityIncidentPolicy.pdf", "ground_truth_owner_role": null, "label_status": "needs_review"}
+{"source_file": "Internet Usage Policy-1.pdf", "ground_truth_owner_role": "IT Director", "label_status": "verified"}
+{"source_file": "Wireless_Communication_Policy.pdf", "ground_truth_owner_role": "IT Director", "label_status": "verified"}
