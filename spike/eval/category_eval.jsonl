@@ -5,14 +5,13 @@
 {"source_file": "401 Funds Management - Expenditures.pdf", "ground_truth_category": "Finance", "label_status": "verified"}
 {"source_file": "501 Personnel  Payroll Management   Independent Contractors.pdf", "ground_truth_category": "HR", "label_status": "verified"}
 {"source_file": "Acceptable_Use_Policy.pdf", "ground_truth_category": "IT", "label_status": "verified"}
-{"source_file": "Appendix 16  Diocesan Code of Business Conduct Policy.pdf", "ground_truth_category": null, "label_status": "needs_review"}
+{"source_file": "Appendix 16  Diocesan Code of Business Conduct Policy.pdf", "ground_truth_category": "HR", "label_status": "verified"}
 {"source_file": "Appendix 18 Diocesan Fraud Policy.pdf", "ground_truth_category": "Finance", "label_status": "verified"}
-{"source_file": "Appendix 19 Diocesan Whistleblower Policy.pdf", "ground_truth_category": null, "label_status": "needs_review"}
-{"source_file": "Appendix 2 Pastoral Council.pdf", "ground_truth_category": null, "label_status": "needs_review"}
+{"source_file": "Appendix 19 Diocesan Whistleblower Policy.pdf", "ground_truth_category": "HR", "label_status": "verified"}
+{"source_file": "Appendix 2 Pastoral Council.pdf", "ground_truth_category": "Parish Operations", "label_status": "verified"}
 {"source_file": "Appendix 3 Finance Council.pdf", "ground_truth_category": "Finance", "label_status": "verified"}
 {"source_file": "Appendix 5 Handling of Offertory Collections-1.pdf", "ground_truth_category": "Finance", "label_status": "verified"}
 {"source_file": "Appendix 8 Coverage Under FLSA.pdf", "ground_truth_category": "HR", "label_status": "verified"}
-{"source_file": "Document Retention Policy.pdf", "ground_truth_category": null, "label_status": "needs_review"}
 {"source_file": "InformationOrSecurityIncidentPolicy.pdf", "ground_truth_category": "IT", "label_status": "verified"}
 {"source_file": "Internet Usage Policy-1.pdf", "ground_truth_category": "IT", "label_status": "verified"}
 {"source_file": "Wireless_Communication_Policy.pdf", "ground_truth_category": "IT", "label_status": "verified"}
