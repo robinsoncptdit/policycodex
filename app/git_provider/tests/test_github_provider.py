@@ -247,3 +247,63 @@ def test_read_pr_state_mapping(tmp_path, pr_state, merged, approvals, expected):
         p = GitHubProvider(config=cfg, github_client=fake_client)
         assert p.read_pr_state(123, wd) == expected
     fake_repo.get_pull.assert_called_once_with(123)
+
+
+def test_build_installation_token_uses_github_integration(tmp_path):
+    """Regression guard: re-introducing AppAuth.get_installation_auth(...).token
+    would fail this test before failing the smoke."""
+    from app.git_provider.github_provider import _build_installation_token
+
+    cfg = MagicMock()
+    cfg.app_id = 42
+    cfg.installation_id = 99
+    cfg.private_key_path = tmp_path / "key.pem"
+    (tmp_path / "key.pem").write_text("FAKE PEM CONTENT")
+
+    with patch("app.git_provider.github_provider.Auth") as MockAuth, \
+         patch("app.git_provider.github_provider.GithubIntegration") as MockIntegration:
+        fake_app_auth = MagicMock()
+        MockAuth.AppAuth.return_value = fake_app_auth
+        fake_integration = MagicMock()
+        MockIntegration.return_value = fake_integration
+        fake_access = MagicMock()
+        fake_access.token = "ghs_real_token_xyz"
+        fake_integration.get_access_token.return_value = fake_access
+
+        token = _build_installation_token(cfg)
+
+    assert token == "ghs_real_token_xyz"
+    MockAuth.AppAuth.assert_called_once_with(42, "FAKE PEM CONTENT")
+    MockIntegration.assert_called_once_with(auth=fake_app_auth)
+    fake_integration.get_access_token.assert_called_once_with(99)
+
+
+def test_default_client_built_via_get_github_for_installation(tmp_path):
+    """Regression guard: the else-branch in __init__ is otherwise only
+    exercised by the live smoke."""
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+
+    with patch("app.git_provider.github_provider.Auth") as MockAuth, \
+         patch("app.git_provider.github_provider.GithubIntegration") as MockIntegration:
+        MockAuth.AppAuth.return_value = MagicMock()
+        fake_integration = MagicMock()
+        MockIntegration.return_value = fake_integration
+        fake_client = MagicMock()
+        fake_integration.get_github_for_installation.return_value = fake_client
+
+        p = GitHubProvider(config=cfg)
+
+    fake_integration.get_github_for_installation.assert_called_once_with(2)
+    assert p._client is fake_client
+
+
+def test_parse_owner_repo_handles_dots_in_repo_name():
+    """Regex must accept dotted repo names (e.g., owner.github.io)."""
+    from app.git_provider.github_provider import _parse_owner_repo
+
+    assert _parse_owner_repo("https://github.com/foo/bar") == "foo/bar"
+    assert _parse_owner_repo("https://github.com/foo/bar.git") == "foo/bar"
+    assert _parse_owner_repo("https://github.com/foo/bar.baz") == "foo/bar.baz"
+    assert _parse_owner_repo("https://github.com/foo/bar.baz.git") == "foo/bar.baz"
+    assert _parse_owner_repo("https://github.com/owner/owner.github.io") == "owner/owner.github.io"

@@ -12,7 +12,7 @@ from app.git_provider.base import GitProvider
 from app.git_provider.github_config import GitHubConfig, load_github_config
 
 
-_REPO_RE = re.compile(r"^https://github\.com/([^/]+)/([^/.]+)(?:\.git)?/?$")
+_REPO_RE = re.compile(r"^https://github\.com/([^/]+)/(.+?)(?:\.git)?/?$")
 
 
 def _parse_owner_repo(origin_url: str) -> str:
