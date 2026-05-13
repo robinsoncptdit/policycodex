@@ -114,3 +114,33 @@ def test_run_eval_isolates_per_row_fetch_failures(tmp_path, monkeypatch):
     assert result["weighted_avg"] == 1.0
     assert len(result["errors"]) == 1
     assert result["errors"][0][0] == "missing.pdf"
+
+
+from run_eval import _eq, _int_eq, _iso_date_eq
+
+
+def test_eq_happy_unhappy_null():
+    assert _eq("HR", "HR") is True
+    assert _eq("HR", "Finance") is False
+    assert _eq(None, None) is True
+    assert _eq(None, "HR") is False
+    assert _eq("HR", None) is False
+
+
+def test_int_eq_happy_unhappy_null():
+    assert _int_eq(7, 7) is True
+    assert _int_eq(7, "7") is True
+    assert _int_eq(7, 8) is False
+    assert _int_eq(None, None) is True
+    assert _int_eq(None, 7) is False
+    assert _int_eq(7, None) is False
+    assert _int_eq("seven", 7) is False
+
+
+def test_iso_date_eq_happy_unhappy_null():
+    assert _iso_date_eq("2024-01-01", "2024-01-01") is True
+    assert _iso_date_eq("2024-01-01", " 2024-01-01 ") is True
+    assert _iso_date_eq("2024-01-01", "2024-01-02") is False
+    assert _iso_date_eq(None, None) is True
+    assert _iso_date_eq(None, "2024-01-01") is False
+    assert _iso_date_eq("2024-01-01", None) is False
