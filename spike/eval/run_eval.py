@@ -22,7 +22,8 @@ SPIKE_DIR = EVAL_DIR.parent
 OUTPUTS_DIR = SPIKE_DIR / "outputs"
 INPUTS_DIR = SPIKE_DIR / "inputs"
 
-BASELINE_THRESHOLD = 0.85
+def _result_passed(weighted_avg: float, threshold: float) -> bool:
+    return weighted_avg >= threshold
 
 
 def _eq(expected: Any, actual: Any) -> bool:
@@ -51,31 +52,37 @@ FIELD_DISPATCH: dict[str, dict[str, Any]] = {
         "extracted_key": "category",
         "ground_truth_key": "ground_truth_category",
         "compare": _eq,
+        "threshold": 0.85,
     },
     "owner_role": {
         "extracted_key": "owner_role",
         "ground_truth_key": "ground_truth_owner_role",
         "compare": _eq,
+        "threshold": 0.85,
     },
     "effective_date": {
         "extracted_key": "effective_date",
         "ground_truth_key": "ground_truth_effective_date",
         "compare": _iso_date_eq,
+        "threshold": 0.85,
     },
     "last_review_date": {
         "extracted_key": "last_review_date",
         "ground_truth_key": "ground_truth_last_review_date",
         "compare": _iso_date_eq,
+        "threshold": 0.85,
     },
     "retention_period_years": {
         "extracted_key": "retention_period_years",
         "ground_truth_key": "ground_truth_retention_period_years",
         "compare": _int_eq,
+        "threshold": 0.85,
     },
     "suggested_chapter_section_item": {
         "extracted_key": "suggested_chapter_section_item",
         "ground_truth_key": "ground_truth_suggested_chapter_section_item",
         "compare": _eq,
+        "threshold": 0.85,
     },
 }
 
@@ -128,6 +135,7 @@ def run_eval(field: str, mode: str) -> dict:
     extracted_key: str = config["extracted_key"]
     gt_key: str = config["ground_truth_key"]
     compare: Callable[[Any, Any], bool] = config["compare"]
+    threshold: float = config["threshold"]
 
     eval_rows = load_eval_set(field)
     fetch = get_live_extraction if mode == "live" else get_offline_extraction
@@ -159,9 +167,9 @@ def run_eval(field: str, mode: str) -> dict:
         "scored": scored,
         "skipped": skipped,
         "weighted_avg": weighted_avg,
-        "passed": weighted_avg >= BASELINE_THRESHOLD,
+        "passed": _result_passed(weighted_avg, threshold),
         "failures": failures,
-        "threshold": BASELINE_THRESHOLD,
+        "threshold": threshold,
     }
 
 

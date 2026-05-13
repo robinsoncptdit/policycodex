@@ -45,3 +45,15 @@ def test_offline_run_skips_needs_review_rows():
     expected_skipped = sum(1 for r in rows if r["label_status"] == "needs_review")
     assert result["skipped"] == expected_skipped
     assert result["scored"] + result["skipped"] == len(rows)
+
+
+def test_per_field_threshold_used_for_pass_fail():
+    from run_eval import FIELD_DISPATCH
+    assert "threshold" in FIELD_DISPATCH["category"]
+    assert FIELD_DISPATCH["category"]["threshold"] == 0.85
+
+
+def test_threshold_boundary_passes_at_exact_value():
+    from run_eval import _result_passed
+    assert _result_passed(weighted_avg=0.85, threshold=0.85) is True
+    assert _result_passed(weighted_avg=0.8499999, threshold=0.85) is False
