@@ -19,6 +19,8 @@ class LocalFolderConnector:
 
     def walk(self) -> Iterator[Path]:
         for entry in sorted(self._root.rglob("*")):
+            if entry.is_symlink():
+                continue
             if not entry.is_file():
                 continue
             relative = entry.relative_to(self._root)

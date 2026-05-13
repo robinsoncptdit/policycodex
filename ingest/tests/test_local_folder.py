@@ -42,3 +42,12 @@ def test_walk_skips_files_inside_hidden_dirs(tmp_path):
     nested_visible.write_text("still nope")
     result = sorted(p.name for p in LocalFolderConnector(tmp_path).walk())
     assert result == ["ok.txt"]
+
+
+def test_walk_does_not_follow_symlinks(tmp_path):
+    real = tmp_path / "real.txt"
+    real.write_text("real content")
+    link = tmp_path / "link_to_real.txt"
+    link.symlink_to(real)
+    result = sorted(p.name for p in LocalFolderConnector(tmp_path).walk())
+    assert result == ["real.txt"]
