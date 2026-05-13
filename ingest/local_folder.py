@@ -35,3 +35,21 @@ class LocalFolderConnector:
             yield entry
         if yielded == 0:
             raise RuntimeError(f"Source folder contains no files: {self._root}")
+
+
+def main(argv: list[str] | None = None) -> int:
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="Walk a local folder and print regular non-hidden file paths."
+    )
+    parser.add_argument("path", help="Directory to walk recursively.")
+    args = parser.parse_args(argv)
+    connector = LocalFolderConnector(Path(args.path))
+    for p in connector.walk():
+        print(p)
+    return 0
+
+
+if __name__ == "__main__":
+    import sys
+    sys.exit(main())
