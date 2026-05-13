@@ -4,3 +4,4 @@ pytest-django>=4.8
 PyGithub>=2.0
 pypdf>=5.0.0
 python-docx>=1.1.0
+pyyaml>=6.0
