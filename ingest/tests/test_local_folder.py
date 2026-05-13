@@ -51,3 +51,32 @@ def test_walk_does_not_follow_symlinks(tmp_path):
     link.symlink_to(real)
     result = sorted(p.name for p in LocalFolderConnector(tmp_path).walk())
     assert result == ["real.txt"]
+
+
+def test_walk_raises_filenotfound_on_missing_root(tmp_path):
+    missing = tmp_path / "does_not_exist"
+    with pytest.raises(FileNotFoundError, match=str(missing)):
+        list(LocalFolderConnector(missing).walk())
+
+
+def test_walk_raises_notadirectory_on_file_root(tmp_path):
+    f = tmp_path / "iam_a_file.txt"
+    f.write_text("x")
+    with pytest.raises(NotADirectoryError, match=str(f)):
+        list(LocalFolderConnector(f).walk())
+
+
+def test_walk_raises_runtimeerror_on_empty_dir(tmp_path):
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    with pytest.raises(RuntimeError, match=str(empty)):
+        list(LocalFolderConnector(empty).walk())
+
+
+def test_walk_raises_runtimeerror_when_only_hidden_entries(tmp_path):
+    """A dir that yields zero non-hidden files is treated as empty per the spec."""
+    only_hidden = tmp_path / "only_hidden"
+    only_hidden.mkdir()
+    (only_hidden / ".dotfile").write_text("h")
+    with pytest.raises(RuntimeError, match=str(only_hidden)):
+        list(LocalFolderConnector(only_hidden).walk())
