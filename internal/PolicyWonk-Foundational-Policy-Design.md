@@ -56,7 +56,7 @@ retention_period: Permanent
 ## data.yaml schema (v0.1)
 
 ```yaml
-# Section 3.0 of the source policy — 8 top-level data classifications
+# Section 3.0 of the source policy: 8 top-level data classifications
 classifications:
   - id: administrative                  # stable slug; inventory policies reference by id
     name: Administrative                # display name in the UI picker
@@ -76,10 +76,10 @@ classifications:
   - id: sacramental
     name: Sacramental
 
-# Appendix A — the record retention schedule
+# Appendix A: the record retention schedule
 retention_schedule:
   - group: Administrative Records (ALL Departments)
-    type: "Administrative Records — records that document routine activities"
+    type: "Administrative Records, records that document routine activities"
     retention: 2 years                  # free-text string in v0.1
     medium: Paper/Elec
     retained_at: On-site/Off-site

@@ -30,56 +30,26 @@ MODEL = os.getenv("POLICYWONK_MODEL", "claude-sonnet-4-6")
 # policies/document-retention/data.yaml; the injection logic is the same.
 TAXONOMY_PATH = Path(__file__).resolve().parent.parent / "ai" / "taxonomies" / "pt_classification.yaml"
 
-# Representative sample of retention rows pulled into the prompt. The full
-# ~240-row schedule would bloat context; this curated set spans every
-# group + sub_group so the model has a feel for the taxonomy's shape.
-_RETENTION_SAMPLE_KEYS = {
-    ("Administrative Records (ALL Departments)", None, "Administrative Records — records that document routine activities"),
-    ("Administrative Records (ALL Departments)", None, "Policy statements"),
-    ("Administrative Records (ALL Departments)", None, "Leases"),
-    ("Archives", None, "Parish History Files"),
-    ("Publications", None, "Newsletters (diocesan, parish, affiliated organizations)"),
-    ("Bishop's Office", None, "Bishop's Calendar"),
-    ("Bishop's Office", None, "Holy See/Nuncio Correspondence"),
-    ("Catholic Schools Office", "General", "Standardized Test Results"),
-    ("Catholic Schools Office", "TCCED", "School Self-Study Document"),
-    ("Catholic Schools Office", "Education Personnel", "Certificates and Licenses"),
-    ("Catechetical Services", None, "Catechetical Student Database"),
-    ("Chancellor", None, "Claimant Files"),
-    ("Communications", None, "Diocesan News Releases"),
-    ("Newspaper", None, "Newspaper Back Issues"),
-    ("Financial and Accounting", "Risk Management", "Workers Compensation Records"),
-    ("Financial and Accounting", "Payroll", "W-2 Forms"),
-    ("Financial and Accounting", "Banking", "Bank Statements"),
-    ("Financial and Accounting", "General", "Audit Reports"),
-    ("Financial and Accounting", "Investment/Insurance", "Stock Investment"),
-    ("Financial and Accounting", "Accounting", "Accounts Payable, Invoices"),
-    ("Financial and Accounting", "Tax Records", "Form 990"),
-    ("Property Records", None, "Deeds Files"),
-    ("Cemetery Records", None, "Burial Cards (record of interred's name, date of burial, etc.)"),
-    ("Human Resources", "Personnel Records", "Performance Reviews"),
-    ("Human Resources", "Benefit Records", "403(b) Retirement Plan"),
-    ("Pastoral Planning", None, "Ad Limina Reports (Quinquennial Report)"),
-    ("Safe Environment", None, "Criminal Background Check"),
-    ("Tribunal", None, "Prenuptial Files"),
-    ("Vicar for Clergy", None, "Priests' Personnel Files"),
-    ("Youth Ministry", None, "Waiver of Liability Forms"),
-}
-
-
 def _load_taxonomy(path: Path = TAXONOMY_PATH) -> dict:
     """Read the PT taxonomy YAML once at import time."""
     with path.open(encoding="utf-8") as fh:
         return yaml.safe_load(fh)
 
 
+# Acceptable sample-size band for the rendered prompt section. Catches
+# silent drift if the YAML structure changes (e.g., a group is split or
+# merged) and the rendered sample falls outside the expected shape.
+_MIN_SAMPLE_ROWS = 20
+_MAX_SAMPLE_ROWS = 50
+
+
 def _build_taxonomy_section(taxonomy: dict) -> str:
     """Render the taxonomy into a prompt section.
 
-    Includes all 8 top-level classifications and a curated 30-row
-    sample of the retention schedule spanning every group/sub_group.
-    Keeping the sample small protects the prompt budget; the full
-    schedule lives in the YAML for downstream use.
+    Includes all 8 top-level classifications and one example retention
+    row per (group, sub_group) pair, in YAML order. The full schedule
+    has ~240 rows; pulling one per pair keeps the prompt budget bounded
+    while giving the model coverage of every department.
     """
     lines = []
     lines.append("## Diocese taxonomy reference (Diocese of Pensacola-Tallahassee)")
@@ -88,15 +58,25 @@ def _build_taxonomy_section(taxonomy: dict) -> str:
     for entry in taxonomy.get("classifications", []):
         lines.append(f"- {entry['id']}: {entry['name']}")
     lines.append("")
-    lines.append("Retention schedule (representative sample from Appendix A; the full schedule has ~240 rows):")
+    lines.append("Retention schedule (one example per group/sub-group; the full schedule has ~240 rows):")
+    seen_pairs: set[tuple[str, str | None]] = set()
+    sampled = 0
     for row in taxonomy.get("retention_schedule", []):
-        key = (row["group"], row.get("sub_group"), row["type"])
-        if key not in _RETENTION_SAMPLE_KEYS:
+        pair = (row["group"], row.get("sub_group"))
+        if pair in seen_pairs:
             continue
+        seen_pairs.add(pair)
+        sampled += 1
         group_label = row["group"]
         if row.get("sub_group"):
             group_label = f"{group_label} / {row['sub_group']}"
         lines.append(f"- {group_label}: {row['type']} -> {row['retention']}")
+    if not (_MIN_SAMPLE_ROWS <= sampled <= _MAX_SAMPLE_ROWS):
+        raise RuntimeError(
+            f"Retention sample size {sampled} out of expected range "
+            f"[{_MIN_SAMPLE_ROWS}, {_MAX_SAMPLE_ROWS}]; "
+            f"the YAML structure may have drifted."
+        )
     lines.append("")
     return "\n".join(lines)
 
