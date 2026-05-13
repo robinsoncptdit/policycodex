@@ -108,6 +108,14 @@ Do not reopen these without new information:
 - Other source-of-truth reference docs that are NOT policies in the inventory (e.g., a category cheatsheet) may still live in a `references/` directory; the bundle pattern is for documents that play both roles.
 - Full design: `internal/PolicyWonk-Foundational-Policy-Design.md`.
 
+**Ship generic, never PT-flavored**
+- v0.1 ships as a generic, diocese-agnostic codebase. PT-specific scaffolding present in the repo today (taxonomy YAML, retention PDF reference, "Diocese of Pensacola-Tallahassee" in code/comments) is development-time convenience only — install-zero has to develop against something concrete.
+- Install-N flow is: clone the public repo, run install, complete the seven-screen onboarding wizard. The wizard supplies all per-diocese values, including the uploaded retention PDF that AI-parses into the diocese's own foundational-policy bundle (per APP-15-revised). No code edits required for a new diocese.
+- Per-diocese values that must be wizard-driven (never hardcoded): diocese name, GitHub org/repo, classification taxonomy and retention schedule, address scheme, versioning convention, reviewer roles, retention defaults, LLM provider, other source-of-truth reference documents.
+- When designing new code, treat any value that varies per diocese as wizard-sourced. `ai/taxonomies/pt_classification.yaml` is a seed example, not framework data — by v0.1 ship it should either move into PT's policy repo as `policies/document-retention/data.yaml` (its proper home per the bundle pattern) or stay as a clearly-labeled test fixture.
+- Code comments, error messages, log lines, class names: "the diocese" not "PT." Internal docs in `internal/` are exempt — they naturally center PT because that's the install-zero context and they aren't part of the shipping artifact.
+- Tracked as REPO-10 for the Week 5 polish-week audit pass. "Install verification on a clean VM" (Week 5 calendar item) is the generic-ship test: a clean VM clones, wizards through, and operates without seeing PT anywhere.
+
 **Design principle**
 - Opinionated by default. Configurable where dioceses have legitimate variation. AI-assisted throughout.
 
