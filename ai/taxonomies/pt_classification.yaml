@@ -1,4 +1,4 @@
-# Diocese of Pensacola-Tallahassee — classification + retention seed
+# Diocese of Pensacola-Tallahassee: classification + retention seed
 #
 # Sourced from `internal/Document Retention Policy.pdf` (rev. Aug, 2022).
 # Section 3.0 -> classifications. Appendix A -> retention_schedule.
@@ -33,12 +33,12 @@ classifications:
 retention_schedule:
   # ---- Administrative Records (ALL Departments) ----
   - group: Administrative Records (ALL Departments)
-    type: Administrative Records — records originating in the organization that document policy, procedure, rules or regulations
+    type: Administrative Records, records originating in the organization that document policy, procedure, rules or regulations
     retention: Permanent
     medium: Paper/Elec
     retained_at: On-site/Off-site
   - group: Administrative Records (ALL Departments)
-    type: Administrative Records — records that document routine activities
+    type: Administrative Records, records that document routine activities
     retention: 2 years
     medium: Paper/Elec
     retained_at: On-site/Off-site
