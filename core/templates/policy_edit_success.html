@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}PR opened | PolicyCodex{% endblock %}
+
+{% block content %}
+  <h2>Pull request opened</h2>
+  <p>
+    Your edit to <code>policies/{{ policy.slug }}</code> is now PR
+    <a href="{{ pr.url }}">#{{ pr.pr_number }}</a> on the diocese's policy
+    repo. A reviewer with merge permission will approve and publish from
+    there.
+  </p>
+  <p>
+    <a href="{% url 'catalog' %}">Back to catalog</a>
+  </p>
+{% endblock %}
