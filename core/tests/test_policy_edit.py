@@ -129,3 +129,63 @@ def test_get_renders_form_prepopulated_with_title_and_body(client, user):
     assert "<form" in body
     assert 'method="post"' in body
     assert "csrfmiddlewaretoken" in body
+
+
+# --- Foundational-policy gate ---
+
+def test_get_foundational_policy_returns_403_with_explanation(client, user):
+    """Foundational bundles edit through the typed-table UI (APP-20), not this form.
+
+    GET on a foundational policy returns 403 with a custom template that
+    names the typed-table UI as the right path. Per the foundational-policy
+    design (L1 protection layer)."""
+    client.force_login(user)
+    policies = [
+        _stub_policy(
+            slug="document-retention",
+            kind="bundle",
+            title="Document Retention Policy",
+            foundational=True,
+            provides=("classifications", "retention-schedule"),
+        ),
+    ]
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+        POLICYCODEX_WORKING_COPY_ROOT="/tmp",
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter(policies)
+                response = client.get("/policies/document-retention/edit/")
+    assert response.status_code == 403
+    body = response.content.decode()
+    assert "foundational" in body.lower()
+    # The error page must mention the slug so the user knows what was rejected.
+    assert "document-retention" in body
+    # And link back to the catalog.
+    assert "/catalog/" in body
+
+
+def test_post_foundational_policy_also_returns_403(client, user):
+    """The gate applies to POST as well, never let a foundational policy be edited via this form."""
+    client.force_login(user)
+    policies = [
+        _stub_policy(
+            slug="document-retention",
+            kind="bundle",
+            foundational=True,
+            provides=("classifications",),
+        ),
+    ]
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+        POLICYCODEX_WORKING_COPY_ROOT="/tmp",
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter(policies)
+                response = client.post(
+                    "/policies/document-retention/edit/",
+                    data={"title": "Hijack", "body": "Bad", "summary": ""},
+                )
+    assert response.status_code == 403

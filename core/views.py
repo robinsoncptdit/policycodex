@@ -68,9 +68,13 @@ def policy_edit(request, slug):
     policy = _find_policy(slug)
     if policy is None:
         raise Http404(f"Policy not found: {slug}")
-    # Temporary placeholder context until Task 4 wires the form. Returns a 200
-    # with the scaffold template so the URL-routing tests are not blocked by
-    # form code that does not exist yet.
+    if policy.foundational:
+        return render(
+            request,
+            "foundational_edit_forbidden.html",
+            {"policy": policy},
+            status=403,
+        )
     from core.forms import PolicyEditForm  # local import; Task 4 creates the module
     form = PolicyEditForm(initial={
         "title": policy.frontmatter.get("title", policy.slug),
