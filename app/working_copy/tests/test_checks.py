@@ -146,3 +146,54 @@ def test_non_foundational_policies_are_ignored_for_capability_count():
     # Both required capabilities go unprovided.
     assert len(results) == 2
     assert all(r.id == "policycodex.E002" for r in results)
+
+
+def test_broken_bundle_returns_error_with_file_hint():
+    """If BundleAwarePolicyReader raises BundleError, the check returns Error E001."""
+    from ingest.policy_reader import BundleError
+    from django.core.checks import Error
+    from app.working_copy import checks as checks_module
+
+    with override_settings(
+        POLICYCODEX_ONBOARDING_COMPLETE=True,
+        POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+        POLICYCODEX_WORKING_COPY_ROOT="/tmp",
+    ):
+        with patch("app.working_copy.checks.Path.exists", return_value=True):
+            with patch("app.working_copy.checks.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.side_effect = BundleError(
+                    "bundle data.yaml is not valid YAML: /tmp/policies/retention/data.yaml: "
+                    "expected <block end>, but found '['"
+                )
+                results = checks_module.foundational_policy_check(app_configs=None)
+
+    assert len(results) == 1
+    err = results[0]
+    assert isinstance(err, Error)
+    assert err.id == "policycodex.E001"
+    assert "Broken foundational-policy bundle" in err.msg
+    assert "data.yaml" in err.msg  # the wrapped BundleError message
+    assert "pull_working_copy" in err.hint
+
+
+def test_broken_bundle_is_error_even_during_onboarding():
+    """Onboarding mode does NOT downgrade bundle-validity errors. Broken bundles
+    are always Error because they signal real policy-repo brokenness, not a
+    not-yet-setup state."""
+    from ingest.policy_reader import BundleError
+    from django.core.checks import Error
+    from app.working_copy import checks as checks_module
+
+    with override_settings(
+        POLICYCODEX_ONBOARDING_COMPLETE=False,  # onboarding mode
+        POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+        POLICYCODEX_WORKING_COPY_ROOT="/tmp",
+    ):
+        with patch("app.working_copy.checks.Path.exists", return_value=True):
+            with patch("app.working_copy.checks.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.side_effect = BundleError("oops")
+                results = checks_module.foundational_policy_check(app_configs=None)
+
+    assert len(results) == 1
+    assert isinstance(results[0], Error)
+    assert results[0].id == "policycodex.E001"
