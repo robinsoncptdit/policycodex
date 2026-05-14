@@ -14,6 +14,8 @@ from app.git_provider.github_config import GitHubConfig, load_github_config
 
 _REPO_RE = re.compile(r"^https://github\.com/([^/]+)/(.+?)(?:\.git)?/?$")
 
+_VALID_MERGE_METHODS = ("merge", "squash", "rebase")
+
 
 def _parse_owner_repo(origin_url: str) -> str:
     m = _REPO_RE.match(origin_url.strip())
@@ -316,4 +318,52 @@ class GitHubProvider(GitProvider):
             "review_id": review.id,
             "state": review.state,
             "pr_number": pr_number,
+        }
+
+    def merge_pr(
+        self,
+        pr_number: int,
+        working_dir: Path,
+        merge_method: str = "squash",
+    ) -> dict:
+        if merge_method not in _VALID_MERGE_METHODS:
+            raise ValueError(
+                f"merge_method must be one of {_VALID_MERGE_METHODS}, got {merge_method!r}"
+            )
+        get_url = subprocess.run(
+            ["git", "remote", "get-url", "origin"],
+            cwd=working_dir,
+            capture_output=True,
+        )
+        if get_url.returncode != 0:
+            raise RuntimeError(
+                f"git remote get-url failed (exit {get_url.returncode}): "
+                f"{get_url.stderr.decode(errors='replace')}"
+            )
+        owner_repo = _parse_owner_repo(get_url.stdout.decode())
+        repo = self._client.get_repo(owner_repo)
+        pr = repo.get_pull(pr_number)
+        try:
+            # PyGithub forwards keyword args to the PUT /merge endpoint.
+            # commit_title and commit_message default to GitHub's auto-generated
+            # values when omitted, which is fine for v0.1 (the PR title is
+            # already structured by APP-07's edit flow).
+            result = pr.merge(merge_method=merge_method)
+        except Exception as exc:
+            # PyGithub raises GithubException for HTTP errors (409 conflict,
+            # 405 branch-protection-block, 422 unmergeable, 403 rate-limit).
+            # Wrap in RuntimeError so callers in the view layer can render a
+            # consistent flash message without depending on PyGithub.
+            raise RuntimeError(
+                f"merge_pr failed for PR #{pr_number}: {exc}"
+            ) from exc
+        if not getattr(result, "merged", False):
+            raise RuntimeError(
+                f"merge_pr returned not merged for PR #{pr_number}; "
+                f"the PR may have been updated between read and merge"
+            )
+        return {
+            "merged": True,
+            "sha": result.sha,
+            "merge_method": merge_method,
         }
