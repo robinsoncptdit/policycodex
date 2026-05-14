@@ -4,10 +4,36 @@
 
 {% block content %}
   <h2>Edit policies/{{ policy.slug }}</h2>
+
+  {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+        <li class="{{ message.tags }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
   <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Open PR</button>
-    <a href="{% url 'catalog' %}">Cancel</a>
+    <p>
+      <label for="{{ form.title.id_for_label }}">Title</label>
+      {{ form.title }}
+      {% if form.title.errors %}<span class="error">{{ form.title.errors|join:", " }}</span>{% endif %}
+    </p>
+    <p>
+      <label for="{{ form.body.id_for_label }}">Body</label>
+      {{ form.body }}
+      {% if form.body.errors %}<span class="error">{{ form.body.errors|join:", " }}</span>{% endif %}
+    </p>
+    <p>
+      <label for="{{ form.summary.id_for_label }}">Summary (optional)</label>
+      {{ form.summary }}
+      <small>{{ form.summary.help_text }}</small>
+      {% if form.summary.errors %}<span class="error">{{ form.summary.errors|join:", " }}</span>{% endif %}
+    </p>
+    <p>
+      <button type="submit">Open PR</button>
+      <a href="{% url 'catalog' %}">Cancel</a>
+    </p>
   </form>
 {% endblock %}
