@@ -1,0 +1,20 @@
+# Sample data.yaml for the Astro proof.
+# Real foundational-policy bundles live in each diocese's policy repo;
+# the Astro project here proves the bundle layout renders without
+# the data.yaml content being rendered into HTML in v0.1.
+
+classifications:
+  - id: administrative
+    name: Administrative
+  - id: financial
+    name: Financial
+  - id: personnel
+    name: Personnel
+
+retention_schedule:
+  - group: Administrative Records
+    type: General correspondence
+    retention: 3 years
+  - group: Financial Records
+    type: Audited financial statements
+    retention: Permanent
