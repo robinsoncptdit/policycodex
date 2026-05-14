@@ -28,22 +28,25 @@ def test_foundational_policy_check_is_registered():
 
 
 def test_check_runs_via_manage_py_check_command(monkeypatch):
-    """`manage.py check` should invoke our check and not crash."""
+    """`manage.py check` invokes our check and surfaces the onboarding W001 warning
+    when the repo URL is unset. Integration smoke for the registration path.
+    Django writes check warnings to stderr, errors to stderr too; stdout stays
+    empty on a warnings-only run."""
     from django.core.management import call_command
     from io import StringIO
 
-    # Use the onboarding-mode default (False) and clear repo URL so the
-    # check returns a Warning rather than an Error (which would set exit
-    # code 1 and make this assertion noisier).
     with override_settings(
         POLICYCODEX_ONBOARDING_COMPLETE=False,
         POLICYCODEX_POLICY_REPO_URL="",
     ):
         out = StringIO()
+        err = StringIO()
         # call_command raises SystemExit on Error-level findings; the
         # onboarding-mode Warning path keeps it quiet.
-        call_command("check", stdout=out)
-    # No assertion on output content here; the goal is "command ran".
+        call_command("check", stdout=out, stderr=err)
+    output = err.getvalue()
+    assert "policycodex.W001" in output
+    assert "POLICYCODEX_POLICY_REPO_URL" in output
 
 
 def _stub_logical_policy(
