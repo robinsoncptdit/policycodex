@@ -56,6 +56,20 @@ def test_empty_frontmatter_emits_empty_fenced_block():
     assert out.endswith("Just a body.\n")
 
 
+def test_empty_frontmatter_output_round_trips_through_reader():
+    """Empty frontmatter writer output must parse back as (empty_fm, body) via
+    ingest.policy_reader._split_frontmatter. Without the blank line between
+    fences, the reader's regex fails to match and the entire output ends up
+    as body content. Regression guard from APP-07 code review."""
+    from ingest.policy_reader import _split_frontmatter
+
+    body = "Just a body.\nWith two lines.\n"
+    out = _render_policy_md({}, body)
+    fm, parsed_body = _split_frontmatter(out)
+    assert fm == {}
+    assert parsed_body == body
+
+
 def test_no_em_dashes_in_output():
     """Discipline guard: the rendered output must contain no em dashes
     (project-wide style rule). yaml.safe_dump uses '-' for list items but

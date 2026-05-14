@@ -99,6 +99,14 @@ def policy_edit(request, slug):
 
         # 1. Merge form values into the policy's existing frontmatter
         #    (preserves all keys the form does not expose).
+        #
+        # v0.1 assumes a single editor at a time; we do NOT re-read the
+        # file from disk inside this block. A pull from `manage.py
+        # pull_working_copy` running concurrently between _find_policy()
+        # above and the write_text() below could in principle overwrite a
+        # newer revision. Single-server, single-admin deployments make
+        # this race vanishingly rare; future tickets can add a stat-based
+        # mtime check or an in-memory lock if real dioceses see thrash.
         new_fm = dict(policy.frontmatter)
         new_fm["title"] = form.cleaned_data["title"]
         new_body = form.cleaned_data["body"]
