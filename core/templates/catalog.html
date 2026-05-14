@@ -20,7 +20,7 @@
         Enter the GitHub PR number to approve. (APP-17 will wire this to
         per-policy rows once PR tracking is persisted.)
       </p>
-      <form method="post" action="/policies/approve/">
+      <form method="post" action="{% url 'approve_pr' %}">
         {% csrf_token %}
         <label for="pr_number">PR number</label>
         <input type="number" name="pr_number" id="pr_number" min="1" required>

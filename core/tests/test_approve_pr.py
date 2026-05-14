@@ -53,6 +53,16 @@ def test_approve_pr_rejects_non_numeric_pr_number(client, user):
     assert response.url == "/catalog/"
 
 
+@pytest.mark.parametrize("bad_value", ["0", "-1", "-5"])
+def test_approve_pr_rejects_non_positive_pr_number(client, user, bad_value):
+    """PR number must be positive. HTML `min="1"` is client-side only;
+    server-side guard rejects 0 and negative integers before reaching
+    the provider (which would otherwise issue a confusing PyGithub 404)."""
+    client.force_login(user)
+    response = client.post("/policies/approve/", {"pr_number": bad_value})
+    assert response.status_code == 302
+    assert response.url == "/catalog/"
+
 
 def test_approve_pr_happy_path_calls_provider_and_flashes_success(client, user, caplog):
     """Drafted PR + valid pr_number leads to provider.approve_pr being called with success flash."""

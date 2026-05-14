@@ -244,6 +244,9 @@ def approve_pr(request):
     except ValueError:
         messages.error(request, f"Invalid pr_number: {raw!r}.")
         return redirect("catalog")
+    if pr_number < 1:
+        messages.error(request, f"PR number must be positive (got {pr_number}).")
+        return redirect("catalog")
 
     try:
         config = load_working_copy_config()
