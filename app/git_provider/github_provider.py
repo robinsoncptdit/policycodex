@@ -174,6 +174,37 @@ class GitHubProvider(GitProvider):
                 f"git push failed (exit {result.returncode}): {stderr}"
             )
 
+    def pull(self, branch: str, working_dir: Path) -> None:
+        get_url = subprocess.run(
+            ["git", "remote", "get-url", "origin"],
+            cwd=working_dir,
+            capture_output=True,
+        )
+        if get_url.returncode != 0:
+            raise RuntimeError(
+                f"git remote get-url failed (exit {get_url.returncode}): "
+                f"{get_url.stderr.decode(errors='replace')}"
+            )
+        origin_url = get_url.stdout.decode().strip()
+        if not origin_url.startswith("https://github.com/"):
+            raise ValueError(f"Origin is not an https://github.com/ URL: {origin_url}")
+        token = self._installation_token()
+        tokenized = origin_url.replace(
+            "https://github.com/",
+            f"https://x-access-token:{token}@github.com/",
+            1,
+        )
+        result = subprocess.run(
+            ["git", "pull", tokenized, branch],
+            cwd=working_dir,
+            capture_output=True,
+        )
+        if result.returncode != 0:
+            stderr = result.stderr.decode(errors="replace").replace(token, "<redacted>")
+            raise RuntimeError(
+                f"git pull failed (exit {result.returncode}): {stderr}"
+            )
+
     def open_pr(
         self,
         title: str,
