@@ -30,21 +30,36 @@ def foundational_policy_check(app_configs, **kwargs) -> Sequence:
     """Return a list of Error/Warning objects; empty list means pass."""
     onboarding_complete = bool(getattr(settings, "POLICYCODEX_ONBOARDING_COMPLETE", False))
 
-    # Resolve the policies directory. Failures here are infrastructure-level
-    # (env var unset, working copy not cloned yet); Task 6 layers in the
-    # onboarding-gated Warning/Error logic for these paths.
+    # Resolve the working copy config. Unset POLICYCODEX_POLICY_REPO_URL is
+    # an infrastructure-level failure: Warning during onboarding, Error after.
     try:
         config = load_working_copy_config()
-    except RuntimeError:
-        # Task 6 will refine this. For now treat as no-op (no errors); the
-        # tests in Task 4 always pass POLICYCODEX_POLICY_REPO_URL so this
-        # branch is unreachable from them.
-        return []
+    except RuntimeError as exc:
+        if onboarding_complete:
+            return [Error(
+                f"Working copy not configured: {exc}",
+                hint="Set POLICYCODEX_POLICY_REPO_URL to the diocese's policy repo URL.",
+                id="policycodex.E004",
+            )]
+        return [Warning(
+            f"Working copy not yet configured: {exc}",
+            hint="Complete the onboarding wizard to set POLICYCODEX_POLICY_REPO_URL.",
+            id="policycodex.W001",
+        )]
 
     policies_dir = config.working_dir / "policies"
     if not policies_dir.exists():
-        # Same Task 6 caveat as above.
-        return []
+        if onboarding_complete:
+            return [Error(
+                f"Policies directory not found: {policies_dir}",
+                hint="Run `python manage.py pull_working_copy` to sync the diocese's policy repo.",
+                id="policycodex.E005",
+            )]
+        return [Warning(
+            f"Policies directory not yet present: {policies_dir}",
+            hint="The onboarding wizard will run `pull_working_copy` to create it.",
+            id="policycodex.W002",
+        )]
 
     # Bundle-validity failures (broken YAML, missing files) propagate as
     # Error regardless of onboarding state.

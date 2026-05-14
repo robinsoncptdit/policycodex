@@ -197,3 +197,76 @@ def test_broken_bundle_is_error_even_during_onboarding():
     assert len(results) == 1
     assert isinstance(results[0], Error)
     assert results[0].id == "policycodex.E001"
+
+
+# Onboarding-gated infrastructure failures: missing env var, missing policies dir.
+
+def test_unset_repo_url_during_onboarding_returns_warning():
+    """POLICYCODEX_ONBOARDING_COMPLETE=False + unset repo URL -> Warning."""
+    from app.working_copy import checks as checks_module
+    from django.core.checks import Warning
+
+    with override_settings(
+        POLICYCODEX_ONBOARDING_COMPLETE=False,
+        POLICYCODEX_POLICY_REPO_URL="",
+    ):
+        results = checks_module.foundational_policy_check(app_configs=None)
+
+    assert len(results) == 1
+    assert isinstance(results[0], Warning)
+    assert results[0].id == "policycodex.W001"
+    assert "POLICYCODEX_POLICY_REPO_URL" in results[0].msg
+    assert "onboarding" in results[0].hint.lower()
+
+
+def test_unset_repo_url_post_onboarding_returns_error():
+    """POLICYCODEX_ONBOARDING_COMPLETE=True + unset repo URL -> Error."""
+    from app.working_copy import checks as checks_module
+    from django.core.checks import Error
+
+    with override_settings(
+        POLICYCODEX_ONBOARDING_COMPLETE=True,
+        POLICYCODEX_POLICY_REPO_URL="",
+    ):
+        results = checks_module.foundational_policy_check(app_configs=None)
+
+    assert len(results) == 1
+    assert isinstance(results[0], Error)
+    assert results[0].id == "policycodex.E004"
+
+
+def test_missing_policies_dir_during_onboarding_returns_warning():
+    """POLICYCODEX_ONBOARDING_COMPLETE=False + policies dir missing -> Warning."""
+    from app.working_copy import checks as checks_module
+    from django.core.checks import Warning
+
+    with override_settings(
+        POLICYCODEX_ONBOARDING_COMPLETE=False,
+        POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+        POLICYCODEX_WORKING_COPY_ROOT="/tmp",
+    ):
+        with patch("app.working_copy.checks.Path.exists", return_value=False):
+            results = checks_module.foundational_policy_check(app_configs=None)
+
+    assert len(results) == 1
+    assert isinstance(results[0], Warning)
+    assert results[0].id == "policycodex.W002"
+    assert "pull_working_copy" in results[0].hint
+
+
+def test_missing_policies_dir_post_onboarding_returns_error():
+    """POLICYCODEX_ONBOARDING_COMPLETE=True + policies dir missing -> Error."""
+    from app.working_copy import checks as checks_module
+    from django.core.checks import Error
+
+    with override_settings(
+        POLICYCODEX_ONBOARDING_COMPLETE=True,
+        POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+        POLICYCODEX_WORKING_COPY_ROOT="/tmp",
+    ):
+        with patch("app.working_copy.checks.Path.exists", return_value=False):
+            results = checks_module.foundational_policy_check(app_configs=None)
+
+    assert len(results) == 1
+    assert isinstance(results[0], Error)
+    assert results[0].id == "policycodex.E005"
