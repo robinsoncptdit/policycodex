@@ -34,7 +34,10 @@ def _render_policy_md(frontmatter: Mapping[str, object], body: str) -> str:
             default_flow_style=False,
             allow_unicode=True,
         )
-    else:
-        fm_text = ""
-    # `safe_dump` always terminates with a newline; concat the fences around it.
-    return f"---\n{fm_text}---\n{body}"
+        # `safe_dump` always terminates with a newline; concat the fences.
+        return f"---\n{fm_text}---\n{body}"
+    # Empty frontmatter: emit the fences with a blank line between them so
+    # ingest.policy_reader._FRONTMATTER_RE matches (it requires content +
+    # newline + closing fence). Without the blank line the regex fails to
+    # match on round-trip and the reader treats the whole payload as body.
+    return f"---\n\n---\n{body}"
