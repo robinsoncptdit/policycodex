@@ -47,7 +47,7 @@ def foundational_policy_check(app_configs, **kwargs) -> Sequence:
             id="policycodex.W001",
         )]
 
-    policies_dir = config.working_dir / "policies"
+    policies_dir: Path = config.working_dir / "policies"
     if not policies_dir.exists():
         if onboarding_complete:
             return [Error(
