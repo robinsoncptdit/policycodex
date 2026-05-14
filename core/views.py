@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
+from github import GithubException
 
 from app.git_provider.github_provider import GitHubProvider
 from app.git_provider.states import branch_to_slug
@@ -34,8 +35,10 @@ def _build_gate_lookup(working_dir: Path) -> dict[str, str]:
     try:
         provider = GitHubProvider()
         open_prs = provider.list_open_prs(working_dir)
-    except Exception:
-        logger.exception("APP-17 list_open_prs failed; degrading to all-Published")
+    except (RuntimeError, GithubException) as exc:
+        logger.warning(
+            "APP-17 list_open_prs failed (%s); degrading to all-Published", exc
+        )
         return {}
 
     lookup: dict[str, str] = {}
