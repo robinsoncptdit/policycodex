@@ -342,3 +342,36 @@ def test_catalog_degrades_gracefully_when_list_open_prs_raises(client, user):
     assert response.status_code == 200
     body = response.content.decode()
     assert "gate-published" in body
+
+
+
+def test_catalog_renders_approve_pr_form(client, user):
+    """The catalog has a POST form pointing at /policies/approve/ with pr_number input."""
+    client.force_login(user)
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+        POLICYCODEX_WORKING_COPY_ROOT="/tmp",
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter([])
+                with patch("core.views.GitHubProvider") as MockProvider:
+                    MockProvider.return_value.list_open_prs.return_value = []
+                    response = client.get("/catalog/")
+
+    body = response.content.decode()
+    assert 'action="/policies/approve/"' in body
+    assert 'method="post"' in body.lower()
+    assert 'name="pr_number"' in body
+    # CSRF token is rendered.
+    assert "csrfmiddlewaretoken" in body
+
+
+def test_catalog_omits_approve_form_in_empty_onboarding_state(client, user):
+    """The approve form does NOT render before the working copy exists."""
+    client.force_login(user)
+    with override_settings(POLICYCODEX_POLICY_REPO_URL=""):
+        response = client.get("/catalog/")
+    body = response.content.decode()
+    assert "No policies yet" in body
+    assert 'action="/policies/approve/"' not in body
