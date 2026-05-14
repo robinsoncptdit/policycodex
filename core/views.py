@@ -15,7 +15,6 @@ from app.working_copy.config import load_working_copy_config
 from core.forms import PolicyEditForm
 from core.git_identity import get_git_author
 from core.policy_writer import _render_policy_md
-from core.policymeta import PolicymetaError, read_pr_number_for
 from ingest.policy_reader import BundleAwarePolicyReader
 
 
@@ -319,25 +318,33 @@ def publish_policy(request, slug):
         return redirect("catalog")
 
     working_dir = config.working_dir
+    provider = GitHubProvider()
 
+    # Locate the open PR for this slug by scanning open PRs and matching
+    # the head-branch convention (same lookup APP-17's _build_gate_lookup
+    # uses for the catalog gate badges). No persistent slug->PR mapping
+    # in v0.1; the GitHub API is the source of truth.
     try:
-        pr_number = read_pr_number_for(working_dir, slug)
-    except PolicymetaError as exc:
-        messages.error(request, f"Policy metadata is malformed: {exc}")
+        open_prs = provider.list_open_prs(working_dir)
+    except (RuntimeError, GithubException) as exc:
+        messages.error(request, f"Could not list open pull requests: {exc}")
         return redirect("catalog")
 
-    if pr_number is None:
+    matching = [
+        pr for pr in open_prs
+        if branch_to_slug(pr.get("head_branch", "")) == slug
+    ]
+    if not matching:
         messages.error(
             request,
             f"No pending pull request for '{slug}'. Open an edit first to create one.",
         )
         return redirect("catalog")
-
-    provider = GitHubProvider()
+    pr_number = matching[0]["pr_number"]
 
     try:
         state = provider.read_pr_state(pr_number, working_dir)
-    except Exception as exc:
+    except (RuntimeError, GithubException) as exc:
         messages.error(request, f"Could not read PR state for #{pr_number}: {exc}")
         return redirect("catalog")
 
@@ -362,6 +369,10 @@ def publish_policy(request, slug):
         )
         return redirect("catalog")
 
+    logger.info(
+        "publish_policy: success user=%s slug=%s pr=%s sha=%s",
+        request.user.username, slug, pr_number, result.get("sha"),
+    )
     messages.success(
         request,
         f"Published '{slug}' (PR #{pr_number} merged as {result['sha'][:7]}).",
