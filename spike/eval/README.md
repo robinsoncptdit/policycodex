@@ -23,12 +23,12 @@ Also overridable via the `POLICYCODEX_EVAL_OUTPUTS` env var.
 
 Currently scored fields (6):
 
-- `category` (AI-04, refined by AI-15) — 17 verified rows, weighted_avg 1.000 baseline.
-- `owner_role` (AI-05) — 10 verified, 7 needs_review.
-- `effective_date` (AI-05) — 16 verified, 1 needs_review.
-- `last_review_date` (AI-05) — 16 verified, 1 needs_review.
-- `retention_period_years` (AI-05) — 12 verified, 5 needs_review.
-- `suggested_chapter_section_item` (AI-06) — 4 verified, 13 needs_review, weighted_avg 1.000 baseline against `spike/outputs-ai06/`. The thin verified count reflects honest discipline: 11 of 17 post-AI-11 extractions came back at `low` confidence (auto-needs_review), and only 4 of the 6 medium-confidence rows passed independent plausibility checks. The eval is intentionally narrow as a v0.1 baseline; AI-13 (gap detection) and a canonical chapter-axis mapping will broaden it.
+- `category` (AI-04, refined by AI-15): 17 verified rows, weighted_avg 1.000 baseline.
+- `owner_role` (AI-05): 10 verified, 7 needs_review.
+- `effective_date` (AI-05): 16 verified, 1 needs_review.
+- `last_review_date` (AI-05): 16 verified, 1 needs_review.
+- `retention_period_years` (AI-05): 12 verified, 5 needs_review.
+- `suggested_chapter_section_item` (AI-06): 4 verified, 13 needs_review, weighted_avg 1.000 baseline against `spike/outputs-ai06/`. The split is mechanical against the extractor's self-reported `address_confidence`: all 13 `low`-confidence rows are auto-needs_review per the plan's anti-rubber-stamp rule, and all 4 `medium`-confidence rows are verified at their extracted values. No `high`-confidence rows. The 4 verified ground truths are harness-wiring fixtures (they equal the extractor's output), which is a valid regression guard against prompt drift but is NOT an independent quality measurement of address extraction. The PT taxonomy at `ai/taxonomies/pt_classification.yaml` does not currently define a canonical chapter-axis mapping; AI-13 (gap detection) and a follow-on taxonomy revision will turn this into a real quality signal.
 
 ## Eval-set schema (one JSONL per field)
 
