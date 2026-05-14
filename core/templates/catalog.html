@@ -15,13 +15,14 @@
     </section>
   {% else %}
     <ul class="policy-list">
-      {% for policy in policies %}
+      {% for row in rows %}
         <li class="policy">
-          <a href="#{{ policy.slug }}">{{ policy.frontmatter.title|default:policy.slug }}</a>
-          <span class="kind-badge kind-{{ policy.kind }}">{{ policy.kind }}</span>
-          {% if policy.foundational %}
+          <a href="#{{ row.policy.slug }}">{{ row.policy.frontmatter.title|default:row.policy.slug }}</a>
+          <span class="kind-badge kind-{{ row.policy.kind }}">{{ row.policy.kind }}</span>
+          {% if row.policy.foundational %}
             <span class="foundational-badge">(foundational)</span>
           {% endif %}
+          <span class="gate-badge gate-{{ row.gate }}">{{ row.gate|title }}</span>
         </li>
       {% empty %}
         <li class="no-results">No policies in the working copy.</li>

@@ -359,3 +359,120 @@ def test_parse_owner_repo_handles_dots_in_repo_name():
     assert _parse_owner_repo("https://github.com/foo/bar.baz") == "foo/bar.baz"
     assert _parse_owner_repo("https://github.com/foo/bar.baz.git") == "foo/bar.baz"
     assert _parse_owner_repo("https://github.com/owner/owner.github.io") == "owner/owner.github.io"
+
+
+def test_list_open_prs_empty_when_no_open_prs(tmp_path):
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    wd = tmp_path / "wd"
+    fake_repo = MagicMock()
+    fake_repo.get_pulls.return_value = []
+    fake_client = MagicMock()
+    fake_client.get_repo.return_value = fake_repo
+    with patch("app.git_provider.github_provider.subprocess.run") as run:
+        run.return_value = MagicMock(returncode=0, stdout=b"https://github.com/foo/bar.git\n")
+        p = GitHubProvider(config=cfg, github_client=fake_client)
+        result = p.list_open_prs(wd)
+    assert result == []
+    fake_repo.get_pulls.assert_called_once_with(state="open")
+
+
+def test_list_open_prs_returns_one_drafted_pr(tmp_path):
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    wd = tmp_path / "wd"
+    fake_pr = MagicMock(
+        number=42,
+        state="open",
+        merged=False,
+        html_url="https://github.com/foo/bar/pull/42",
+    )
+    fake_pr.head.ref = "policycodex/draft-onboarding"
+    fake_pr.get_reviews.return_value = []
+    fake_repo = MagicMock()
+    fake_repo.get_pulls.return_value = [fake_pr]
+    fake_client = MagicMock()
+    fake_client.get_repo.return_value = fake_repo
+    with patch("app.git_provider.github_provider.subprocess.run") as run:
+        run.return_value = MagicMock(returncode=0, stdout=b"https://github.com/foo/bar.git\n")
+        p = GitHubProvider(config=cfg, github_client=fake_client)
+        result = p.list_open_prs(wd)
+    assert result == [{
+        "pr_number": 42,
+        "head_branch": "policycodex/draft-onboarding",
+        "gate": "drafted",
+        "url": "https://github.com/foo/bar/pull/42",
+    }]
+
+
+def test_list_open_prs_marks_approved_pr_as_reviewed(tmp_path):
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    wd = tmp_path / "wd"
+    approved = MagicMock(); approved.state = "APPROVED"
+    commented = MagicMock(); commented.state = "COMMENTED"
+    fake_pr = MagicMock(
+        number=7,
+        state="open",
+        merged=False,
+        html_url="https://github.com/foo/bar/pull/7",
+    )
+    fake_pr.head.ref = "policycodex/draft-retention"
+    fake_pr.get_reviews.return_value = [commented, approved]
+    fake_repo = MagicMock()
+    fake_repo.get_pulls.return_value = [fake_pr]
+    fake_client = MagicMock()
+    fake_client.get_repo.return_value = fake_repo
+    with patch("app.git_provider.github_provider.subprocess.run") as run:
+        run.return_value = MagicMock(returncode=0, stdout=b"https://github.com/foo/bar.git\n")
+        p = GitHubProvider(config=cfg, github_client=fake_client)
+        result = p.list_open_prs(wd)
+    assert len(result) == 1
+    assert result[0]["gate"] == "reviewed"
+    assert result[0]["head_branch"] == "policycodex/draft-retention"
+
+
+def test_list_open_prs_returns_mixed_drafted_and_reviewed(tmp_path):
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    wd = tmp_path / "wd"
+
+    pr_drafted = MagicMock(number=1, state="open", merged=False, html_url="u1")
+    pr_drafted.head.ref = "policycodex/draft-foo"
+    pr_drafted.get_reviews.return_value = []
+
+    approved = MagicMock(); approved.state = "APPROVED"
+    pr_reviewed = MagicMock(number=2, state="open", merged=False, html_url="u2")
+    pr_reviewed.head.ref = "policycodex/draft-bar"
+    pr_reviewed.get_reviews.return_value = [approved]
+
+    fake_repo = MagicMock()
+    fake_repo.get_pulls.return_value = [pr_drafted, pr_reviewed]
+    fake_client = MagicMock()
+    fake_client.get_repo.return_value = fake_repo
+    with patch("app.git_provider.github_provider.subprocess.run") as run:
+        run.return_value = MagicMock(returncode=0, stdout=b"https://github.com/foo/bar.git\n")
+        p = GitHubProvider(config=cfg, github_client=fake_client)
+        result = p.list_open_prs(wd)
+    gates = {row["head_branch"]: row["gate"] for row in result}
+    assert gates == {
+        "policycodex/draft-foo": "drafted",
+        "policycodex/draft-bar": "reviewed",
+    }
+
+
+def test_list_open_prs_passes_state_open_filter(tmp_path):
+    """The library call must filter to state=open at the API layer (not via
+    a post-fetch Python filter), to avoid pulling merged/closed history."""
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    wd = tmp_path / "wd"
+    fake_repo = MagicMock()
+    fake_repo.get_pulls.return_value = []
+    fake_client = MagicMock()
+    fake_client.get_repo.return_value = fake_repo
+    with patch("app.git_provider.github_provider.subprocess.run") as run:
+        run.return_value = MagicMock(returncode=0, stdout=b"https://github.com/foo/bar.git\n")
+        p = GitHubProvider(config=cfg, github_client=fake_client)
+        p.list_open_prs(wd)
+    fake_repo.get_pulls.assert_called_once_with(state="open")
