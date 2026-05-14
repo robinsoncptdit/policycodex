@@ -31,6 +31,24 @@ def _build_installation_token(config: GitHubConfig) -> str:
     return access.token
 
 
+def _pr_to_gate(pr) -> str:
+    """Map a PyGithub PullRequest object to a PolicyCodex gate string.
+
+    Identical mapping rules to `GitHubProvider.read_pr_state`:
+    merged -> "published", closed-not-merged -> "closed",
+    open + at least one approving review -> "reviewed",
+    otherwise (open + no approval) -> "drafted".
+    """
+    if pr.merged:
+        return "published"
+    if pr.state == "closed":
+        return "closed"
+    approvals = sum(
+        1 for r in pr.get_reviews() if getattr(r, "state", None) == "APPROVED"
+    )
+    return "reviewed" if approvals >= 1 else "drafted"
+
+
 class GitHubProvider(GitProvider):
     def __init__(
         self,
@@ -246,11 +264,30 @@ class GitHubProvider(GitProvider):
         owner_repo = _parse_owner_repo(get_url.stdout.decode())
         repo = self._client.get_repo(owner_repo)
         pr = repo.get_pull(pr_number)
-        if pr.merged:
-            return "published"
-        if pr.state == "closed":
-            return "closed"
-        approvals = sum(
-            1 for r in pr.get_reviews() if getattr(r, "state", None) == "APPROVED"
+        return _pr_to_gate(pr)
+
+    def list_open_prs(self, working_dir: Path) -> list[dict]:
+        """Batched alternative to read_pr_state: one API call returns all open
+        PRs along with their head branch + gate state, so the catalog view can
+        build a {slug: gate} map without N round-trips."""
+        get_url = subprocess.run(
+            ["git", "remote", "get-url", "origin"],
+            cwd=working_dir,
+            capture_output=True,
         )
-        return "reviewed" if approvals >= 1 else "drafted"
+        if get_url.returncode != 0:
+            raise RuntimeError(
+                f"git remote get-url failed (exit {get_url.returncode}): "
+                f"{get_url.stderr.decode(errors='replace')}"
+            )
+        owner_repo = _parse_owner_repo(get_url.stdout.decode())
+        repo = self._client.get_repo(owner_repo)
+        result: list[dict] = []
+        for pr in repo.get_pulls(state="open"):
+            result.append({
+                "pr_number": pr.number,
+                "head_branch": pr.head.ref,
+                "gate": _pr_to_gate(pr),
+                "url": pr.html_url,
+            })
+        return result
