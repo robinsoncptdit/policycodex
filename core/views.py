@@ -8,6 +8,7 @@ from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
 
 from app.git_provider.github_provider import GitHubProvider
+from app.git_provider.states import branch_to_slug
 from app.working_copy.config import load_working_copy_config
 from core.forms import PolicyEditForm
 from core.git_identity import get_git_author
@@ -22,6 +23,35 @@ def health(request):
     return JsonResponse({"status": "ok"})
 
 
+def _build_gate_lookup(working_dir: Path) -> dict[str, str]:
+    """Call list_open_prs once and return a {slug: gate} map.
+
+    Returns an empty dict on any provider failure: the catalog gracefully
+    falls back to treating every policy as Published when GitHub is
+    unreachable. Logging the failure is a follow-up; v0.1 prioritizes the
+    page rendering over surfacing the network error.
+    """
+    try:
+        provider = GitHubProvider()
+        open_prs = provider.list_open_prs(working_dir)
+    except Exception:
+        logger.exception("APP-17 list_open_prs failed; degrading to all-Published")
+        return {}
+
+    lookup: dict[str, str] = {}
+    for pr in open_prs:
+        slug = branch_to_slug(pr.get("head_branch", ""))
+        if slug is None:
+            continue
+        # If two PRs target the same slug (shouldn't happen with branch
+        # protection, but defensive), keep the more-advanced gate.
+        existing = lookup.get(slug)
+        if existing == "reviewed":
+            continue
+        lookup[slug] = pr.get("gate", "drafted")
+    return lookup
+
+
 @login_required
 def catalog(request):
     """Render the policy inventory from the local working copy.
@@ -32,14 +62,19 @@ def catalog(request):
     try:
         config = load_working_copy_config()
     except RuntimeError:
-        return render(request, "catalog.html", {"is_empty_onboarding": True, "policies": []})
+        return render(request, "catalog.html", {"is_empty_onboarding": True, "rows": []})
 
     policies_dir: Path = config.working_dir / "policies"
     if not policies_dir.exists():
-        return render(request, "catalog.html", {"is_empty_onboarding": True, "policies": []})
+        return render(request, "catalog.html", {"is_empty_onboarding": True, "rows": []})
 
     policies = list(BundleAwarePolicyReader(policies_dir).read())
-    return render(request, "catalog.html", {"is_empty_onboarding": False, "policies": policies})
+    gate_lookup = _build_gate_lookup(config.working_dir)
+    rows = [
+        {"policy": policy, "gate": gate_lookup.get(policy.slug, "published")}
+        for policy in policies
+    ]
+    return render(request, "catalog.html", {"is_empty_onboarding": False, "rows": rows})
 
 
 def root_redirect(request):
