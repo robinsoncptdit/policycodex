@@ -370,3 +370,88 @@ def test_post_renders_success_page_with_pr_url(client, user, tmp_path):
     body = response.content.decode()
     assert "https://github.com/example/diocese-policies/pull/42" in body
     assert "42" in body  # PR number visible somewhere
+
+
+# --- Provider failure paths ---
+
+@pytest.mark.parametrize("failing_method,error_message_fragment", [
+    ("branch", "branch"),
+    ("commit", "commit"),
+    ("push", "push"),
+    ("open_pr", "open"),
+])
+def test_post_renders_form_with_error_on_provider_failure(
+    client, user, tmp_path, failing_method, error_message_fragment,
+):
+    """When any of branch/commit/push/open_pr raises, the form re-renders
+    with a user-visible error and HTTP 200 (not 500)."""
+    client.force_login(user)
+    repo_dir = tmp_path / "diocese-policies"
+    policies_dir = repo_dir / "policies"
+    policies_dir.mkdir(parents=True)
+    policy_file = policies_dir / "onboarding.md"
+    policy_file.write_text("---\ntitle: T\n---\nb\n", encoding="utf-8")
+    real_policy = LogicalPolicy(
+        slug="onboarding", kind="flat", policy_path=policy_file, data_path=None,
+        frontmatter={"title": "T"}, body="b\n", foundational=False, provides=(),
+    )
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://github.com/example/diocese-policies.git",
+        POLICYCODEX_WORKING_COPY_ROOT=str(tmp_path),
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter([real_policy])
+                with patch("core.views.GitHubProvider") as MockProvider:
+                    instance = MockProvider.return_value
+                    # Default to success then make ONE method raise.
+                    instance.open_pr.return_value = {"pr_number": 1, "url": "u", "state": "open"}
+                    getattr(instance, failing_method).side_effect = RuntimeError(
+                        f"git {failing_method} failed (exit 1): nope"
+                    )
+                    response = client.post(
+                        "/policies/onboarding/edit/",
+                        data={"title": "T2", "body": "b2\n", "summary": "msg"},
+                    )
+    # No 500.
+    assert response.status_code == 200
+    body = response.content.decode()
+    # The edit form is re-rendered (not the success page).
+    assert "Open PR" in body  # the submit button label
+    # User input is preserved.
+    assert 'value="T2"' in body
+    assert "b2" in body
+    # A user-facing error message is present.
+    assert "couldn't" in body.lower() or "failed" in body.lower() or "error" in body.lower()
+
+
+def test_post_invalid_form_rerenders_with_errors(client, user, tmp_path):
+    """Missing required fields re-renders the form with field errors and HTTP 200."""
+    client.force_login(user)
+    repo_dir = tmp_path / "diocese-policies"
+    policies_dir = repo_dir / "policies"
+    policies_dir.mkdir(parents=True)
+    policy_file = policies_dir / "onboarding.md"
+    policy_file.write_text("---\ntitle: T\n---\nb\n", encoding="utf-8")
+    real_policy = LogicalPolicy(
+        slug="onboarding", kind="flat", policy_path=policy_file, data_path=None,
+        frontmatter={"title": "T"}, body="b\n", foundational=False, provides=(),
+    )
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://github.com/example/diocese-policies.git",
+        POLICYCODEX_WORKING_COPY_ROOT=str(tmp_path),
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter([real_policy])
+                with patch("core.views.GitHubProvider") as MockProvider:
+                    response = client.post(
+                        "/policies/onboarding/edit/",
+                        data={"title": "", "body": "", "summary": ""},
+                    )
+                    # Provider was NEVER called because form was invalid.
+                    MockProvider.return_value.branch.assert_not_called()
+    assert response.status_code == 200
+    body = response.content.decode()
+    # Form re-rendered with errors (Django's default error label or the field error UL).
+    assert "required" in body.lower() or "errorlist" in body.lower() or "This field" in body

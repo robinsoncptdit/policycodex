@@ -2,6 +2,7 @@ import logging
 import uuid
 from pathlib import Path
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
@@ -115,31 +116,45 @@ def policy_edit(request, slug):
         summary = (form.cleaned_data.get("summary") or "").strip()
         commit_message = summary or f"Update {slug}"
 
-        provider.branch(branch_name, working_dir)
-        provider.commit(
-            message=commit_message,
-            files=[policy.policy_path],
-            author_name=author_name,
-            author_email=author_email,
-            working_dir=working_dir,
-        )
-        provider.push(branch_name, working_dir)
-        pr_title = f"Edit policies/{slug}: {commit_message}"
-        pr_body = (
-            f"Opened by PolicyCodex on behalf of {request.user.username}.\n"
-            f"\n"
-            f"Policy: policies/{slug}\n"
-            f"Author: {author_name} <{author_email}>\n"
-        )
-        if summary:
-            pr_body += f"\n{summary}\n"
-        pr = provider.open_pr(
-            title=pr_title,
-            body=pr_body,
-            head_branch=branch_name,
-            base_branch=config.branch,
-            working_dir=working_dir,
-        )
+        try:
+            provider.branch(branch_name, working_dir)
+            provider.commit(
+                message=commit_message,
+                files=[policy.policy_path],
+                author_name=author_name,
+                author_email=author_email,
+                working_dir=working_dir,
+            )
+            provider.push(branch_name, working_dir)
+            pr_title = f"Edit policies/{slug}: {commit_message}"
+            pr_body = (
+                f"Opened by PolicyCodex on behalf of {request.user.username}.\n"
+                f"\n"
+                f"Policy: policies/{slug}\n"
+                f"Author: {author_name} <{author_email}>\n"
+            )
+            if summary:
+                pr_body += f"\n{summary}\n"
+            pr = provider.open_pr(
+                title=pr_title,
+                body=pr_body,
+                head_branch=branch_name,
+                base_branch=config.branch,
+                working_dir=working_dir,
+            )
+        except (RuntimeError, ValueError) as exc:
+            logger.error("APP-07 provider failure on slug=%s: %s", slug, exc)
+            messages.error(
+                request,
+                "Couldn't open the pull request. The change is saved locally; "
+                "ask your administrator to retry from the server logs.",
+            )
+            return render(
+                request,
+                "policy_edit.html",
+                {"policy": policy, "form": form},
+            )
+
         return render(
             request,
             "policy_edit_success.html",
