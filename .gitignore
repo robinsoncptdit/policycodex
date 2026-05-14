@@ -11,6 +11,8 @@ archive/
 spike/.env
 spike/outputs/*
 !spike/outputs/*.json
+spike/outputs-ai06/*
+!spike/outputs-ai06/*.json
 spike/venv/
 docs/superpowers/.cache/
 internal/superpowers/.cache/

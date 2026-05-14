@@ -1,0 +1,21 @@
+{
+  "title": "201 Financial Planning & Control",
+  "summary": "This policy establishes required financial planning, budgeting, accounting, reporting, and physical asset-control practices for all parishes, schools, and other diocesan organizations within the Diocese of Pensacola-Tallahassee.",
+  "category": "Finance",
+  "category_confidence": "high",
+  "owner_role": "CFO",
+  "owner_role_confidence": "high",
+  "effective_date": null,
+  "effective_date_confidence": "low",
+  "last_review_date": "2016-09-01",
+  "last_review_date_confidence": "medium",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": null,
+  "retention_period_confidence": "low",
+  "suggested_chapter_section_item": "3.2.1",
+  "address_confidence": "medium",
+  "version_stamp": "1.0",
+  "notes": "The document header shows 'Rev 9/16,' interpreted as September 2016 revision; no explicit effective date is stated so effective_date is left null and last_review_date is set to 2016-09-01 at medium confidence. No review cadence is stated, so next_review_date cannot be computed. The document is a multi-section policy-and-procedures manual chapter (sections 201.1\u2013201.7) rather than a standalone policy, covering budgeting, financial reporting, accounting controls, and physical asset safeguarding. Retention period is not addressed within this document; under the diocesan taxonomy, records originating from this type of administrative/financial policy document would normally be retained permanently per the 'Administrative Records \u2013 records documenting policy, procedure, rules or regulations' category. The suggested chapter.section.item (3.2.1) maps to the Financial data classification (Chapter 3), Financial and Accounting / General sub-group (Section 2), first policy item (Item 1); a human reviewer should confirm the exact numbering against the diocese's master policy index. The document references several appendices (1, 2, 3, 4, 10.1, 10.2, 10.3a, 10.3b, 10.24) that are not included and may contain additional binding requirements. Penalties and sanctions section references a June 2016 Finance Council and Bishop approval; the full sanctions letter is in Appendix 10.2 (not provided). The document was truncated at section 201.7 mid-sentence ('shou\u2026'), so the physical-control general discussion and any remaining sections (e.g., 201.8 onward) may be missing.",
+  "_source_file": "201 Financial Planning-3.pdf"
+}

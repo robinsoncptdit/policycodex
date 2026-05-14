@@ -1,0 +1,21 @@
+{
+  "title": "Diocesan Fraud Policy (Appendix 18)",
+  "summary": "This policy defines fraud, prohibits fraudulent acts across all diocesan entities, establishes reporting and response procedures when fraud is suspected, and provides detection guidance and illustrative case examples to prevent financial misconduct.",
+  "category": "Finance",
+  "category_confidence": "high",
+  "owner_role": "CFO",
+  "owner_role_confidence": "high",
+  "effective_date": "2014-08-01",
+  "effective_date_confidence": "medium",
+  "last_review_date": "2014-08-01",
+  "last_review_date_confidence": "medium",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": null,
+  "retention_period_confidence": "low",
+  "suggested_chapter_section_item": "3.4.1",
+  "address_confidence": "low",
+  "version_stamp": "1.0",
+  "notes": "1) The document is labeled 'Rev 8/14,' indicating a revision date of August 2014, but no explicit effective date or formal version number is stated; the effective date is inferred from the revision date. 2) No next review date or review cadence is stated; next_review_date is left null. 3) The document is an appendix (Appendix 18) to a larger manual (likely the Diocesan Financial Policies and Procedures Manual), so its standalone policy number within that manual is not independently established. 4) Retention period for this policy document itself is not stated; as a governing policy document it would likely be 'Permanent' per the diocesan retention schedule for Administrative Records documenting policy/procedure, but this is not explicit in the text and so retention_period_years is left null. 5) The suggested chapter.section.item address (3.4.1) maps to the Financial and Accounting classification axis (chapter 3), general/risk management sub-group (section 4), fraud policy item (item 1); this is a best-judgment mapping and a human reviewer should confirm placement within the diocese's actual policy manual numbering scheme. 6) The CFO is clearly the primary responsible officer named throughout the document; the Bishop or his delegate has ultimate authority over fraud response decisions. 7) Anonymous reports are explicitly prohibited by this policy, which is a notable procedural constraint reviewers should be aware of.",
+  "_source_file": "Appendix 18 Diocesan Fraud Policy.pdf"
+}

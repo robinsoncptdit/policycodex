@@ -1,0 +1,21 @@
+{
+  "title": "Diocese of Pensacola-Tallahassee Wireless Communication Policy",
+  "summary": "This policy establishes the security and configuration standards that all wireless infrastructure devices must meet to connect to Diocese of Pensacola-Tallahassee networks, and defines enforcement consequences for non-compliance.",
+  "category": "IT",
+  "category_confidence": "high",
+  "owner_role": "IT Director / Information Security Department",
+  "owner_role_confidence": "high",
+  "effective_date": "2021-10-04",
+  "effective_date_confidence": "medium",
+  "last_review_date": "2020-01-30",
+  "last_review_date_confidence": "medium",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": null,
+  "retention_period_confidence": "low",
+  "suggested_chapter_section_item": "7.1.1",
+  "address_confidence": "low",
+  "version_stamp": "1.0",
+  "notes": "1) There is a date discrepancy in the document: the header on page 1 reads '10/04/2021' while the footers on pages 2 and 3 read '01/30/2020'. It is unclear which date reflects the true effective date; 10/04/2021 was used as the effective date and 01/30/2020 as the last review date, but a human reviewer should confirm. 2) No formal next-review date or review cadence is stated. 3) No explicit records-retention period applies to the policy document itself; under the diocesan retention schedule, governing policy documents are generally retained permanently, but this is not stated in the document. 4) The diocese taxonomy does not include an 'IT' classification; IT is the closest schema-defined category. The suggested chapter address (7.1.1) is a best-guess mapping under an Administrative/IT governance axis and should be confirmed against the actual diocesan policy manual numbering. 5) The revision history shows the policy originated at least as early as May 5, 2011, indicating a long amendment history that a reviewer may wish to audit for completeness.",
+  "_source_file": "Wireless_Communication_Policy.pdf"
+}

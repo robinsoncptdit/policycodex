@@ -1,0 +1,21 @@
+{
+  "title": "Appendix 5: Handling of Offertory Collections",
+  "summary": "This procedure governs the secure collection, counting, recording, depositing, and oversight of parish offertory and special collections, including segregation of duties, physical security, count team composition, and Finance Council review responsibilities.",
+  "category": "Finance",
+  "category_confidence": "high",
+  "owner_role": "CFO",
+  "owner_role_confidence": "medium",
+  "effective_date": "2014-08-01",
+  "effective_date_confidence": "medium",
+  "last_review_date": "2014-08-01",
+  "last_review_date_confidence": "medium",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": 7,
+  "retention_period_confidence": "medium",
+  "suggested_chapter_section_item": "4.3.5",
+  "address_confidence": "low",
+  "version_stamp": "1.0",
+  "notes": "1. Document is labeled 'Appendix 5' and revised 'Rev 8/14,' indicating August 2014 as the effective/revision date, but no precise ISO date is stated; effective date is inferred as 2014-08-01. 2. No explicit next review date or review cadence is stated; next_review_date left null. 3. Retention period: the document instructs that donor envelopes and collection records 'must be retained in accordance with the records retention guide' but does not specify a term; 7 years is inferred from the diocesan retention schedule entry for 'Bank Deposits -> 7 years' and 'Accounts Payable, Invoices -> 7 years,' which are the closest analogues for cash-receipt audit trails. Confidence is medium. 4. Owner role is likely the diocesan CFO or Director of Finance, but the document is written as guidance to pastors and parish Finance Councils; no single diocesan role is explicitly named as policy owner. 5. Chapter address 4.3.5 is a best-judgment assignment mapping to Financial and Accounting / Banking or General sub-group (chapter 4 = Financial); the diocese taxonomy does not include a dedicated 'Parish Cash Receipts' sub-group, so this address is tentative and should be confirmed by the records manager. 6. The revision note confirms language was strengthened from 'should' to 'must' throughout in August 2014, suggesting this is at least the second version of the document. A version number beyond 1.0 may be appropriate once prior versions are located.",
+  "_source_file": "Appendix 5 Handling of Offertory Collections-1.pdf"
+}

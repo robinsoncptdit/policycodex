@@ -1,0 +1,21 @@
+{
+  "title": "301 Funds Management \u2013 Income",
+  "summary": "This policy establishes required and recommended procedures for the receipt, safeguarding, counting, depositing, bookkeeping, and donor acknowledgment of all income received by diocesan parishes and schools, including offertory collections, other receipts, fundraising events, and benevolence fund contributions, with an emphasis on separation of duties and internal controls.",
+  "category": "Finance",
+  "category_confidence": "high",
+  "owner_role": "CFO",
+  "owner_role_confidence": "medium",
+  "effective_date": "2014-08-01",
+  "effective_date_confidence": "medium",
+  "last_review_date": "2014-08-01",
+  "last_review_date_confidence": "medium",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": 7,
+  "retention_period_confidence": "medium",
+  "suggested_chapter_section_item": "3.1.1",
+  "address_confidence": "medium",
+  "version_stamp": "1.0",
+  "notes": "1. Effective date is inferred from 'Rev 8/14' and the 'Summary of Revisions effective August 2014' notation; no explicit calendar date is stated, so ISO date is approximated as 2014-08-01. 2. No explicit next review date or review cycle is stated; next_review_date left null. 3. Retention period of 7 years is inferred from the diocesan retention schedule for Financial and Accounting / Banking (Bank Deposits -> 7 years) and Accounts Payable Invoices (7 years), as the policy references record retention per Appendix 11 but does not state a specific period within the document text itself; confidence is medium. 4. Owner role is most likely the Diocesan CFO or Director of Finance, but the document does not explicitly name an owner; 'CFO' is a reasonable inference given the financial subject matter and diocesan organizational norms. 5. The document is a section (301) within a larger financial policies manual; the suggested chapter.section.item address 3.1.1 maps to the Financial and Accounting classification (chapter 3), General/Banking sub-group (section 1), income/receipts item (item 1) in the diocesan taxonomy \u2014 this is a best-judgment mapping as the diocese numbering scheme for the policy manual chapter structure is not provided. 6. Section 301.8 mandates use of 'ChurchDB' as the church management system for donor and sacramental records; this software dependency should be flagged for IT and records management review, as the mandate could be outdated if the system has been superseded. 7. The policy covers parishes and schools ('all sites') but some sub-sections are parish-only (e.g., 301.4 Offertory Collections); reviewers should confirm whether a separate school-specific version exists. 8. Canon 1284 is cited, grounding the policy in canon law obligations for administrators.",
+  "_source_file": "301 Funds Management - Income.pdf"
+}

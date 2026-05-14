@@ -1,0 +1,21 @@
+{
+  "title": "501 Personnel, Payroll Management & Independent Contractors",
+  "summary": "This policy establishes minimum requirements for personnel administration, payroll processing, independent contractor classification, and certificates of insurance for all organizations operating within the Diocese of Pensacola-Tallahassee.",
+  "category": "HR",
+  "category_confidence": "high",
+  "owner_role": "CFO",
+  "owner_role_confidence": "medium",
+  "effective_date": "2016-09-01",
+  "effective_date_confidence": "medium",
+  "last_review_date": "2016-09-01",
+  "last_review_date_confidence": "medium",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": null,
+  "retention_period_confidence": "low",
+  "suggested_chapter_section_item": "5.0.1",
+  "address_confidence": "medium",
+  "version_stamp": "1.0",
+  "notes": "1. The document header shows 'Rev 9/16,' interpreted as September 2016; no explicit ISO effective date is stated. The revision summary confirms two prior revision cycles (August 2014 and September 2016), so September 2016 is used as both effective and last-review date with medium confidence. 2. Owner role: The CFO is explicitly named as the sole authority to grant independent-contractor exceptions, and the document sits within a financial-policy manual (Section 501 of what appears to be a finance/operations manual); however, HR and the Pastoral Center payroll staff are heavily involved. HR Director could also be appropriate; medium confidence assigned to CFO. 3. Retention period: The document governs process and policy rather than a single record type. Embedded within the text are specific record-retention rules (e.g., I-9 retention: 3 years after hire or 1 year after termination, whichever is later; payroll journals checked during triennial internal reviews). The policy document itself, as an administrative policy, would be permanent per the diocesan retention schedule ('Administrative Records \u2026 Permanent'), but no single integer year applies to the policy as a whole; field left null. 4. Suggested chapter/section: Mapped to Human Resources / Personnel Records axis (chapter 5) given the policy numbering (501) already used by the diocese; item address 5.0.1 mirrors the document's own section number and the HR retention group. 5. No next review date is stated; no fixed cadence is implied beyond the fact that two revisions occurred roughly two years apart. 6. The document also touches on Risk (certificates of insurance, FLSA liability) and Finance (payroll accounting, 1099/W-2 reporting), but HR is the dominant classification. 7. Safe Environment course requirements are embedded but are subordinate to the hiring process; the document is not primarily a Safe Environment policy.",
+  "_source_file": "501 Personnel  Payroll Management   Independent Contractors.pdf"
+}
