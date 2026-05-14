@@ -163,3 +163,35 @@ def test_get_offline_extraction_reads_from_resolved_dir(monkeypatch, tmp_path):
     monkeypatch.setenv("POLICYCODEX_EVAL_OUTPUTS", str(tmp_path))
     extraction = get_offline_extraction("fake_policy.pdf")
     assert extraction == {"category": "Finance"}
+
+
+# AI-06: suggested_chapter_section_item eval set
+ADDRESS_EVAL = EVAL_DIR / "suggested_chapter_section_item_eval.jsonl"
+
+
+def _load_address_rows():
+    with ADDRESS_EVAL.open(encoding="utf-8") as fh:
+        return [json.loads(line) for line in fh if line.strip()]
+
+
+def test_address_eval_set_has_17_rows():
+    rows = _load_address_rows()
+    assert len(rows) == 17
+
+
+def test_address_verified_rows_have_ground_truth():
+    rows = _load_address_rows()
+    for row in rows:
+        if row["label_status"] == "verified":
+            assert row["ground_truth_suggested_chapter_section_item"] is not None
+        else:
+            assert row["label_status"] == "needs_review"
+            assert row["ground_truth_suggested_chapter_section_item"] is None
+
+
+def test_address_eval_rows_have_exactly_three_keys():
+    """AI-14 schema discipline: no stray columns. See 2026-05-13 AI-11 review."""
+    rows = _load_address_rows()
+    allowed = {"source_file", "label_status", "ground_truth_suggested_chapter_section_item"}
+    for row in rows:
+        assert set(row.keys()) == allowed, f"row {row} has unexpected keys"
