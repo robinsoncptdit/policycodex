@@ -5,6 +5,14 @@
 {% block content %}
   <h2>Policy catalog</h2>
 
+  {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+        <li class="message message-{{ message.tags }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
   {% if is_empty_onboarding %}
     <section class="empty-state">
       <p>No policies yet.</p>
@@ -37,6 +45,12 @@
             <span class="foundational-badge">(foundational)</span>
           {% endif %}
           <span class="gate-badge gate-{{ row.gate }}">{{ row.gate|title }}</span>
+          {% if row.gate == "reviewed" %}
+            <form method="post" action="{% url 'publish_policy' slug=row.policy.slug %}" style="display:inline">
+              {% csrf_token %}
+              <button type="submit">Publish</button>
+            </form>
+          {% endif %}
         </li>
       {% empty %}
         <li class="no-results">No policies in the working copy.</li>
