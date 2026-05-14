@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}PolicyCodex{% endblock %}</title>
+  </head>
+  <body>
+    <header>
+      <h1><a href="{% url 'catalog' %}">PolicyCodex</a></h1>
+      {% if user.is_authenticated %}
+        <nav>
+          <span>Signed in as {{ user.username }}.</span>
+          <form method="post" action="{% url 'logout' %}" style="display:inline">
+            {% csrf_token %}
+            <button type="submit">Sign out</button>
+          </form>
+        </nav>
+      {% endif %}
+    </header>
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+    <footer>
+      <small>PolicyCodex v0.1</small>
+    </footer>
+  </body>
+</html>
