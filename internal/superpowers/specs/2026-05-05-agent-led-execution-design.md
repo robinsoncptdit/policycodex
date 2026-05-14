@@ -58,13 +58,16 @@ Within a lane, tickets are mostly sequential. Across lanes, parallel where depen
    - `general-purpose` for code (most tickets)
    - `Explore` for read-only research (e.g., `PUBLISH-01` SSG selection)
    - `Plan` only when a ticket needs architectural design before code
+
+   **Do NOT manually pre-create worktrees** (e.g., `git worktree add /tmp/pc-wt-<ticket>` or anywhere else) and brief subagents to operate in them. The Claude Code harness has an intent-based safety classifier that denies Bash to caller-managed worktrees when the subagent's brief frames it as implementer-doing-dev-work. The `isolation: "worktree"` parameter is the harness's blessed pattern — it auto-creates a worktree at `/Users/chuck/PolicyWonk/.claude/worktrees/agent-<id>/`, auto-branches it, gives the subagent full Bash + Write access there, and returns `worktreePath` + `worktreeBranch` in the result for the controller to merge. Verified 2026-05-14 after a full day of wrong hypotheses (Wave-1 morning failed with manual worktrees; afternoon probe confirmed `isolation: "worktree"` works end-to-end including TDD + commit + pytest). The auto-worktree's BASE may be older than current `main` (the harness branches from a session-start commit, not from `main`'s current HEAD); brief implementers to first `git merge main` into their auto-branch if their work depends on recent merges.
+
 4. The subagent works the ticket, commits to its branch, returns a summary.
 5. Scarlet reads the diff, runs acceptance commands (tests, build, lint), then:
    - **Accept** → squash-merge to `main`, drop the worktree.
    - **Revise** → `SendMessage` with feedback, iterate.
    - **Reject** → close the worktree, re-dispatch with an adjusted prompt.
 
-**Parallel dispatch when safe.** When two or more ready tickets do not share state (typically across lanes, different files), Scarlet dispatches them in a single message with multiple Agent calls. Conflicts surface at merge time, not at dispatch.
+**Parallel dispatch when safe — with one critical exception.** When two or more ready tickets do not share state (typically across lanes, different files), Scarlet dispatches them in a single message with multiple Agent calls. Conflicts surface at merge time, not at dispatch. **Exception:** parallel dispatch of multiple **implementer** subagents (i.e., subagents framed as "implementing Task N" per the `superpowers:subagent-driven-development` skill) is a skill red flag — even when they're in separate harness-managed worktrees. Reviewer subagents, plan-drafting subagents, and research-only subagents (Explore type) are safe to parallel-dispatch. Implementers must go sequentially.
 
 **Acceptance is verbatim from the PRD.** Every subagent prompt includes the literal acceptance criteria for its ticket. No interpretation by Scarlet.
 
