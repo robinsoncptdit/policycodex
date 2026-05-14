@@ -476,3 +476,74 @@ def test_list_open_prs_passes_state_open_filter(tmp_path):
         p = GitHubProvider(config=cfg, github_client=fake_client)
         p.list_open_prs(wd)
     fake_repo.get_pulls.assert_called_once_with(state="open")
+
+
+def test_approve_pr_creates_review_with_approve_event(tmp_path):
+    """approve_pr calls Repository.get_pull(N).create_review(event='APPROVE')."""
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    wd = tmp_path / "wd"
+    fake_review = MagicMock(id=987, state="APPROVED")
+    fake_pr = MagicMock(number=42)
+    fake_pr.create_review.return_value = fake_review
+    fake_repo = MagicMock()
+    fake_repo.get_pull.return_value = fake_pr
+    fake_client = MagicMock()
+    fake_client.get_repo.return_value = fake_repo
+    with patch("app.git_provider.github_provider.subprocess.run") as run:
+        run.return_value = MagicMock(returncode=0, stdout=b"https://github.com/foo/bar.git\n")
+        p = GitHubProvider(config=cfg, github_client=fake_client)
+        result = p.approve_pr(pr_number=42, working_dir=wd, body="Looks good.")
+    fake_client.get_repo.assert_called_once_with("foo/bar")
+    fake_repo.get_pull.assert_called_once_with(42)
+    fake_pr.create_review.assert_called_once_with(body="Looks good.", event="APPROVE")
+    assert result == {"review_id": 987, "state": "APPROVED", "pr_number": 42}
+
+
+def test_approve_pr_defaults_body_to_empty_string(tmp_path):
+    """When no body is supplied, approve_pr passes body='' to create_review."""
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    fake_review = MagicMock(id=1, state="APPROVED")
+    fake_pr = MagicMock(number=7)
+    fake_pr.create_review.return_value = fake_review
+    fake_repo = MagicMock()
+    fake_repo.get_pull.return_value = fake_pr
+    fake_client = MagicMock()
+    fake_client.get_repo.return_value = fake_repo
+    with patch("app.git_provider.github_provider.subprocess.run") as run:
+        run.return_value = MagicMock(returncode=0, stdout=b"https://github.com/foo/bar.git\n")
+        p = GitHubProvider(config=cfg, github_client=fake_client)
+        p.approve_pr(pr_number=7, working_dir=tmp_path / "wd")
+    fake_pr.create_review.assert_called_once_with(body="", event="APPROVE")
+
+
+def test_approve_pr_raises_on_origin_lookup_failure(tmp_path):
+    """If `git remote get-url origin` fails, approve_pr raises RuntimeError."""
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    with patch("app.git_provider.github_provider.subprocess.run") as run:
+        run.return_value = MagicMock(returncode=128, stderr=b"not a git repo")
+        p = GitHubProvider(config=cfg, github_client=MagicMock())
+        with pytest.raises(RuntimeError, match="git remote get-url"):
+            p.approve_pr(pr_number=1, working_dir=tmp_path / "wd")
+
+
+def test_approve_pr_propagates_pygithub_exceptions(tmp_path):
+    """If PyGithub raises (e.g., GithubException from create_review), bubble it up."""
+    from github import GithubException
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    fake_pr = MagicMock()
+    fake_pr.create_review.side_effect = GithubException(
+        status=403, data={"message": "Resource not accessible by integration"}, headers={}
+    )
+    fake_repo = MagicMock()
+    fake_repo.get_pull.return_value = fake_pr
+    fake_client = MagicMock()
+    fake_client.get_repo.return_value = fake_repo
+    with patch("app.git_provider.github_provider.subprocess.run") as run:
+        run.return_value = MagicMock(returncode=0, stdout=b"https://github.com/foo/bar.git\n")
+        p = GitHubProvider(config=cfg, github_client=fake_client)
+        with pytest.raises(GithubException):
+            p.approve_pr(pr_number=1, working_dir=tmp_path / "wd")
