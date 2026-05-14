@@ -291,3 +291,29 @@ class GitHubProvider(GitProvider):
                 "url": pr.html_url,
             })
         return result
+
+    def approve_pr(
+        self,
+        pr_number: int,
+        working_dir: Path,
+        body: str = "",
+    ) -> dict:
+        get_url = subprocess.run(
+            ["git", "remote", "get-url", "origin"],
+            cwd=working_dir,
+            capture_output=True,
+        )
+        if get_url.returncode != 0:
+            raise RuntimeError(
+                f"git remote get-url failed (exit {get_url.returncode}): "
+                f"{get_url.stderr.decode(errors='replace')}"
+            )
+        owner_repo = _parse_owner_repo(get_url.stdout.decode())
+        repo = self._client.get_repo(owner_repo)
+        pr = repo.get_pull(pr_number)
+        review = pr.create_review(body=body, event="APPROVE")
+        return {
+            "review_id": review.id,
+            "state": review.state,
+            "pr_number": pr_number,
+        }
