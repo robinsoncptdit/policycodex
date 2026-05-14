@@ -189,3 +189,184 @@ def test_post_foundational_policy_also_returns_403(client, user):
                     data={"title": "Hijack", "body": "Bad", "summary": ""},
                 )
     assert response.status_code == 403
+
+
+# --- POST happy path ---
+
+def test_post_valid_calls_branch_commit_push_open_pr_in_order(client, user, tmp_path):
+    """The happy path sequences all four GitHubProvider operations and writes the file."""
+    client.force_login(user)
+
+    # Build a real on-disk policies/onboarding.md so the view can write to it.
+    repo_dir = tmp_path / "diocese-policies"
+    policies_dir = repo_dir / "policies"
+    policies_dir.mkdir(parents=True)
+    policy_file = policies_dir / "onboarding.md"
+    policy_file.write_text(
+        "---\ntitle: Old Title\nowner: HR Director\n---\nOld body.\n",
+        encoding="utf-8",
+    )
+
+    # Real LogicalPolicy so the view can read it back from the reader mock.
+    real_policy = LogicalPolicy(
+        slug="onboarding",
+        kind="flat",
+        policy_path=policy_file,
+        data_path=None,
+        frontmatter={"title": "Old Title", "owner": "HR Director"},
+        body="Old body.\n",
+        foundational=False,
+        provides=(),
+    )
+
+    fake_pr = {
+        "pr_number": 17,
+        "url": "https://github.com/example/diocese-policies/pull/17",
+        "state": "open",
+    }
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://github.com/example/diocese-policies.git",
+        POLICYCODEX_POLICY_BRANCH="main",
+        POLICYCODEX_WORKING_COPY_ROOT=str(tmp_path),
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter([real_policy])
+                with patch("core.views.GitHubProvider") as MockProvider:
+                    instance = MockProvider.return_value
+                    instance.open_pr.return_value = fake_pr
+                    response = client.post(
+                        "/policies/onboarding/edit/",
+                        data={
+                            "title": "Onboarding Revised",
+                            "body": "New body text.\n",
+                            "summary": "Tighten the welcome section",
+                        },
+                    )
+
+    # Successful POST redirects to the success page.
+    assert response.status_code in (302, 200)  # 302 if redirect-to-success; 200 if render-success-directly
+    # File on disk reflects the new title + body (round-tripped through _render_policy_md).
+    new_text = policy_file.read_text(encoding="utf-8")
+    assert "title: Onboarding Revised" in new_text
+    assert "owner: HR Director" in new_text  # unexposed key preserved
+    assert "New body text." in new_text
+    # GitHubProvider call sequence.
+    instance.branch.assert_called_once()
+    branch_args = instance.branch.call_args[0]
+    branch_name = branch_args[0]
+    assert branch_name.startswith("policycodex/edit-onboarding-")
+    instance.commit.assert_called_once()
+    commit_kwargs = instance.commit.call_args.kwargs or {}
+    commit_args = instance.commit.call_args.args
+    # commit(message, files, author_name, author_email, working_dir)
+    # The view may use kwargs or positional; assert by name when possible.
+    # Pull either way:
+    def _pick(name, idx):
+        if name in commit_kwargs:
+            return commit_kwargs[name]
+        return commit_args[idx]
+    msg = _pick("message", 0)
+    files = _pick("files", 1)
+    author_name = _pick("author_name", 2)
+    author_email = _pick("author_email", 3)
+    assert msg == "Tighten the welcome section"
+    assert files == [policy_file]
+    assert author_name == "Pat Editor"
+    assert author_email == "editor@example.com"
+    instance.push.assert_called_once()
+    push_args = instance.push.call_args[0]
+    assert push_args[0] == branch_name
+    instance.open_pr.assert_called_once()
+    open_pr_kwargs = instance.open_pr.call_args.kwargs or {}
+    open_pr_args = instance.open_pr.call_args.args
+    def _pick2(name, idx):
+        if name in open_pr_kwargs:
+            return open_pr_kwargs[name]
+        return open_pr_args[idx]
+    title = _pick2("title", 0)
+    body_text = _pick2("body", 1)
+    head_branch = _pick2("head_branch", 2)
+    base_branch = _pick2("base_branch", 3)
+    assert "onboarding" in title
+    assert "Tighten the welcome section" in title or "Tighten the welcome section" in body_text
+    assert head_branch == branch_name
+    assert base_branch == "main"
+    assert "Opened by PolicyCodex on behalf of editor" in body_text
+    # Call order: branch < commit < push < open_pr.
+    branch_n = instance.branch.call_args_list[0]
+    commit_n = instance.commit.call_args_list[0]
+    push_n = instance.push.call_args_list[0]
+    open_pr_n = instance.open_pr.call_args_list[0]
+    # Use the mock's mock_calls index ordering on the parent.
+    parent_calls = MockProvider.return_value.mock_calls
+    method_names = [c[0] for c in parent_calls]
+    assert method_names.index("branch") < method_names.index("commit") < method_names.index("push") < method_names.index("open_pr")
+
+
+def test_post_default_commit_message_when_summary_empty(client, user, tmp_path):
+    """If the form's summary is blank, the commit message defaults to `Update <slug>`."""
+    client.force_login(user)
+    repo_dir = tmp_path / "diocese-policies"
+    policies_dir = repo_dir / "policies"
+    policies_dir.mkdir(parents=True)
+    policy_file = policies_dir / "onboarding.md"
+    policy_file.write_text("---\ntitle: T\n---\nbody\n", encoding="utf-8")
+    real_policy = LogicalPolicy(
+        slug="onboarding", kind="flat", policy_path=policy_file, data_path=None,
+        frontmatter={"title": "T"}, body="body\n", foundational=False, provides=(),
+    )
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://github.com/example/diocese-policies.git",
+        POLICYCODEX_WORKING_COPY_ROOT=str(tmp_path),
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter([real_policy])
+                with patch("core.views.GitHubProvider") as MockProvider:
+                    instance = MockProvider.return_value
+                    instance.open_pr.return_value = {"pr_number": 1, "url": "u", "state": "open"}
+                    client.post(
+                        "/policies/onboarding/edit/",
+                        data={"title": "T2", "body": "b2\n", "summary": ""},
+                    )
+    commit_call = instance.commit.call_args
+    msg = commit_call.kwargs.get("message", commit_call.args[0] if commit_call.args else None)
+    assert msg == "Update onboarding"
+
+
+def test_post_renders_success_page_with_pr_url(client, user, tmp_path):
+    """After a successful PR is opened, the user sees a success page containing the PR URL."""
+    client.force_login(user)
+    repo_dir = tmp_path / "diocese-policies"
+    policies_dir = repo_dir / "policies"
+    policies_dir.mkdir(parents=True)
+    policy_file = policies_dir / "onboarding.md"
+    policy_file.write_text("---\ntitle: T\n---\nb\n", encoding="utf-8")
+    real_policy = LogicalPolicy(
+        slug="onboarding", kind="flat", policy_path=policy_file, data_path=None,
+        frontmatter={"title": "T"}, body="b\n", foundational=False, provides=(),
+    )
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://github.com/example/diocese-policies.git",
+        POLICYCODEX_WORKING_COPY_ROOT=str(tmp_path),
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter([real_policy])
+                with patch("core.views.GitHubProvider") as MockProvider:
+                    instance = MockProvider.return_value
+                    instance.open_pr.return_value = {
+                        "pr_number": 42,
+                        "url": "https://github.com/example/diocese-policies/pull/42",
+                        "state": "open",
+                    }
+                    response = client.post(
+                        "/policies/onboarding/edit/",
+                        data={"title": "T2", "body": "b2\n", "summary": "msg"},
+                        follow=True,  # follow a redirect-to-success-page if used
+                    )
+    assert response.status_code == 200
+    body = response.content.decode()
+    assert "https://github.com/example/diocese-policies/pull/42" in body
+    assert "42" in body  # PR number visible somewhere
