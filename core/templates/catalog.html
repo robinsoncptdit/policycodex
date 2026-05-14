@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Catalog | PolicyCodex{% endblock %}
+
+{% block content %}
+  <h2>Policy catalog</h2>
+
+  {% if is_empty_onboarding %}
+    <section class="empty-state">
+      <p>No policies yet.</p>
+      <p>
+        Run the onboarding wizard, or sync the diocese's policy repo by running
+        <code>python manage.py pull_working_copy</code> on the server.
+      </p>
+    </section>
+  {% else %}
+    <ul class="policy-list">
+      {% for policy in policies %}
+        <li class="policy">
+          <a href="#{{ policy.slug }}">{{ policy.frontmatter.title|default:policy.slug }}</a>
+          <span class="kind-badge kind-{{ policy.kind }}">{{ policy.kind }}</span>
+          {% if policy.foundational %}
+            <span class="foundational-badge">(foundational)</span>
+          {% endif %}
+        </li>
+      {% empty %}
+        <li class="no-results">No policies in the working copy.</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endblock %}
