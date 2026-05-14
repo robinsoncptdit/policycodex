@@ -547,3 +547,120 @@ def test_approve_pr_propagates_pygithub_exceptions(tmp_path):
         p = GitHubProvider(config=cfg, github_client=fake_client)
         with pytest.raises(GithubException):
             p.approve_pr(pr_number=1, working_dir=tmp_path / "wd")
+
+
+def test_merge_pr_calls_pygithub_with_squash_default(tmp_path):
+    """merge_pr defaults to merge_method='squash' and returns merge metadata."""
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    wd = tmp_path / "wd"
+    fake_pr = MagicMock(number=42)
+    # PyGithub's pr.merge() returns an object with attrs merged + sha.
+    fake_merge_result = MagicMock(merged=True, sha="cafebabe1234")
+    fake_pr.merge.return_value = fake_merge_result
+    fake_repo = MagicMock()
+    fake_repo.get_pull.return_value = fake_pr
+    fake_client = MagicMock()
+    fake_client.get_repo.return_value = fake_repo
+    with patch("app.git_provider.github_provider.subprocess.run") as run:
+        run.return_value = MagicMock(returncode=0, stdout=b"https://github.com/foo/bar.git\n")
+        p = GitHubProvider(config=cfg, github_client=fake_client)
+        result = p.merge_pr(42, wd)
+    fake_client.get_repo.assert_called_once_with("foo/bar")
+    fake_repo.get_pull.assert_called_once_with(42)
+    fake_pr.merge.assert_called_once()
+    call_kwargs = fake_pr.merge.call_args.kwargs
+    assert call_kwargs["merge_method"] == "squash"
+    assert result == {"merged": True, "sha": "cafebabe1234", "merge_method": "squash"}
+
+
+def test_merge_pr_honors_explicit_merge_method(tmp_path):
+    """merge_pr passes through merge_method='merge' or 'rebase' when given."""
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    wd = tmp_path / "wd"
+    fake_pr = MagicMock()
+    fake_pr.merge.return_value = MagicMock(merged=True, sha="abc")
+    fake_repo = MagicMock()
+    fake_repo.get_pull.return_value = fake_pr
+    fake_client = MagicMock()
+    fake_client.get_repo.return_value = fake_repo
+    with patch("app.git_provider.github_provider.subprocess.run") as run:
+        run.return_value = MagicMock(returncode=0, stdout=b"https://github.com/foo/bar.git\n")
+        p = GitHubProvider(config=cfg, github_client=fake_client)
+        result = p.merge_pr(7, wd, merge_method="rebase")
+    assert fake_pr.merge.call_args.kwargs["merge_method"] == "rebase"
+    assert result["merge_method"] == "rebase"
+
+
+def test_merge_pr_rejects_invalid_merge_method(tmp_path):
+    """Only merge, squash, rebase are accepted; anything else raises ValueError."""
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    p = GitHubProvider(config=cfg, github_client=MagicMock())
+    with pytest.raises(ValueError, match="merge_method"):
+        p.merge_pr(1, tmp_path / "wd", merge_method="fast-forward")
+
+
+def test_merge_pr_raises_runtime_error_on_github_exception(tmp_path):
+    """A PyGithub GithubException (e.g. 409 merge conflict) becomes RuntimeError."""
+    from github import GithubException
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    wd = tmp_path / "wd"
+    fake_pr = MagicMock()
+    fake_pr.merge.side_effect = GithubException(
+        status=409, data={"message": "Merge conflict"}, headers=None
+    )
+    fake_repo = MagicMock()
+    fake_repo.get_pull.return_value = fake_pr
+    fake_client = MagicMock()
+    fake_client.get_repo.return_value = fake_repo
+    with patch("app.git_provider.github_provider.subprocess.run") as run:
+        run.return_value = MagicMock(returncode=0, stdout=b"https://github.com/foo/bar.git\n")
+        p = GitHubProvider(config=cfg, github_client=fake_client)
+        with pytest.raises(RuntimeError, match="merge.*409|Merge conflict"):
+            p.merge_pr(42, wd)
+
+
+def test_merge_pr_raises_runtime_error_on_branch_protection_block(tmp_path):
+    """Branch protection failures surface 405 with a Method Not Allowed message."""
+    from github import GithubException
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    wd = tmp_path / "wd"
+    fake_pr = MagicMock()
+    fake_pr.merge.side_effect = GithubException(
+        status=405,
+        data={"message": "Required status check has not succeeded"},
+        headers=None,
+    )
+    fake_repo = MagicMock()
+    fake_repo.get_pull.return_value = fake_pr
+    fake_client = MagicMock()
+    fake_client.get_repo.return_value = fake_repo
+    with patch("app.git_provider.github_provider.subprocess.run") as run:
+        run.return_value = MagicMock(returncode=0, stdout=b"https://github.com/foo/bar.git\n")
+        p = GitHubProvider(config=cfg, github_client=fake_client)
+        with pytest.raises(RuntimeError, match="405|status check"):
+            p.merge_pr(42, wd)
+
+
+def test_merge_pr_raises_when_pr_already_merged(tmp_path):
+    """If pr.merge() returns merged=False, surface a RuntimeError so callers don't
+    silently report success. GitHub's API can return merged=False with a reason
+    string when, e.g., the head SHA changed between read and merge."""
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    wd = tmp_path / "wd"
+    fake_pr = MagicMock()
+    fake_pr.merge.return_value = MagicMock(merged=False, sha=None)
+    fake_repo = MagicMock()
+    fake_repo.get_pull.return_value = fake_pr
+    fake_client = MagicMock()
+    fake_client.get_repo.return_value = fake_repo
+    with patch("app.git_provider.github_provider.subprocess.run") as run:
+        run.return_value = MagicMock(returncode=0, stdout=b"https://github.com/foo/bar.git\n")
+        p = GitHubProvider(config=cfg, github_client=fake_client)
+        with pytest.raises(RuntimeError, match="not merged"):
+            p.merge_pr(42, wd)
