@@ -298,6 +298,58 @@ def test_default_client_built_via_get_github_for_installation(tmp_path):
     assert p._client is fake_client
 
 
+def test_pull_runs_git_pull_with_tokenized_origin(tmp_path):
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    wd = tmp_path / "wd"
+    with patch("app.git_provider.github_provider._build_installation_token", return_value="ghs_PULL"):
+        with patch("app.git_provider.github_provider.subprocess.run") as run:
+            run.side_effect = [
+                MagicMock(returncode=0, stdout=b"https://github.com/foo/bar.git\n"),
+                MagicMock(returncode=0),
+            ]
+            p = GitHubProvider(config=cfg, github_client=MagicMock())
+            p.pull("main", wd)
+    assert run.call_count == 2
+    first_call = run.call_args_list[0]
+    assert first_call[0][0] == ["git", "remote", "get-url", "origin"]
+    second_call = run.call_args_list[1]
+    cmd = second_call[0][0]
+    assert cmd[0:2] == ["git", "pull"]
+    assert any("x-access-token:ghs_PULL@github.com/foo/bar.git" in c for c in cmd)
+    assert cmd[-1] == "main"
+
+
+def test_pull_raises_on_non_github_origin(tmp_path):
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    with patch("app.git_provider.github_provider.subprocess.run") as run:
+        run.return_value = MagicMock(
+            returncode=0, stdout=b"git@github.com:org/repo.git\n"
+        )
+        p = GitHubProvider(config=cfg, github_client=MagicMock())
+        with pytest.raises(ValueError, match="https://github.com/"):
+            p.pull("main", tmp_path / "wd")
+
+
+def test_pull_raises_on_nonzero_exit_and_redacts_token(tmp_path):
+    cfg = _fake_config(tmp_path)
+    (tmp_path / "key.pem").write_text("FAKE PEM")
+    with patch("app.git_provider.github_provider._build_installation_token", return_value="SECRET_TOKEN"):
+        with patch("app.git_provider.github_provider.subprocess.run") as run:
+            run.side_effect = [
+                MagicMock(returncode=0, stdout=b"https://github.com/foo/bar.git\n"),
+                MagicMock(returncode=1, stderr=b"fatal: could not read from remote (token=SECRET_TOKEN)"),
+            ]
+            p = GitHubProvider(config=cfg, github_client=MagicMock())
+            with pytest.raises(RuntimeError) as excinfo:
+                p.pull("main", tmp_path / "wd")
+    msg = str(excinfo.value)
+    assert "SECRET_TOKEN" not in msg
+    assert "<redacted>" in msg
+    assert "git pull" in msg
+
+
 def test_parse_owner_repo_handles_dots_in_repo_name():
     """Regex must accept dotted repo names (e.g., owner.github.io)."""
     from app.git_provider.github_provider import _parse_owner_repo
