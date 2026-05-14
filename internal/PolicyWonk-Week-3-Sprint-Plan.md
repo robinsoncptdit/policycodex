@@ -67,14 +67,18 @@ Ordered by dispatch readiness, not priority. All P0 for the sprint.
 | OQ-08 pick PT corpus export target date | 30 min | Conversation with PT IT director. Aim for end of Week 3 if export is feasible; otherwise pre-commit to a Week 4 date. |
 | REPO-08 PT org Team-tier upgrade | 1 hr conversation + admin steps | Budget conversation with PT IT director, then GitHub org settings change. |
 
-## Discipline Rules (carried from Week 2)
+## Discipline Rules (carried from Week 2, updated 2026-05-14 evening after Wave-1)
 
-- Each subagent dispatch goes through `superpowers:using-git-worktrees` + `superpowers:verification-before-completion`. No "looks good without running" claims.
-- Code review (`superpowers:requesting-code-review`) on every subagent's output **before** merge to main. Pre-merge review caught AI-11's two Critical issues in Week 2; keep that discipline.
+- **Implementer subagent dispatch uses the Agent tool's `isolation: "worktree"` parameter.** Do not manually `git worktree add` ahead of dispatch; the harness creates and manages the worktree at `/Users/chuck/PolicyWonk/.claude/worktrees/agent-<id>/`. Manually-managed worktrees outside that path trip the harness's intent classifier and get Bash-denied. Verified 2026-05-14 after Wave-1's morning dispatch failure; see `internal/superpowers/specs/2026-05-05-agent-led-execution-design.md` for the full pattern and the daily log entry at 2026-05-14 19:00 PT for the discovery story.
+- **Implementer dispatches are sequential**, not parallel. Reviewers, planners, and research-only subagents can still parallel-dispatch (verified Wave-1 afternoon with 4 concurrent reviewers).
+- **Brief implementer subagents to first `git merge main` into their auto-branch.** The harness's auto-worktree may branch from a session-start commit older than current `main`; the implementer needs the merge to see recent work (e.g., Wave-1 outputs for Wave-2 implementers).
+- Code review (`superpowers:requesting-code-review`) on every subagent's output **before** merge to main. Pre-merge review caught AI-11's two Critical issues in Week 2 and INGEST-07 + AI-06 fixes in Wave-1; keep that discipline. Stage diffs and git logs to `.tmp-reviews/<branch>.{diff,log}` (gitignored) for reviewer fetch when the branch lives in an auto-worktree the reviewer can't easily reach.
 - Each reviewer gets a self-contained brief (description, requirements, BASE/HEAD SHAs, what-to-check). Reviewer subagents don't inherit Scarlet's conversation context.
+- `superpowers:verification-before-completion` on every subagent's self-report. No "looks good without running" claims.
 - `>=` floor pins in `requirements.txt`, not exact pins. Subagent training data has stale exact pins that fail on current PyPI.
 - Eager commits: each subagent commits per logical unit, not batched at the end. Scarlet commits docs/log/scaffold updates eagerly too.
 - Subagent prompts use the spike output JSON keys verbatim unless an explicit field-name mapping is approved at dispatch time.
+- **No em dashes** in any committed content (code, comments, docstrings, YAML, JSONL, READMEs, commit messages). Style rule applies to subagent output as well as Scarlet's.
 
 ## Risks
 
