@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 from github import GithubException
 
 from app.git_provider.github_provider import GitHubProvider
@@ -291,4 +291,90 @@ def approve_pr(request):
         request.user.username, pr_number, result.get("review_id"),
     )
     messages.success(request, f"PR #{pr_number} approved.")
+    return redirect("catalog")
+
+
+@login_required
+@require_http_methods(["POST"])
+def publish_policy(request, slug):
+    """Merge the open PR for `slug`, transitioning the gate to Published.
+
+    v0.1 permission model: any authenticated user may publish. Role-gating
+    (e.g. "only Publisher role") is a future ticket. The GitHub App token
+    used by GitHubProvider has Contents + Pull-requests read/write
+    (verified in REPO-03 checklist), which is the underlying authority.
+
+    All outcomes (success or any error class) flash a message via Django's
+    messages framework and redirect to /catalog/. No JSON, no rendered
+    error page, no 500.
+    """
+    try:
+        config = load_working_copy_config()
+    except RuntimeError:
+        messages.error(
+            request,
+            "Working copy is not configured. Complete the onboarding wizard first.",
+        )
+        return redirect("catalog")
+
+    working_dir = config.working_dir
+    provider = GitHubProvider()
+
+    # Locate the open PR for this slug by scanning open PRs and matching
+    # the head-branch convention (same lookup APP-17's _build_gate_lookup
+    # uses for the catalog gate badges). No persistent slug->PR mapping
+    # in v0.1; the GitHub API is the source of truth.
+    try:
+        open_prs = provider.list_open_prs(working_dir)
+    except (RuntimeError, GithubException) as exc:
+        messages.error(request, f"Could not list open pull requests: {exc}")
+        return redirect("catalog")
+
+    matching = [
+        pr for pr in open_prs
+        if branch_to_slug(pr.get("head_branch", "")) == slug
+    ]
+    if not matching:
+        messages.error(
+            request,
+            f"No pending pull request for '{slug}'. Open an edit first to create one.",
+        )
+        return redirect("catalog")
+    pr_number = matching[0]["pr_number"]
+
+    try:
+        state = provider.read_pr_state(pr_number, working_dir)
+    except (RuntimeError, GithubException) as exc:
+        messages.error(request, f"Could not read PR state for #{pr_number}: {exc}")
+        return redirect("catalog")
+
+    if state == "published":
+        messages.warning(request, f"PR #{pr_number} is already published.")
+        return redirect("catalog")
+    if state != "reviewed":
+        messages.error(
+            request,
+            f"PR #{pr_number} is in state '{state}'. A reviewer must approve "
+            "(transition to Reviewed) before it can be published.",
+        )
+        return redirect("catalog")
+
+    try:
+        result = provider.merge_pr(pr_number, working_dir, merge_method="squash")
+    except RuntimeError as exc:
+        messages.error(
+            request,
+            f"Merge failed for PR #{pr_number}: {exc}. Resolve the issue on "
+            "GitHub (often a merge conflict or branch protection) and try again.",
+        )
+        return redirect("catalog")
+
+    logger.info(
+        "publish_policy: success user=%s slug=%s pr=%s sha=%s",
+        request.user.username, slug, pr_number, result.get("sha"),
+    )
+    messages.success(
+        request,
+        f"Published '{slug}' (PR #{pr_number} merged as {result['sha'][:7]}).",
+    )
     return redirect("catalog")
