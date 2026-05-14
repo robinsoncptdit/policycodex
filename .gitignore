@@ -9,7 +9,8 @@ venv/
 *.pem
 archive/
 spike/.env
-spike/outputs/
+spike/outputs/*
+!spike/outputs/*.json
 spike/venv/
 docs/superpowers/.cache/
 internal/superpowers/.cache/
