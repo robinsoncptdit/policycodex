@@ -227,6 +227,13 @@ def approve_pr(request):
 
     v0.1 permission model: any authenticated Django user may approve.
     Future tickets (reviewer-role gating) will add per-user authorization.
+
+    Gate-guard: only `drafted`-state PRs are approvable. Approving an
+    already-reviewed, merged, or closed PR is refused with a flash error.
+    The check is at the view layer (not the provider) because v0.1 is a
+    single-server single-process app; concurrent-approval races are not
+    a real risk at our scale, and surfacing the state in the flash message
+    is more useful to the user than a provider-layer raise.
     """
     raw = request.POST.get("pr_number", "").strip()
     if not raw:
@@ -238,6 +245,47 @@ def approve_pr(request):
         messages.error(request, f"Invalid pr_number: {raw!r}.")
         return redirect("catalog")
 
-    # Gate-guard and provider call land in Task 5.
-    messages.error(request, "Approve action not yet wired.")
+    try:
+        config = load_working_copy_config()
+    except RuntimeError as exc:
+        messages.error(request, f"Working copy not configured: {exc}")
+        return redirect("catalog")
+
+    provider = GitHubProvider()
+    try:
+        state = provider.read_pr_state(pr_number, config.working_dir)
+    except Exception as exc:
+        messages.error(request, f"Could not read PR #{pr_number} state: {exc}")
+        logger.warning(
+            "approve_pr: read_pr_state failed user=%s pr=%s err=%s",
+            request.user.username, pr_number, exc,
+        )
+        return redirect("catalog")
+
+    if state != "drafted":
+        messages.error(
+            request,
+            f"PR #{pr_number} cannot be approved (current state: {state}).",
+        )
+        return redirect("catalog")
+
+    try:
+        result = provider.approve_pr(
+            pr_number=pr_number,
+            working_dir=config.working_dir,
+            body="",
+        )
+    except Exception as exc:
+        messages.error(request, f"Could not approve PR #{pr_number}: {exc}")
+        logger.warning(
+            "approve_pr: provider error user=%s pr=%s err=%s",
+            request.user.username, pr_number, exc,
+        )
+        return redirect("catalog")
+
+    logger.info(
+        "approve_pr: success user=%s pr=%s review_id=%s",
+        request.user.username, pr_number, result.get("review_id"),
+    )
+    messages.success(request, f"PR #{pr_number} approved.")
     return redirect("catalog")
