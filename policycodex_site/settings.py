@@ -10,10 +10,17 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Working-copy configuration (APP-05). Per-diocese values driven by env
+# var or the seven-screen onboarding wizard; never hardcoded.
+POLICYCODEX_POLICY_REPO_URL = os.environ.get("POLICYCODEX_POLICY_REPO_URL", "")
+POLICYCODEX_POLICY_BRANCH = os.environ.get("POLICYCODEX_POLICY_BRANCH", "main")
+POLICYCODEX_WORKING_COPY_ROOT = os.environ.get("POLICYCODEX_WORKING_COPY_ROOT", "")
 
 
 # Quick-start development settings - unsuitable for production
