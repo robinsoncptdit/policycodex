@@ -148,3 +148,24 @@ def test_catalog_empty_state_when_policies_dir_missing(client, user):
     assert response.status_code == 200
     body = response.content.decode()
     assert "No policies yet" in body
+
+
+def test_root_redirects_authenticated_user_to_catalog(client, user):
+    """For an authenticated user, GET / redirects to /catalog/."""
+    client.force_login(user)
+    response = client.get("/")
+    assert response.status_code == 302
+    assert response.url == "/catalog/"
+
+
+def test_root_redirects_unauthenticated_user_to_login(client):
+    """For an unauthenticated user, GET / redirects to /catalog/ first, which then
+    redirects to /login/. We assert the immediate redirect target is /catalog/
+    (the @login_required chain happens at /catalog/, not at /)."""
+    response = client.get("/")
+    assert response.status_code == 302
+    assert response.url == "/catalog/"
+    # Follow the chain.
+    response = client.get(response.url)
+    assert response.status_code == 302
+    assert response.url.startswith("/login/")

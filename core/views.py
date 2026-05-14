@@ -2,7 +2,7 @@ from pathlib import Path
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 
 from app.working_copy.config import load_working_copy_config
 from ingest.policy_reader import BundleAwarePolicyReader
@@ -30,3 +30,8 @@ def catalog(request):
 
     policies = list(BundleAwarePolicyReader(policies_dir).read())
     return render(request, "catalog.html", {"is_empty_onboarding": False, "policies": policies})
+
+
+def root_redirect(request):
+    """Send the root URL `/` to `/catalog/`. `catalog` itself handles login_required."""
+    return redirect("catalog")
