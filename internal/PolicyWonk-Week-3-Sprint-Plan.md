@@ -22,10 +22,10 @@ These open items need Chuck's call or one-time setup before related tickets can 
 
 | OQ / Action | Decision needed | Blocks | Status |
 |---|---|---|---|
-| **Pre-sprint scaffold** | Hand-create `policies/document-retention/` bundle in PT's repo (policy.md narrative + frontmatter declaring `foundational: true`, plus `data.yaml` copied from `ai/taxonomies/pt_classification.yaml`, plus `source.pdf` archived from `internal/Document Retention Policy.pdf`). One-time setup unblocking INGEST-07, APP-21, AI-12-revised. | INGEST-07, APP-21, AI-12 | Owner: Scarlet (Sun-Mon AM, ~30 min). |
+| **Pre-sprint scaffold** | Hand-create `policies/document-retention/` bundle in PT's repo (policy.md narrative + frontmatter declaring `foundational: true`, plus `data.yaml` copied from `ai/taxonomies/pt_classification.yaml`, plus `source.pdf` archived from `internal/Document Retention Policy.pdf`). One-time setup unblocking INGEST-07, APP-21, AI-12-revised. | INGEST-07, APP-21, AI-12 | **DONE 2026-05-14** (4 days ahead of plan). Bundle live on PT main at `Diocese-of-Pensacola-Tallahassee/pt-policy@34a1671`. 8 classifications + 237 retention rows in data.yaml; policy.md frontmatter validates; source.pdf archived. INGEST-07 / APP-21 / AI-12-revised dispatches no longer blocked. |
 | OQ-05 | LA contact's role in README ("design reviewer" / "design partner" / co-author?) | README polish (Week 5) and any LA-attribution in the public push | Chuck: message Patrick this week. Soft deadline EOD Week 3. |
 | OQ-08 | PT policy corpus exported beyond the 19 spike PDFs | INGEST-06 (Week-4 acceptance) and AI eval scale-up | Chuck + PT IT director: pick a target date this week. Hard near-blocker if it slips past EOD Week 3. |
-| OQ-12 | Worktree fresh-checkout spike-eval gap fix | Subagent verification cleanliness | Scarlet: resolve before Wave 1 dispatch. Likely option (a): un-gitignore the canonical 19 outputs and commit as eval fixtures. |
+| OQ-12 | Worktree fresh-checkout spike-eval gap fix | Subagent verification cleanliness | **DONE 2026-05-14** (option (a), commit `ff3ac47` on main). 18 canonical extraction outputs un-gitignored and committed as eval fixtures; fresh worktrees and clones now run `spike/eval/run_eval.py --offline` cleanly. |
 | REPO-08 | PT GitHub org upgrade to Team tier | Branch protection enforcement (PRD G3 audit trail) | Chuck + PT IT director: budget conversation. Must close before Week 4 lane acceptance. |
 
 ## Sprint Backlog

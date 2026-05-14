@@ -9,8 +9,13 @@
 # Retention values are FREE-TEXT STRINGS preserved verbatim from the PDF.
 # v0.1 does not normalize ("Permanent", "Termination + 4 years", etc.).
 #
-# When the Week-3 foundational-policy bundle scaffolding lands, this file
-# moves to `policies/document-retention/data.yaml`. The schema is unchanged.
+# BUNDLE NOW EXISTS (2026-05-14): the canonical home for this data is
+# `policies/document-retention/data.yaml` in the diocese's policy repo
+# (for PT: Diocese-of-Pensacola-Tallahassee/pt-policy@34a1671). This
+# copy remains because `spike/extract.py` still reads from here; the
+# read-location move is AI-12-revised's job. Until AI-12-revised lands,
+# manual edits should be made to BOTH locations to keep AI extraction
+# in sync with the bundle. After AI-12-revised, delete this file.
 
 classifications:
   - id: administrative
