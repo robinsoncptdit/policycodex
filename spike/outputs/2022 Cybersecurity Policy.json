@@ -1,0 +1,21 @@
+{
+  "title": "Diocese of Pensacola-Tallahassee Cybersecurity Policy",
+  "summary": "This policy establishes the guidelines, standards, roles, and procedures governing cybersecurity risk management, data protection, access control, incident response, and technology service provider oversight for the Diocese of Pensacola-Tallahassee.",
+  "category": "IT",
+  "category_confidence": "high",
+  "owner_role": "CFO",
+  "owner_role_confidence": "high",
+  "effective_date": null,
+  "effective_date_confidence": "low",
+  "last_review_date": "2022-08-01",
+  "last_review_date_confidence": "medium",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": 3,
+  "retention_period_confidence": "medium",
+  "suggested_chapter_section_item": "7.1.1",
+  "address_confidence": "low",
+  "version_stamp": "1.0",
+  "notes": "1) The 'rev. August, 2022' header notation has been interpreted as the last review/revision date; no explicit effective date is stated, so effective_date is left null. 2) No explicit next-review date or review cadence for the policy itself is stated; individual compliance tasks range from quarterly to every three years (sections 6.1\u20136.3), but these refer to operational reviews, not policy review cycles. 3) Retention period of 3 years is inferred from the Log Analysis Report retention requirement in section 16.0 (15.4); raw logs are retained 12 months. These are log-specific, not a general policy retention period \u2014 a human reviewer should confirm the applicable diocesan records-retention schedule. 4) The document uses section numbering inconsistency: section 16.0 is titled 'Log Management' but its subsections are numbered 15.1\u201315.5, suggesting a drafting/renumbering error that should be corrected. 5) The CFO is designated as primary policy owner with broad authority, but the CTO/CISO holds significant operational responsibility; the diocese may wish to clarify a single accountable owner. 6) Section 12.0 states (as of October 2021) that the diocese does not accept, store, or review HIPAA-classified information \u2014 this assertion should be periodically revalidated given the diocese's potential exposure through HR benefit programs. 7) No formal version number is assigned in the document; only the revision date is noted. 8) Several substantive sub-policies are referenced but not embedded (Remote Access Policy, Acceptable Use Policy, Document Retention Policy, Incident Response Plan, Cybersecurity Risk Assessment Policy, Personal Communication Devices Policy) \u2014 a complete policy library audit is recommended to ensure all referenced documents exist and are current. 9) The suggested chapter/section address is a best guess pending knowledge of the diocese's actual policy numbering framework.",
+  "_source_file": "2022 Cybersecurity Policy.pdf"
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Internal Controls Policy \u2013 Diocese of Pensacola-Tallahassee (Section 101)",
+  "summary": "This policy establishes the framework, definitions, responsibilities, and basic elements of internal controls required of all diocesan entities to safeguard assets, ensure reliable financial reporting, and prevent fraud and malfeasance.",
+  "category": "Finance",
+  "category_confidence": "high",
+  "owner_role": "CFO",
+  "owner_role_confidence": "high",
+  "effective_date": "2014-08-01",
+  "effective_date_confidence": "medium",
+  "last_review_date": "2014-08-01",
+  "last_review_date_confidence": "medium",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": 7,
+  "retention_period_confidence": "low",
+  "suggested_chapter_section_item": "10.1.1",
+  "address_confidence": "medium",
+  "version_stamp": "1.0",
+  "notes": "1) The document header shows 'Rev 8/14,' and the Summary of Revisions section references 'August 2014' as the effective date of the current revision, but no explicit calendar date (day) is given; ISO date defaulted to 2014-08-01. 2) No next-review date or review cadence is stated; next_review_date left null. 3) Retention period is not stated in this document; the 7-year figure is an inferred best practice for financial policy records and should be confirmed against diocesan records-management policy. 4) The document uses its own numbering scheme (101, 101.1, 101.2, etc.) that begins mid-chapter ('10'); the suggested chapter.section.item address reflects that internal numbering but a human reviewer should map it to the diocese's master policy index. 5) Section numbering inconsistency: subsections within 101.5 shift between '101.5.x' and '105.1.x' labeling (e.g., '105.1.2 Delegation and Separation of Duties'), which appears to be a drafting error; a human reviewer should confirm and correct. 6) The Bishop is identified as the ultimate owner of internal controls, but the CFO is the operational owner; owner_role is set to CFO accordingly. 7) Referenced appendices (15\u201319) covering Political Activity Guidelines, Code of Business Conduct, Conflict of Interest, Fraud Policy, and Whistleblower Policy are not included in this document and should be reviewed separately.",
+  "_source_file": "101 Internal Controls.pdf"
+}

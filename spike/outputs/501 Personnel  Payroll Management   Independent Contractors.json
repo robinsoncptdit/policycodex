@@ -1,0 +1,21 @@
+{
+  "title": "501 Personnel, Payroll Management & Independent Contractors",
+  "summary": "This policy establishes minimum requirements for the Diocese of Pensacola-Tallahassee governing personnel administration, payroll processing, employee and independent contractor classification, Fair Labor Standards Act compliance, and certificates of insurance for contractors and facility users.",
+  "category": "HR",
+  "category_confidence": "high",
+  "owner_role": "HR Director",
+  "owner_role_confidence": "medium",
+  "effective_date": "2016-09-01",
+  "effective_date_confidence": "medium",
+  "last_review_date": "2016-09-01",
+  "last_review_date_confidence": "medium",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": null,
+  "retention_period_confidence": "low",
+  "suggested_chapter_section_item": "5.1.1",
+  "address_confidence": "medium",
+  "version_stamp": "1.0",
+  "notes": "1. The document header shows 'Rev 9/16' and the revision summary confirms a September 2016 update, but no explicit effective date is stated in ISO format; the effective date is inferred as 2016-09-01. 2. An earlier revision effective August 2014 is also documented, suggesting the policy originated then; the 2016 date reflects the most recent revision. 3. No formal next-review date or review cadence is stated; next_review_date left null. 4. Retention period for Form I-9s is discussed (3 years after hire or 1 year after termination, whichever is later), but no general policy retention period is stated for the document itself. 5. The document references multiple appendices (7, 8, 9, 16, 17) that are not included; a human reviewer should ensure those appendices are linked or attached. 6. Owner role is ambiguous: the document references both the HR Director/Human Resource Office and the CFO (who must grant exceptions for independent contractor classification); the CFO is explicitly named as decision-maker for IC exceptions. Consider dual ownership or clarifying primary owner. 7. The policy covers Finance Council responsibilities and insurance certificate requirements, which touch on Finance and Risk categories as well; the primary categorization as HR is based on the dominant content. 8. The section numbering in the document itself (501, 501.1\u2013501.8) provides a natural address; the suggested chapter.section.item of 5.1.1 maps chapter 5 (Personnel/HR) to this top-level section.",
+  "_source_file": "501 Personnel  Payroll Management   Independent Contractors.pdf"
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Diocesan Fraud Policy (Appendix 18)",
+  "summary": "This policy defines fraud, prohibits fraudulent acts, establishes reporting and response procedures, and provides detection guidelines and preventive controls for all entities within the Diocese of Pensacola-Tallahassee.",
+  "category": "Finance",
+  "category_confidence": "high",
+  "owner_role": "CFO",
+  "owner_role_confidence": "high",
+  "effective_date": "2014-08-01",
+  "effective_date_confidence": "medium",
+  "last_review_date": "2014-08-01",
+  "last_review_date_confidence": "medium",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": 7,
+  "retention_period_confidence": "low",
+  "suggested_chapter_section_item": "18.1.1",
+  "address_confidence": "low",
+  "version_stamp": "1.0",
+  "notes": "1) The document is labeled 'Rev 8/14' and includes a 'Summary of Revisions effective August 2014,' but no explicit effective date is stated; August 2014 is inferred. 2) No formal next-review date or review cadence is specified; next_review_date left null. 3) Retention period is not stated in the document; the 7-year figure is a conservative inference based on typical financial records retention norms (IRS/audit standards) and should be confirmed against diocesan records-management policy. 4) The document is structured as an appendix (Appendix 18) to a larger Diocesan Financial Policies and Procedures Manual; the chapter/section address assigned (18.1.1) reflects the appendix number but the true numbering within the parent manual is unknown. 5) Anonymous reports are explicitly prohibited, which may create tension with whistleblower best practices; a human reviewer should assess whether this conflicts with any applicable civil whistleblower protection statutes. 6) The policy centralizes all investigative authority in the CFO, with no alternate escalation path if the CFO is the suspected fraudster; this gap should be flagged for revision. 7) Contact email addresses and fax number embedded in the reporting form may be outdated and should be verified.",
+  "_source_file": "Appendix 18 Diocesan Fraud Policy.pdf"
+}

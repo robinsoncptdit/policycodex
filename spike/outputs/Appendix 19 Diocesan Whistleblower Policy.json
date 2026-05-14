@@ -1,0 +1,21 @@
+{
+  "title": "Diocesan Whistleblower Policy",
+  "summary": "This policy establishes the Diocese of Pensacola-Tallahassee's framework for reporting, investigating, and resolving misconduct\u2014including financial impropriety, harassment, and policy violations\u2014while protecting good-faith reporters from retaliation.",
+  "category": "HR",
+  "category_confidence": "medium",
+  "owner_role": "Vicar General",
+  "owner_role_confidence": "low",
+  "effective_date": "2014-08-01",
+  "effective_date_confidence": "medium",
+  "last_review_date": "2014-08-01",
+  "last_review_date_confidence": "medium",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": 7,
+  "retention_period_confidence": "low",
+  "suggested_chapter_section_item": "3.19.1",
+  "address_confidence": "low",
+  "version_stamp": "1.0",
+  "notes": "1) The document is labeled 'Appendix 19,' suggesting it is part of a larger policy manual, but the parent document is not provided; the chapter/section address is therefore speculative. 2) The effective date is inferred from 'Rev 8/14' and the 'Summary of Revisions effective August 2014' header; no explicit calendar date is stated, so the day has been set to '01' as a placeholder. 3) No next review date or review cadence is stated. 4) No explicit records retention period is stated; the 7-year figure is a common nonprofit/diocesan best-practice estimate and should be confirmed against diocesan records management policy. 5) Owner role is uncertain; the policy references 'Pastoral Center officials' collectively but does not name a specific responsible officer (e.g., Chancellor, CFO, or HR Director). A human reviewer should confirm the designated policy owner. 6) The category could also reasonably be 'Risk' or 'Finance' given the emphasis on financial misconduct and fraud; 'HR' was selected because retaliation protection and personnel conduct are the policy's primary enforcement mechanisms. 7) The policy does not reference Sarbanes-Oxley or any specific statutory basis, which may be worth noting for legal compliance review.",
+  "_source_file": "Appendix 19 Diocesan Whistleblower Policy.pdf"
+}

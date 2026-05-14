@@ -1,0 +1,21 @@
+{
+  "title": "Diocese of Pensacola-Tallahassee Internet Usage Policy",
+  "summary": "This policy governs acceptable and unacceptable use of diocesan computing resources and internet access by staff members and volunteers, including rules on security, privacy, data transfer, software copying, and online representation of the Diocese.",
+  "category": "IT",
+  "category_confidence": "high",
+  "owner_role": "IT Director",
+  "owner_role_confidence": "high",
+  "effective_date": "2020-04-06",
+  "effective_date_confidence": "medium",
+  "last_review_date": "2020-07-17",
+  "last_review_date_confidence": "high",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": null,
+  "retention_period_confidence": "low",
+  "suggested_chapter_section_item": "7.1.1",
+  "address_confidence": "low",
+  "version_stamp": "1.0",
+  "notes": "1) The document header reads 'Rev. Apr. 6, 2020' but the revision history shows subsequent edits on Jun. 24, 2020 and Jul. 17, 2020, making the header date potentially stale; the last recorded revision date (2020-07-17) is used as last_review_date. 2) No explicit next-review date or review cadence is stated. 3) No retention period for records generated under this policy is specified. 4) The effective date is ambiguous\u2014the header date (Apr. 6, 2020) is used as effective_date but post-dates the original policy (first revision noted Aug. 21, 2012); the original inception date is not stated. 5) Section 3.10 references a July 17, 2020 effective date for Zoom guidance, which post-dates the document header. 6) The chapter/section address is a low-confidence suggestion; the diocese's actual policy numbering scheme is unknown. 7) References to the 'Diocesan Code of Conduct for Church Personnel and Volunteers' should be verified for consistency and currency. 8) The definitions section still lists 'MySpace' and 'Praxo' as social networking examples, suggesting the definitions may need modernization.",
+  "_source_file": "Internet Usage Policy-1.pdf"
+}

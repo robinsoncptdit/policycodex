@@ -1,0 +1,21 @@
+{
+  "title": "Diocese of Pensacola-Tallahassee Wireless Communication Policy",
+  "summary": "This policy establishes the security standards and requirements that wireless infrastructure devices must satisfy in order to connect to Diocese of Pensacola-Tallahassee networks, and governs the use of wireless communications by all diocesan employees, contractors, and affiliated third parties.",
+  "category": "IT",
+  "category_confidence": "high",
+  "owner_role": "IT Director",
+  "owner_role_confidence": "high",
+  "effective_date": null,
+  "effective_date_confidence": "low",
+  "last_review_date": "2021-10-04",
+  "last_review_date_confidence": "medium",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": null,
+  "retention_period_confidence": "low",
+  "suggested_chapter_section_item": "7.1.1",
+  "address_confidence": "low",
+  "version_stamp": "1.0",
+  "notes": "1) The document header shows two different dates: '10/04/2021' at the top and '01/30/2020' in the footer on pages 2 and 3; it is unclear which represents the true effective or last-review date \u2014 the 2021 date is used as last_review_date as it appears most recent, but a human reviewer should confirm. 2) No formal effective date is explicitly stated; the 2021 header date is the best available proxy. 3) No review cadence or next review date is specified. 4) No retention period is stated. 5) The approved encryption protocols list includes WEP, which is considered cryptographically broken and insecure by modern standards \u2014 this is a security concern that should be flagged for immediate remediation. 6) The revision history references a 'Wireless Communication Standard' as a companion document; its existence and status should be confirmed. 7) No formal version number is assigned in the document itself.",
+  "_source_file": "Wireless_Communication_Policy.pdf"
+}

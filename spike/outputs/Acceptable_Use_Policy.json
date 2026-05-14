@@ -1,0 +1,21 @@
+{
+  "title": "Diocese of Pensacola-Tallahassee Acceptable Use Policy",
+  "summary": "This policy governs the acceptable use of diocesan computer equipment, systems, networks, and communications services by all employees, volunteers, contractors, and affiliated personnel of the Diocese of Pensacola-Tallahassee.",
+  "category": "IT",
+  "category_confidence": "high",
+  "owner_role": "IT Director",
+  "owner_role_confidence": "medium",
+  "effective_date": "2010-07-01",
+  "effective_date_confidence": "low",
+  "last_review_date": "2022-08-02",
+  "last_review_date_confidence": "high",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": null,
+  "retention_period_confidence": "low",
+  "suggested_chapter_section_item": "7.1.1",
+  "address_confidence": "low",
+  "version_stamp": "1.0",
+  "notes": "1. No formal effective date is stated on the face of the document; the earliest revision history entry is 07/01/2010, used as a proxy with low confidence. 2. No explicit next-review date or review cadence is stated; next_review_date left null. 3. The document references a Chief Information Security Officer (CISO) by title in the enforcement section, which may suggest that role \u2014 rather than a generic 'IT Director' \u2014 is the responsible owner; a human reviewer should confirm the correct diocesan title. 4. The document defers data retention periods to USCCB guidelines and individual department heads rather than specifying a diocesan retention period, so retention_period_years is left null. 5. File-level server backups are described as retained for two weeks, but this is a backup window, not a records-retention period. 6. The document internally numbers two separate sections as '7.0' (Definitions and Revision History), which is a drafting error a reviewer should flag for correction. 7. No formal version number appears in the document itself; version stamp of 1.0 is the metadata schema default. 8. The suggested chapter/section address is a placeholder based on common IT policy numbering conventions; the diocese's actual policy manual numbering scheme is not provided in this document.",
+  "_source_file": "Acceptable_Use_Policy.pdf"
+}

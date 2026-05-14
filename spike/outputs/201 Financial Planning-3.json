@@ -1,0 +1,21 @@
+{
+  "title": "201 Financial Planning & Control",
+  "summary": "This policy establishes required financial planning, budgeting, accounting, reporting, and physical asset control standards for all parishes, schools, and other diocesan organizations within the Diocese of Pensacola-Tallahassee.",
+  "category": "Finance",
+  "category_confidence": "high",
+  "owner_role": "CFO",
+  "owner_role_confidence": "high",
+  "effective_date": null,
+  "effective_date_confidence": "low",
+  "last_review_date": "2016-09-01",
+  "last_review_date_confidence": "medium",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": null,
+  "retention_period_confidence": "low",
+  "suggested_chapter_section_item": "2.1",
+  "address_confidence": "medium",
+  "version_stamp": "1.0",
+  "notes": "1. The document header shows 'Rev 9/16', interpreted as September 2016 revision date; no explicit effective date is stated, so effective_date is null and last_review_date is given medium confidence. 2. No review cadence or next-review date is stated. 3. Retention period for financial records is not explicitly stated in this excerpt, though general accounting norms (7 years) might apply; left null pending confirmation from a records-management schedule. 4. The document text is cut off mid-sentence at the end ('shou\u2014'), suggesting the excerpt is incomplete; a human reviewer should obtain the full document. 5. Sanctions/penalties approved June 2016 are referenced in section 201.5 but the full Appendix 10.2 is not included; reviewer should ensure that appendix is attached or cross-referenced. 6. The policy number '201' suggests it fits within a broader manual chapter structure; the suggested address 2.1 is inferred from the section numbering convention used in the document itself. 7. CFO is identified as owner based on explicit references to the 'Chief Financial Officer' and the Diocesan Finance/Accounting Office throughout the document.",
+  "_source_file": "201 Financial Planning-3.pdf"
+}

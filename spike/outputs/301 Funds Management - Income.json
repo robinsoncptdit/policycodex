@@ -1,0 +1,21 @@
+{
+  "title": "Funds Management \u2013 Income",
+  "summary": "This policy establishes required and recommended procedures for the receipt, safeguarding, counting, depositing, recording, and donor acknowledgment of all income received by diocesan parishes and schools, emphasizing segregation of duties and internal controls.",
+  "category": "Finance",
+  "category_confidence": "high",
+  "owner_role": "CFO",
+  "owner_role_confidence": "medium",
+  "effective_date": "2014-08-01",
+  "effective_date_confidence": "medium",
+  "last_review_date": "2014-08-01",
+  "last_review_date_confidence": "medium",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": null,
+  "retention_period_confidence": "low",
+  "suggested_chapter_section_item": "3.1.1",
+  "address_confidence": "medium",
+  "version_stamp": "1.0",
+  "notes": "1) The document's own numbering scheme is '301' with subsections 301.1\u2013301.9, suggesting it belongs to Chapter/Section 301 of a larger financial policies manual; the suggested address reflects that internal numbering. 2) The effective date is inferred from 'Rev 8/14' and the 'Summary of Revisions effective August 2014' note \u2014 no precise day is stated, so August 1 is assumed. 3) No explicit next review date or review cadence is stated. 4) Retention periods for specific documents are deferred to 'Appendix 11,' which is not included; the envelope retention rule (6 months after calendar year-end) is document-specific, not a general retention schedule. 5) Owner role is assumed to be CFO or Diocesan Finance Officer based on subject matter; no specific role is named in the document. 6) The document references ChurchDB as the required donor/sacramental records system, which may be outdated and should be verified against current diocesan software policy. 7) Canon 1284 is cited as the canonical authority grounding the policy. 8) Several appendices (5, 10.9\u201310.13, 10.20, 11) are referenced but not included; a human reviewer should ensure they are attached or cross-referenced correctly.",
+  "_source_file": "301 Funds Management - Income.pdf"
+}

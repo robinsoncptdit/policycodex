@@ -1,0 +1,21 @@
+{
+  "title": "Diocese of Pensacola-Tallahassee Incident Response Policy",
+  "summary": "This policy establishes the Diocese of Pensacola-Tallahassee's procedures for detecting, analyzing, containing, eradicating, recovering from, and reporting security and privacy incidents affecting diocesan information systems and personnel.",
+  "category": "IT",
+  "category_confidence": "high",
+  "owner_role": "IT Director",
+  "owner_role_confidence": "medium",
+  "effective_date": "2020-12-08",
+  "effective_date_confidence": "high",
+  "last_review_date": null,
+  "last_review_date_confidence": "low",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": 7,
+  "retention_period_confidence": "low",
+  "suggested_chapter_section_item": "6.1.1",
+  "address_confidence": "low",
+  "version_stamp": "1.0",
+  "notes": "1. The document header references 'Dec. 8, 2020' as the only date; no explicit effective date, review date, or expiration/next-review date is stated \u2014 the effective date is inferred from the header date only. 2. No formal policy version number is present in the document itself. 3. The owner role is listed generically as 'Information Technology Department'; specific named roles within the policy include CISO and CTO/CISO, suggesting the CISO is the functional owner, but no single diocesan-title owner (e.g., IT Director) is formally designated \u2014 owner_role confidence is medium. 4. Retention period is not stated; 7 years is a common records-management default for security incident logs but is not policy-specified \u2014 confidence is low. 5. Section 4.4 item 'd' contains a stray reference '3.4.5' that appears to be a drafting artifact or cross-reference placeholder and should be reviewed for completion. 6. The document references a CISO, CTO, Chief Privacy Officer, and Manager of Risk & Compliance, none of which are formally defined diocesan titles in the document \u2014 human reviewer should confirm whether these roles exist in the diocese's org chart. 7. No supersession table, approval signature block, or board/bishop authorization is present, which may be a governance gap. 8. Data breach notification timelines (24 hours) should be validated against current Florida law (FIPA) and any applicable federal requirements, as these may have changed since December 2020. 9. The email address for ITSupport contains a comma instead of a period ('ITSupport@ptdiocese,org') \u2014 likely a typographical error that should be corrected.",
+  "_source_file": "InformationOrSecurityIncidentPolicy.pdf"
+}

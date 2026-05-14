@@ -1,0 +1,21 @@
+{
+  "title": "401 Funds Management \u2013 Expenditures",
+  "summary": "This policy establishes required internal controls, authorization procedures, and documentation standards for all disbursements, purchasing cycles, petty cash, credit cards, debit cards, gift cards, and SCRIP programs at diocesan entities.",
+  "category": "Finance",
+  "category_confidence": "high",
+  "owner_role": "CFO",
+  "owner_role_confidence": "high",
+  "effective_date": "2016-12-01",
+  "effective_date_confidence": "medium",
+  "last_review_date": "2016-12-01",
+  "last_review_date_confidence": "medium",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": null,
+  "retention_period_confidence": "low",
+  "suggested_chapter_section_item": "4.1.0",
+  "address_confidence": "high",
+  "version_stamp": "1.0",
+  "notes": "1. The document header shows 'Rev 12/16' which is interpreted as December 2016; this is used as both the effective date and last review date, but no explicit calendar date is stated. 2. A prior revision was effective August 2014, per the Summary of Revisions section. 3. No next review date or review cadence is specified; next_review_date is left null. 4. The policy references a record retention schedule for disbursement documentation but does not state a specific retention period in years; retention_period_years is left null. 5. The document already carries its own section numbering (401, 401.1\u2013401.10); the suggested chapter-section address 4.1.0 maps directly to that numbering convention. 6. The policy references multiple appendices (6, 10.14\u201310.25, 14) that are not included in this document; a human reviewer should confirm those appendices are current and attached. 7. The debit card section (401.7) prohibits use except with explicit CFO authorization, which is a notable control point that should be flagged for operational awareness. 8. The Florida sales tax exemption language is jurisdiction-specific; applicability should be confirmed if this policy is used outside Florida. 9. Section 401.10 notes that independent contractors and payroll were shifted to a new Section 501; a human reviewer should confirm Section 501 exists and is current.",
+  "_source_file": "401 Funds Management - Expenditures.pdf"
+}

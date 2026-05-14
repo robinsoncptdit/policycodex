@@ -1,0 +1,21 @@
+{
+  "title": "Diocese of Pensacola-Tallahassee Document Retention Policy",
+  "summary": "This policy establishes mandatory retention periods, storage requirements, disposal procedures, and administrative responsibilities for all paper and electronic records created or maintained by the Diocese of Pensacola-Tallahassee.",
+  "category": "Risk",
+  "category_confidence": "medium",
+  "owner_role": "Chancellor",
+  "owner_role_confidence": "high",
+  "effective_date": null,
+  "effective_date_confidence": "low",
+  "last_review_date": "2022-08-01",
+  "last_review_date_confidence": "medium",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": null,
+  "retention_period_confidence": "low",
+  "suggested_chapter_section_item": "7.1.1",
+  "address_confidence": "low",
+  "version_stamp": "1.0",
+  "notes": "1. The document header shows 'rev. Aug, 2022' but no formal effective date is stated; the revision date is used as a proxy for last_review_date with medium confidence. 2. The original authorship note at the bottom credits 'November 2008, Celeste M. Durand, CIO, with Msgr. Michael Reed, Chancellor,' suggesting this is a significantly revised version of a 2008 original; a human reviewer should confirm whether a formal Bishop approval date exists per the policy's own change-management requirement. 3. The policy states changes require written Bishop approval, but no approval signature or date is present in the document. 4. The Appendix A retention schedule appears to be duplicated at the end of the document (pages 11-12 repeat pages 4-5 content); this may be a formatting/compilation error that a human reviewer should investigate. 5. Category assigned as 'Risk' because records management and retention is most closely aligned with risk/compliance governance, though 'Finance' and 'IT' are also strongly represented; some dioceses would classify this under 'Parish Operations' or a dedicated 'Records Management' chapter. 6. No single retention_period_years is extractable, as the schedule contains dozens of varying periods ranging from 1 year to permanent; null is used accordingly. 7. Section 5.0 appears to be missing from the document (the text jumps from 4.0 to 6.0). 8. Email retention is explicitly deferred to a separate Diocese of Pensacola-Tallahassee Email Policy; a human reviewer should ensure that companion policy is cross-referenced in the policy library.",
+  "_source_file": "Document Retention Policy.pdf"
+}
