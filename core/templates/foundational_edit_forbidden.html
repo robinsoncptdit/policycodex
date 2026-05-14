@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Cannot edit foundational policy | PolicyCodex{% endblock %}
+
+{% block content %}
+  <h2>Cannot edit a foundational policy here</h2>
+  <p>
+    The policy <code>policies/{{ policy.slug }}</code> is marked
+    <strong>foundational</strong>: it supplies configuration values that
+    other policies and the app itself depend on (for example the document
+    classification list and retention schedule).
+  </p>
+  <p>
+    To change a foundational policy, use the typed-table editor in the
+    onboarding wizard or the foundational-policy admin screen. The edit
+    form on this page is only for ordinary policy documents.
+  </p>
+  <p>
+    <a href="{% url 'catalog' %}">Back to catalog</a>
+  </p>
+{% endblock %}
