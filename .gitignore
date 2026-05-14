@@ -19,3 +19,4 @@ internal/superpowers/.cache/
 db.sqlite3
 *.sqlite3
 staticfiles/
+.tmp-reviews/
