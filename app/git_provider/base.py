@@ -122,3 +122,24 @@ class GitProvider(ABC):
               - "url": str (the PR's web URL, for future detail-view linking)
         """
         pass
+
+    @abstractmethod
+    def approve_pr(self, pr_number: int, working_dir: Path, body: str = "") -> dict:
+        """Approve a pull request on behalf of the authenticated reviewer.
+
+        The "reviewer" identity is the credential the implementation uses
+        to call the provider's review API (e.g., the GitHub App installation
+        token for GitHubProvider). The application-layer audit log captures
+        the Django user who initiated the action.
+
+        Args:
+            pr_number: The pull request number.
+            working_dir: Path to the repository working directory.
+            body: Optional review body text. Defaults to empty string,
+                which provider implementations may map to "no comment".
+
+        Returns:
+            Dictionary containing review metadata (at minimum:
+            review_id, state, pr_number).
+        """
+        pass

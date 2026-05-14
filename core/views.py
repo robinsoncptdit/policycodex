@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
+from django.views.decorators.http import require_POST
 from github import GithubException
 
 from app.git_provider.github_provider import GitHubProvider
@@ -213,3 +214,81 @@ def policy_edit(request, slug):
         "summary": "",
     })
     return render(request, "policy_edit.html", {"policy": policy, "form": form})
+
+
+@login_required
+@require_POST
+def approve_pr(request):
+    """Approve an open PR on behalf of the authenticated reviewer.
+
+    The Django user who clicked the button is logged for the app's audit
+    trail. The GitHub-side actor on the review is the App installation
+    identity, per the v0.1 ticket scope.
+
+    v0.1 permission model: any authenticated Django user may approve.
+    Future tickets (reviewer-role gating) will add per-user authorization.
+
+    Gate-guard: only `drafted`-state PRs are approvable. Approving an
+    already-reviewed, merged, or closed PR is refused with a flash error.
+    The check is at the view layer (not the provider) because v0.1 is a
+    single-server single-process app; concurrent-approval races are not
+    a real risk at our scale, and surfacing the state in the flash message
+    is more useful to the user than a provider-layer raise.
+    """
+    raw = request.POST.get("pr_number", "").strip()
+    if not raw:
+        messages.error(request, "Missing pr_number.")
+        return redirect("catalog")
+    try:
+        pr_number = int(raw)
+    except ValueError:
+        messages.error(request, f"Invalid pr_number: {raw!r}.")
+        return redirect("catalog")
+    if pr_number < 1:
+        messages.error(request, f"PR number must be positive (got {pr_number}).")
+        return redirect("catalog")
+
+    try:
+        config = load_working_copy_config()
+    except RuntimeError as exc:
+        messages.error(request, f"Working copy not configured: {exc}")
+        return redirect("catalog")
+
+    provider = GitHubProvider()
+    try:
+        state = provider.read_pr_state(pr_number, config.working_dir)
+    except Exception as exc:
+        messages.error(request, f"Could not read PR #{pr_number} state: {exc}")
+        logger.warning(
+            "approve_pr: read_pr_state failed user=%s pr=%s err=%s",
+            request.user.username, pr_number, exc,
+        )
+        return redirect("catalog")
+
+    if state != "drafted":
+        messages.error(
+            request,
+            f"PR #{pr_number} cannot be approved (current state: {state}).",
+        )
+        return redirect("catalog")
+
+    try:
+        result = provider.approve_pr(
+            pr_number=pr_number,
+            working_dir=config.working_dir,
+            body="",
+        )
+    except Exception as exc:
+        messages.error(request, f"Could not approve PR #{pr_number}: {exc}")
+        logger.warning(
+            "approve_pr: provider error user=%s pr=%s err=%s",
+            request.user.username, pr_number, exc,
+        )
+        return redirect("catalog")
+
+    logger.info(
+        "approve_pr: success user=%s pr=%s review_id=%s",
+        request.user.username, pr_number, result.get("review_id"),
+    )
+    messages.success(request, f"PR #{pr_number} approved.")
+    return redirect("catalog")
