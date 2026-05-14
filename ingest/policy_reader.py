@@ -62,6 +62,48 @@ class BundleAwarePolicyReader:
                 continue
             if entry.is_file() and entry.suffix == ".md":
                 yield self._read_flat(entry)
+            elif entry.is_dir():
+                yield self._read_bundle(entry)
+
+    def _read_bundle(self, bundle_dir: Path) -> LogicalPolicy:
+        policy_md = bundle_dir / "policy.md"
+        data_yaml = bundle_dir / "data.yaml"
+        if not policy_md.is_file():
+            raise BundleError(f"bundle missing policy.md: {bundle_dir}")
+        if not data_yaml.is_file():
+            raise BundleError(f"bundle missing data.yaml: {bundle_dir}")
+
+        text = policy_md.read_text(encoding="utf-8")
+        fm, body = _split_frontmatter(text)
+        if not fm.get("foundational"):
+            raise BundleError(
+                f"bundle policy.md missing 'foundational: true' frontmatter: {policy_md}"
+            )
+        provides = fm.get("provides")
+        if not isinstance(provides, list) or not provides:
+            raise BundleError(
+                f"bundle policy.md missing non-empty 'provides:' list: {policy_md}"
+            )
+
+        # Validate data.yaml parses; do NOT cache the payload here (callers fetch on demand).
+        data_text = data_yaml.read_text(encoding="utf-8")
+        try:
+            parsed = yaml.safe_load(data_text)
+        except yaml.YAMLError as exc:
+            raise BundleError(f"bundle data.yaml is not valid YAML: {data_yaml}: {exc}") from exc
+        if parsed is not None and not isinstance(parsed, Mapping):
+            raise BundleError(f"bundle data.yaml must be a YAML mapping at top level: {data_yaml}")
+
+        return LogicalPolicy(
+            slug=bundle_dir.name,
+            kind="bundle",
+            policy_path=policy_md,
+            data_path=data_yaml,
+            frontmatter=fm,
+            body=body,
+            foundational=True,
+            provides=tuple(provides),
+        )
 
     def _read_flat(self, path: Path) -> LogicalPolicy:
         text = path.read_text(encoding="utf-8")
