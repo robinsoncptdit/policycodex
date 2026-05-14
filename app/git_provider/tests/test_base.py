@@ -35,6 +35,8 @@ class TestGitProviderSubclassMissingMethods:
                 pass
             def approve_pr(self, pr_number: int, working_dir: Path, body: str = "") -> dict:
                 pass
+            def merge_pr(self, pr_number: int, working_dir: Path, merge_method: str = "squash") -> dict:
+                pass
 
         with pytest.raises(TypeError):
             IncompleteProvider()
@@ -57,6 +59,8 @@ class TestGitProviderSubclassMissingMethods:
             def list_open_prs(self, working_dir: Path) -> list[dict]:
                 pass
             def approve_pr(self, pr_number: int, working_dir: Path, body: str = "") -> dict:
+                pass
+            def merge_pr(self, pr_number: int, working_dir: Path, merge_method: str = "squash") -> dict:
                 pass
 
         with pytest.raises(TypeError):
@@ -81,6 +85,8 @@ class TestGitProviderSubclassMissingMethods:
                 pass
             def approve_pr(self, pr_number: int, working_dir: Path, body: str = "") -> dict:
                 pass
+            def merge_pr(self, pr_number: int, working_dir: Path, merge_method: str = "squash") -> dict:
+                pass
 
         with pytest.raises(TypeError):
             IncompleteProvider()
@@ -103,6 +109,8 @@ class TestGitProviderSubclassMissingMethods:
             def list_open_prs(self, working_dir: Path) -> list[dict]:
                 pass
             def approve_pr(self, pr_number: int, working_dir: Path, body: str = "") -> dict:
+                pass
+            def merge_pr(self, pr_number: int, working_dir: Path, merge_method: str = "squash") -> dict:
                 pass
 
         with pytest.raises(TypeError):
@@ -127,6 +135,8 @@ class TestGitProviderSubclassMissingMethods:
                 pass
             def approve_pr(self, pr_number: int, working_dir: Path, body: str = "") -> dict:
                 pass
+            def merge_pr(self, pr_number: int, working_dir: Path, merge_method: str = "squash") -> dict:
+                pass
 
         with pytest.raises(TypeError):
             IncompleteProvider()
@@ -149,6 +159,8 @@ class TestGitProviderSubclassMissingMethods:
             def list_open_prs(self, working_dir: Path) -> list[dict]:
                 pass
             def approve_pr(self, pr_number: int, working_dir: Path, body: str = "") -> dict:
+                pass
+            def merge_pr(self, pr_number: int, working_dir: Path, merge_method: str = "squash") -> dict:
                 pass
 
         with pytest.raises(TypeError):
@@ -173,6 +185,8 @@ class TestGitProviderSubclassMissingMethods:
                 pass
             def approve_pr(self, pr_number: int, working_dir: Path, body: str = "") -> dict:
                 pass
+            def merge_pr(self, pr_number: int, working_dir: Path, merge_method: str = "squash") -> dict:
+                pass
 
         with pytest.raises(TypeError):
             IncompleteProvider()
@@ -196,6 +210,8 @@ class TestGitProviderSubclassMissingMethods:
                 pass
             def approve_pr(self, pr_number: int, working_dir: Path, body: str = "") -> dict:
                 pass
+            def merge_pr(self, pr_number: int, working_dir: Path, merge_method: str = "squash") -> dict:
+                pass
 
         with pytest.raises(TypeError):
             IncompleteProvider()
@@ -218,6 +234,33 @@ class TestGitProviderSubclassMissingMethods:
             def read_pr_state(self, pr_number: int, working_dir: Path) -> str:
                 pass
             def list_open_prs(self, working_dir: Path) -> list[dict]:
+                pass
+            def merge_pr(self, pr_number: int, working_dir: Path, merge_method: str = "squash") -> dict:
+                pass
+
+        with pytest.raises(TypeError):
+            IncompleteProvider()
+
+    def test_subclass_missing_merge_pr_fails(self):
+        """Subclass missing merge_pr() cannot instantiate."""
+        class IncompleteProvider(GitProvider):
+            def clone(self, repo_url: str, dest: Path) -> None:
+                pass
+            def branch(self, name: str, working_dir: Path) -> None:
+                pass
+            def commit(self, message: str, files: list[Path], author_name: str, author_email: str, working_dir: Path) -> str:
+                pass
+            def push(self, branch: str, working_dir: Path) -> None:
+                pass
+            def pull(self, branch: str, working_dir: Path) -> None:
+                pass
+            def open_pr(self, title: str, body: str, head_branch: str, base_branch: str, working_dir: Path) -> dict:
+                pass
+            def read_pr_state(self, pr_number: int, working_dir: Path) -> str:
+                pass
+            def list_open_prs(self, working_dir: Path) -> list[dict]:
+                pass
+            def approve_pr(self, pr_number: int, working_dir: Path, body: str = "") -> dict:
                 pass
 
         with pytest.raises(TypeError):
