@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
+from django.views.decorators.http import require_POST
 from github import GithubException
 
 from app.git_provider.github_provider import GitHubProvider
@@ -213,3 +214,30 @@ def policy_edit(request, slug):
         "summary": "",
     })
     return render(request, "policy_edit.html", {"policy": policy, "form": form})
+
+
+@login_required
+@require_POST
+def approve_pr(request):
+    """Approve an open PR on behalf of the authenticated reviewer.
+
+    The Django user who clicked the button is logged for the app's audit
+    trail. The GitHub-side actor on the review is the App installation
+    identity, per the v0.1 ticket scope.
+
+    v0.1 permission model: any authenticated Django user may approve.
+    Future tickets (reviewer-role gating) will add per-user authorization.
+    """
+    raw = request.POST.get("pr_number", "").strip()
+    if not raw:
+        messages.error(request, "Missing pr_number.")
+        return redirect("catalog")
+    try:
+        pr_number = int(raw)
+    except ValueError:
+        messages.error(request, f"Invalid pr_number: {raw!r}.")
+        return redirect("catalog")
+
+    # Gate-guard and provider call land in Task 5.
+    messages.error(request, "Approve action not yet wired.")
+    return redirect("catalog")
