@@ -1,0 +1,21 @@
+{
+  "title": "Diocese of Pensacola-Tallahassee Cybersecurity Policy",
+  "summary": "This policy establishes the guidelines, standards, roles, responsibilities, and procedures governing cybersecurity risk management, access control, incident response, data loss prevention, and vendor management for the Diocese of Pensacola-Tallahassee.",
+  "category": "IT",
+  "category_confidence": "high",
+  "owner_role": "CFO (with CTO/CISO as operational implementer)",
+  "owner_role_confidence": "high",
+  "effective_date": null,
+  "effective_date_confidence": "low",
+  "last_review_date": "2022-08-01",
+  "last_review_date_confidence": "medium",
+  "next_review_date": "2023-08-01",
+  "next_review_date_confidence": "low",
+  "retention_period_years": 3,
+  "retention_period_confidence": "medium",
+  "suggested_chapter_section_item": "7.1.1",
+  "address_confidence": "low",
+  "version_stamp": "1.0",
+  "notes": "1) The document header reads 'rev. August, 2022' which is treated as the last review date; no explicit effective date is stated, so effective_date is left null. 2) The policy does not state a formal review cadence for the policy document itself; the annual CFO/CTO reporting cycle and the 3-year internal review cycle are operational cadences, not policy-review cadences. Next review date of 2023-08-01 is a low-confidence inference based on the annual reporting rhythm. 3) Retention period of 3 years is inferred from Section 15.4 (Log Analysis Reports retained 36 months) as the most specific retention figure within the document; the Document Retention Policy (a separate referenced document) governs broader retention and is not reproduced here. 4) The diocese taxonomy does not include an 'IT' classification group in the retention schedule; the closest administrative analog would be 'Administrative Records / Policy and Procedure' (Permanent). However, as a governing cybersecurity policy document, it likely qualifies as a permanent administrative record under the diocesan retention schedule. The 3-year figure above reflects only the log analysis sub-requirement, not the policy document itself. A human reviewer should confirm with the Chancellor's Office (chancellor@ptdiocese.org, per Section 11.0) what retention class applies to the policy document itself. 5) Section 16.0 (Log Management) is numbered with heading '16.0' but internal sub-sections use '15.1\u201315.5' numbering \u2014 this is an apparent typographical error in the source document. 6) The suggested chapter.section.item address 7.1.1 places IT policies in a hypothetical Chapter 7 (Information Technology), Section 1 (Cybersecurity), Item 1 (Overarching Policy); this is a best-guess mapping since the diocese taxonomy provided does not include an IT chapter. A human reviewer should confirm the actual policy manual chapter structure.",
+  "_source_file": "2022 Cybersecurity Policy.pdf"
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Norms for Parish Finance Councils (Diocese of Pensacola-Tallahassee)",
+  "summary": "Establishes the structure, membership requirements, meeting frequency, functions, and special authorization thresholds for Parish Finance Councils throughout the Diocese of Pensacola-Tallahassee, as originally promulgated by Bishop Ricard in January 2004 and subsequently enhanced.",
+  "category": "Finance",
+  "category_confidence": "high",
+  "owner_role": "CFO",
+  "owner_role_confidence": "high",
+  "effective_date": "2014-08-01",
+  "effective_date_confidence": "medium",
+  "last_review_date": "2014-08-01",
+  "last_review_date_confidence": "medium",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": null,
+  "retention_period_confidence": "low",
+  "suggested_chapter_section_item": "4.3.1",
+  "address_confidence": "low",
+  "version_stamp": "1.0",
+  "notes": "1) The document is labeled 'Appendix 3' within a larger policy manual; the true chapter/section address in that manual is unknown, so the suggested address (4.3.1, placing it under Financial > Parish Finance Governance > Finance Council Norms) is a best-guess estimate. 2) The effective date is inferred from the 'Rev 8/14' revision stamp and the 'Summary of Revisions effective August 2014' note; no precise day is stated, so August 1, 2014 is used as a conservative ISO approximation. 3) The original promulgating letter is dated 2004-01-21, but the operative document has been amended as of August 2014; both dates are historically significant. 4) No formal next-review date or review cycle is stated; the document says norms are 'subject to amendment by the Bishop from time to time,' which does not imply a fixed cadence. 5) No retention period is stated for this governing document itself; under diocesan policy, administrative records documenting policy/procedure are retained Permanently, but this was not explicitly stated in the document. 6) The CFO is explicitly named as the contact for clarification and confidential reporting, strongly supporting the owner_role assignment. 7) The $10,000 threshold for extraordinary expenditures requiring Bishop's authorization is a key compliance figure that human reviewers should verify remains current.",
+  "_source_file": "Appendix 3 Finance Council.pdf"
+}

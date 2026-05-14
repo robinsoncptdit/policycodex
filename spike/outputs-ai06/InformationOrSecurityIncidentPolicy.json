@@ -1,0 +1,21 @@
+{
+  "title": "Diocese of Pensacola-Tallahassee Incident Response Policy",
+  "summary": "This policy establishes the procedures and responsibilities for detecting, analyzing, containing, eradicating, recovering from, and reporting security and privacy incidents affecting diocesan information systems and personnel.",
+  "category": "IT",
+  "category_confidence": "high",
+  "owner_role": "IT Director / Chief Information Security Officer (CISO)",
+  "owner_role_confidence": "high",
+  "effective_date": "2020-12-08",
+  "effective_date_confidence": "high",
+  "last_review_date": null,
+  "last_review_date_confidence": "low",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": 7,
+  "retention_period_confidence": "medium",
+  "suggested_chapter_section_item": "3.4.1",
+  "address_confidence": "low",
+  "version_stamp": "1.0",
+  "notes": "1. No explicit review cadence or next-review date is stated in the document; next_review_date is left null. 2. No explicit version number is present; the date 'Dec. 8, 2020' on the header is treated as the effective date. 3. Retention period: the policy itself is a governing administrative/IT policy document; under diocesan taxonomy, administrative records documenting policy/procedure are Permanent, but incident records (logs, reports) most closely align with 'Incident Reports (accidents/injury)' at 7 years or general IT audit/log norms of 7 years \u2014 a human reviewer should confirm whether the Incident Record artifacts or the policy document itself is being scheduled. Retention set to 7 years as a conservative operational record estimate; if treated as an administrative policy document it would be Permanent. 4. The suggested chapter address 3.4.1 is a best-guess mapping: chapter 3 = Administrative/IT classification axis, section 4 = Risk/Security Incident Management group, item 1 = Incident Response; the diocese taxonomy does not have a dedicated IT security chapter, so this address is low-confidence and should be assigned by the diocesan policy librarian. 5. Section 4.4 contains an orphaned reference '3.4.5' that appears to be a draft artifact or erroneous cross-reference \u2014 a human reviewer should investigate. 6. The SIRT composition references a 'Chief Privacy Officer' and 'Manager of Risk & Compliance' whose formal diocesan titles are not confirmed; owner role defaults to IT Director/CISO as the department listed on the document header. 7. The policy supersedes all prior related policies but does not identify them by name.",
+  "_source_file": "InformationOrSecurityIncidentPolicy.pdf"
+}

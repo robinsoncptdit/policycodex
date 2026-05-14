@@ -1,0 +1,21 @@
+{
+  "title": "Coverage Under the Fair Labor Standards Act (Appendix 8)",
+  "summary": "This appendix explains FLSA coverage, exemption classifications (executive, administrative, learned professional, creative professional, teachers, ministers), overtime rules, work time definitions, and pay computation methods applicable to diocesan employees.",
+  "category": "HR",
+  "category_confidence": "high",
+  "owner_role": "HR Director",
+  "owner_role_confidence": "high",
+  "effective_date": null,
+  "effective_date_confidence": "low",
+  "last_review_date": "2016-12-01",
+  "last_review_date_confidence": "medium",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": null,
+  "retention_period_confidence": "low",
+  "suggested_chapter_section_item": "6.8.1",
+  "address_confidence": "low",
+  "version_stamp": "1.0",
+  "notes": "The document is labeled 'Appendix 8' with a revision date of 12/16 (December 2016), used as the last_review_date with medium confidence since it may be a revision date rather than a formal review date. No explicit effective date, next review date, or retention period is stated; this is a reference/informational appendix rather than a stand-alone policy, so retention would follow the parent Employee Policy Manual schedule (Superseded + 4 years per diocesan retention schedule). The salary threshold cited ($47,476/year, $913/week) reflects the 2016 DOL rule that was later vacated; a human reviewer should verify whether this appendix has been updated to reflect current FLSA thresholds. The ministerial exception section explicitly names the Diocese of Pensacola-Tallahassee and lists covered positions (clergy, religious, DREs, youth ministers, liturgical music ministers). Suggested chapter address 6.8.1 places this under an HR chapter (6), Personnel Records section (8), FLSA subsection (1); numbering is illustrative and should be confirmed against the actual diocesan policy manual structure.",
+  "_source_file": "Appendix 8 Coverage Under FLSA.pdf"
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Diocese of Pensacola-Tallahassee Acceptable Use Policy",
+  "summary": "This policy governs the acceptable use of diocesan computer equipment, networks, systems, and related technology resources by all employees, volunteers, contractors, and affiliates of the Diocese of Pensacola-Tallahassee.",
+  "category": "IT",
+  "category_confidence": "high",
+  "owner_role": "IT Director / Chief Information Security Officer",
+  "owner_role_confidence": "high",
+  "effective_date": "2022-08-02",
+  "effective_date_confidence": "high",
+  "last_review_date": "2022-08-02",
+  "last_review_date_confidence": "high",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": null,
+  "retention_period_confidence": "low",
+  "suggested_chapter_section_item": "7.1.1",
+  "address_confidence": "low",
+  "version_stamp": "1.0",
+  "notes": "1. No explicit next review date or review cadence is stated; the revision history shows updates roughly every 1\u20133 years (2010\u20132022), but no formal cycle is mandated in the document, so next_review_date is left null. 2. This is a governing IT policy document; per the diocesan retention schedule, 'Administrative Records documenting policy, procedure, rules or regulations' are retained Permanently. However, the policy itself governs technology use rather than a records-retention period for a record type, so retention_period_years is left null\u2014it should be treated as a permanent policy document per the Administrative Records rule. 3. The document does not map cleanly to any single retention sub-group in the provided taxonomy; the closest analog is 'Administrative Records (ALL Departments) \u2013 records originating in the organization that document policy, procedure, rules or regulations \u2192 Permanent.' Suggested chapter address 7.1.1 uses chapter 7 to loosely align with an IT/Administrative governance axis, but the diocese taxonomy does not have a dedicated IT chapter, so this address is low-confidence and should be confirmed by a human reviewer. 4. The document references several related policies (Anti-Virus Guidelines, Cybersecurity Policy, Email Policy, etc.) that are separate documents and not analyzed here. 5. The owner role of 'Chief Information Security Officer' is explicitly named in Section 6.0 as a contact for violation reporting, making it the strongest candidate for policy ownership, though an 'IT Director' title is also used in the document header.",
+  "_source_file": "Acceptable_Use_Policy.pdf"
+}

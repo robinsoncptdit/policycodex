@@ -1,0 +1,21 @@
+{
+  "title": "Diocese of Pensacola-Tallahassee Internet Usage Policy",
+  "summary": "This policy governs acceptable and unacceptable use of diocesan computing resources and Internet access by staff members and volunteers, including rules on security, data transfer, copyright, online representation of the diocese, and approved communication platforms.",
+  "category": "IT",
+  "category_confidence": "high",
+  "owner_role": "IT Director",
+  "owner_role_confidence": "high",
+  "effective_date": "2020-04-06",
+  "effective_date_confidence": "medium",
+  "last_review_date": "2020-07-17",
+  "last_review_date_confidence": "high",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": null,
+  "retention_period_confidence": "low",
+  "suggested_chapter_section_item": "3.7.1",
+  "address_confidence": "low",
+  "version_stamp": "1.0",
+  "notes": "1) The header date is 'Rev. Apr. 6, 2020' but the revision history shows substantive changes as late as July 17, 2020; the header was not updated to reflect those later revisions, creating a discrepancy. The last_review_date has been set to 2020-07-17 as the most recent documented change. 2) No explicit next-review date or review cadence is stated; next_review_date is left null. 3) The diocese taxonomy does not include an 'IT' or 'Administrative/IT' retention group by name; the closest analog in the taxonomy is the Administrative Records group ('records originating in the organization that document policy, procedure, rules or regulations -> Permanent'), suggesting the policy document itself should be retained permanently, but no retention schedule for IT operational logs or usage records is stated within this document, so retention_period_years is left null. 4) The suggested chapter.section.item address (3.7.1) is a best-judgment mapping placing IT policy under a hypothetical Chapter 3 (Administrative), Section 7 (IT/Technology), Item 1 (Internet Usage); no authoritative diocesan policy manual numbering scheme was provided for IT, so confidence is low. 5) Section 3.10 references a July 17, 2020 effective date for the Zoom/communication-platforms guidance, which postdates the cover revision date; a human reviewer should confirm whether a re-issued cover page is needed. 6) The policy cross-references the 'Diocesan Code of Conduct for Church Personnel and Volunteers' multiple times (sections 3, 5, 8) but that document is not included here; consistency between the two documents should be verified.",
+  "_source_file": "Internet Usage Policy-1.pdf"
+}

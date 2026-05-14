@@ -1,0 +1,21 @@
+{
+  "title": "Funds Management \u2013 Expenditures (Policy 401)",
+  "summary": "Establishes internal controls, authorization requirements, and disbursement procedures governing all expenditures\u2014including checks, petty cash, credit cards, debit cards, gift cards, and SCRIP\u2014for all diocesan entities.",
+  "category": "Finance",
+  "category_confidence": "high",
+  "owner_role": "CFO",
+  "owner_role_confidence": "high",
+  "effective_date": "2016-12-01",
+  "effective_date_confidence": "medium",
+  "last_review_date": "2016-12-01",
+  "last_review_date_confidence": "medium",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": 7,
+  "retention_period_confidence": "medium",
+  "suggested_chapter_section_item": "3.4.1",
+  "address_confidence": "low",
+  "version_stamp": "1.0",
+  "notes": "1) The document header reads 'Rev 12/16,' interpreted as December 2016; no explicit ISO effective date is stated, so confidence is medium. 2) No next-review date or review cadence is stated; left null. 3) Retention period of 7 years is inferred from the diocesan retention schedule for Accounts Payable Invoices (Financial and Accounting / Accounting \u2192 7 years) and Bank Deposits (7 years), which are the most relevant record types governed here; the policy itself says records must be retained 'according to the record retention schedule' without specifying a number. 4) The suggested chapter.section.item (3.4.1) places this under top-level classification 3 (Financial), sub-group 4 (Financial and Accounting / Accounting), item 1; numbering is best-judgment and should be confirmed against the actual diocesan policy manual structure. 5) The document references several appendices (6, 10.14\u201310.25, 14) that are not included and may contain additional policy detail. 6) Debit card use is prohibited except with CFO authorization\u2014an unusual restriction worth flagging for compliance review. 7) The policy explicitly addresses canon law obligations (Canon 532, Canon 1284), IRS 501(c)(3) private inurement risk, and Florida sales-tax-exemption criminal penalties\u2014reviewers should ensure legal counsel has reviewed these sections.",
+  "_source_file": "401 Funds Management - Expenditures.pdf"
+}

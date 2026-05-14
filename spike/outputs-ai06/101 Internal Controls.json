@@ -1,0 +1,21 @@
+{
+  "title": "Internal Controls Policy (Section 101)",
+  "summary": "This policy establishes the framework, definitions, responsibilities, and basic elements of internal controls for the Diocese of Pensacola-Tallahassee to safeguard financial assets, ensure reliable reporting, and prevent fraud across all diocesan entities.",
+  "category": "Finance",
+  "category_confidence": "high",
+  "owner_role": "CFO",
+  "owner_role_confidence": "high",
+  "effective_date": "2014-08-01",
+  "effective_date_confidence": "medium",
+  "last_review_date": "2014-08-01",
+  "last_review_date_confidence": "medium",
+  "next_review_date": null,
+  "next_review_date_confidence": "low",
+  "retention_period_years": null,
+  "retention_period_confidence": "low",
+  "suggested_chapter_section_item": "4.1.1",
+  "address_confidence": "medium",
+  "version_stamp": "1.0",
+  "notes": "The document header shows 'Rev 8/14,' and the Summary of Revisions references an effective date of August 2014; no precise day is stated, so the ISO date is approximated as 2014-08-01 with medium confidence. No explicit next review date or review cadence is stated. Retention period is not specified within this governing document itself; as a policy/procedure record it would likely be Permanent under the diocesan Administrative Records rule ('records originating in the organization that document policy, procedure, rules or regulations -> Permanent'), but this is not stated in the text and so retention_period_years is left null. The suggested chapter.section.item of 4.1.1 maps to Financial and Accounting / General in the diocesan taxonomy (chapter 4 = Financial, section 1 = General/Administrative Controls, item 1 = Internal Controls Policy); this is a best-judgment mapping. The document references five appendices (15\u201319) covering Political Activity, Code of Business Conduct, Conflict of Interest, Fraud Policy, and Whistleblower Policy \u2014 each of these may warrant separate metadata records. Section numbering in the document contains an apparent inconsistency: subsections 101.5.2\u2013101.5.4 are labeled '105.1.2'\u2013'105.1.4' in the body text, likely a typographical error.",
+  "_source_file": "101 Internal Controls.pdf"
+}
