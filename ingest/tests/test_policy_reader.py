@@ -2,6 +2,7 @@
 from pathlib import Path
 
 import pytest
+import yaml
 
 from ingest.policy_reader import (
     BundleAwarePolicyReader,
@@ -212,7 +213,6 @@ def test_bundle_with_non_list_provides_raises(tmp_path):
 
 
 def test_bundle_with_invalid_yaml_frontmatter_raises(tmp_path):
-    import yaml as _yaml
     policies = tmp_path / "policies"
     policies.mkdir()
     bundle = policies / "retention"
@@ -222,7 +222,7 @@ def test_bundle_with_invalid_yaml_frontmatter_raises(tmp_path):
     )
     (bundle / "data.yaml").write_text("classifications: []\n", encoding="utf-8")
 
-    with pytest.raises(_yaml.YAMLError):
+    with pytest.raises(yaml.YAMLError):
         list(BundleAwarePolicyReader(policies).read())
 
 
@@ -257,3 +257,45 @@ def test_empty_policies_root_yields_no_entries(tmp_path):
     policies = tmp_path / "policies"
     policies.mkdir()
     assert list(BundleAwarePolicyReader(policies).read()) == []
+
+
+def test_flat_policy_without_frontmatter_yields_empty_frontmatter_dict(tmp_path):
+    """A flat .md with no --- markers parses to ({}, full body)."""
+    policies = tmp_path / "policies"
+    policies.mkdir()
+    (policies / "naked.md").write_text("# Naked policy\nNo frontmatter at all.\n", encoding="utf-8")
+
+    results = list(BundleAwarePolicyReader(policies).read())
+    assert len(results) == 1
+    p = results[0]
+    assert p.frontmatter == {}
+    assert "Naked policy" in p.body
+    assert p.foundational is False
+    assert p.provides == ()
+
+
+def test_flat_policy_with_empty_frontmatter_block_parses_to_empty_dict(tmp_path):
+    """A flat .md with ---\\n---\\n (empty frontmatter) parses to ({}, body)."""
+    policies = tmp_path / "policies"
+    policies.mkdir()
+    (policies / "empty-fm.md").write_text("---\n---\nbody only\n", encoding="utf-8")
+
+    results = list(BundleAwarePolicyReader(policies).read())
+    assert len(results) == 1
+    p = results[0]
+    assert p.frontmatter == {}
+    assert "body only" in p.body
+    assert p.foundational is False
+    assert p.provides == ()
+
+
+def test_flat_policy_with_non_mapping_frontmatter_raises(tmp_path):
+    """A flat .md whose frontmatter is a YAML list (not a mapping) raises BundleError."""
+    policies = tmp_path / "policies"
+    policies.mkdir()
+    (policies / "listy.md").write_text(
+        "---\n- a\n- b\n- c\n---\nbody\n", encoding="utf-8"
+    )
+
+    with pytest.raises(BundleError, match="not a YAML mapping"):
+        list(BundleAwarePolicyReader(policies).read())
