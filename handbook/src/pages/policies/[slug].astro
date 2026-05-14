@@ -1,0 +1,32 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+
+export async function getStaticPaths() {
+  const policies = await getCollection('policies');
+  return policies.map((p) => {
+    const slug = p.id.endsWith('/policy') ? p.id.slice(0, -'/policy'.length) : p.id;
+    return { params: { slug }, props: { entry: p } };
+  });
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+<Base title={entry.data.title}>
+  <article>
+    <h2>{entry.data.title}</h2>
+    {entry.data.foundational && (
+      <p><strong>Foundational policy</strong> provides:
+        {' '}
+        {entry.data.provides.join(', ')}
+      </p>
+    )}
+    {entry.data.owner && <p>Owner: {entry.data.owner}</p>}
+    {entry.data.last_review && (
+      <p>Last review: {entry.data.last_review.toISOString().slice(0, 10)}</p>
+    )}
+    <hr />
+    <Content />
+  </article>
+</Base>
