@@ -63,6 +63,16 @@ class GitProvider(ABC):
         pass
 
     @abstractmethod
+    def pull(self, branch: str, working_dir: Path) -> None:
+        """Pull the latest commits for the given branch into the working directory.
+
+        Args:
+            branch: Name of the branch to pull (typically the default branch).
+            working_dir: Path to the cloned repository working directory.
+        """
+        pass
+
+    @abstractmethod
     def open_pr(self, title: str, body: str, head_branch: str, base_branch: str, working_dir: Path) -> dict:
         """Open a pull request.
 
