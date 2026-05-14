@@ -375,3 +375,93 @@ def test_catalog_omits_approve_form_in_empty_onboarding_state(client, user):
     body = response.content.decode()
     assert "No policies yet" in body
     assert 'action="/policies/approve/"' not in body
+
+
+def test_catalog_renders_publish_button_for_reviewed_policy(client, user):
+    """A policy whose row gate is 'reviewed' renders a per-row publish form."""
+    client.force_login(user)
+    policies = [_stub_policy(slug="ready-to-publish", kind="flat", title="Ready")]
+    open_prs = [{
+        "pr_number": 7,
+        "head_branch": "policycodex/draft-ready-to-publish",
+        "gate": "reviewed",
+        "url": "https://example.com/p/7",
+    }]
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+        POLICYCODEX_WORKING_COPY_ROOT="/tmp",
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter(policies)
+                with patch("core.views.GitHubProvider") as MockProvider:
+                    MockProvider.return_value.list_open_prs.return_value = open_prs
+                    response = client.get("/catalog/")
+    body = response.content.decode()
+    assert 'action="/policies/ready-to-publish/publish/"' in body
+    assert 'method="post"' in body.lower()
+    # CSRF token must be present.
+    assert "csrfmiddlewaretoken" in body
+    # Button text the user clicks.
+    assert "Publish" in body
+
+
+def test_catalog_does_not_render_publish_button_for_drafted_policy(client, user):
+    """A policy in 'drafted' state must not show the publish button."""
+    client.force_login(user)
+    policies = [_stub_policy(slug="still-drafting", kind="flat")]
+    open_prs = [{
+        "pr_number": 11,
+        "head_branch": "policycodex/draft-still-drafting",
+        "gate": "drafted",
+        "url": "https://example.com/p/11",
+    }]
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+        POLICYCODEX_WORKING_COPY_ROOT="/tmp",
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter(policies)
+                with patch("core.views.GitHubProvider") as MockProvider:
+                    MockProvider.return_value.list_open_prs.return_value = open_prs
+                    response = client.get("/catalog/")
+    body = response.content.decode()
+    assert 'action="/policies/still-drafting/publish/"' not in body
+
+
+def test_catalog_does_not_render_publish_button_for_already_published_policy(client, user):
+    """A 'published' policy already merged shouldn't offer publish."""
+    client.force_login(user)
+    policies = [_stub_policy(slug="already-shipped", kind="flat")]
+    # No open PR for this policy means the default gate is "published".
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+        POLICYCODEX_WORKING_COPY_ROOT="/tmp",
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter(policies)
+                with patch("core.views.GitHubProvider") as MockProvider:
+                    MockProvider.return_value.list_open_prs.return_value = []
+                    response = client.get("/catalog/")
+    body = response.content.decode()
+    assert 'action="/policies/already-shipped/publish/"' not in body
+
+
+def test_catalog_does_not_render_publish_button_for_never_edited_policy(client, user):
+    """A policy with no open PR (default gate 'published') shouldn't show publish."""
+    client.force_login(user)
+    policies = [_stub_policy(slug="pristine", kind="flat")]
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+        POLICYCODEX_WORKING_COPY_ROOT="/tmp",
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter(policies)
+                with patch("core.views.GitHubProvider") as MockProvider:
+                    MockProvider.return_value.list_open_prs.return_value = []
+                    response = client.get("/catalog/")
+    body = response.content.decode()
+    assert 'action="/policies/pristine/publish/"' not in body
