@@ -143,3 +143,35 @@ class GitProvider(ABC):
             review_id, state, pr_number).
         """
         pass
+
+    @abstractmethod
+    def merge_pr(
+        self,
+        pr_number: int,
+        working_dir: Path,
+        merge_method: str = "squash",
+    ) -> dict:
+        """Merge a pull request, transitioning Reviewed to Published.
+
+        v0.1 default is squash so each merged policy edit lands as one
+        clean commit on main. Callers may override per provider quirks.
+
+        Args:
+            pr_number: The pull request number.
+            working_dir: Path to the repository working directory (used to
+                resolve the origin URL and therefore the owner/repo).
+            merge_method: One of "merge", "squash", or "rebase". Defaults
+                to "squash" for v0.1.
+
+        Returns:
+            Dictionary containing merge metadata: {"merged": bool,
+            "sha": str, "merge_method": str}. The sha is the new commit
+            SHA on the base branch.
+
+        Raises:
+            RuntimeError: If the merge fails for any reason (conflict,
+                branch protection blocked, rate-limit, API error, the PR
+                is already merged, etc.). The exception message includes
+                the underlying cause.
+        """
+        pass
