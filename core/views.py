@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 from github import GithubException
 
 from app.git_provider.github_provider import GitHubProvider
@@ -15,6 +15,7 @@ from app.working_copy.config import load_working_copy_config
 from core.forms import PolicyEditForm
 from core.git_identity import get_git_author
 from core.policy_writer import _render_policy_md
+from core.policymeta import PolicymetaError, read_pr_number_for
 from ingest.policy_reader import BundleAwarePolicyReader
 
 
@@ -291,4 +292,78 @@ def approve_pr(request):
         request.user.username, pr_number, result.get("review_id"),
     )
     messages.success(request, f"PR #{pr_number} approved.")
+    return redirect("catalog")
+
+
+@login_required
+@require_http_methods(["POST"])
+def publish_policy(request, slug):
+    """Merge the open PR for `slug`, transitioning the gate to Published.
+
+    v0.1 permission model: any authenticated user may publish. Role-gating
+    (e.g. "only Publisher role") is a future ticket. The GitHub App token
+    used by GitHubProvider has Contents + Pull-requests read/write
+    (verified in REPO-03 checklist), which is the underlying authority.
+
+    All outcomes (success or any error class) flash a message via Django's
+    messages framework and redirect to /catalog/. No JSON, no rendered
+    error page, no 500.
+    """
+    try:
+        config = load_working_copy_config()
+    except RuntimeError:
+        messages.error(
+            request,
+            "Working copy is not configured. Complete the onboarding wizard first.",
+        )
+        return redirect("catalog")
+
+    working_dir = config.working_dir
+
+    try:
+        pr_number = read_pr_number_for(working_dir, slug)
+    except PolicymetaError as exc:
+        messages.error(request, f"Policy metadata is malformed: {exc}")
+        return redirect("catalog")
+
+    if pr_number is None:
+        messages.error(
+            request,
+            f"No pending pull request for '{slug}'. Open an edit first to create one.",
+        )
+        return redirect("catalog")
+
+    provider = GitHubProvider()
+
+    try:
+        state = provider.read_pr_state(pr_number, working_dir)
+    except Exception as exc:
+        messages.error(request, f"Could not read PR state for #{pr_number}: {exc}")
+        return redirect("catalog")
+
+    if state == "published":
+        messages.warning(request, f"PR #{pr_number} is already published.")
+        return redirect("catalog")
+    if state != "reviewed":
+        messages.error(
+            request,
+            f"PR #{pr_number} is in state '{state}'. A reviewer must approve "
+            "(transition to Reviewed) before it can be published.",
+        )
+        return redirect("catalog")
+
+    try:
+        result = provider.merge_pr(pr_number, working_dir, merge_method="squash")
+    except RuntimeError as exc:
+        messages.error(
+            request,
+            f"Merge failed for PR #{pr_number}: {exc}. Resolve the issue on "
+            "GitHub (often a merge conflict or branch protection) and try again.",
+        )
+        return redirect("catalog")
+
+    messages.success(
+        request,
+        f"Published '{slug}' (PR #{pr_number} merged as {result['sha'][:7]}).",
+    )
     return redirect("catalog")
