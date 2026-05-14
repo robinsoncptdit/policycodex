@@ -100,3 +100,25 @@ class GitProvider(ABC):
             One of: "drafted", "reviewed", "published", "closed"
         """
         pass
+
+    @abstractmethod
+    def list_open_prs(self, working_dir: Path) -> list[dict]:
+        """List all currently-open pull requests on the repository, with each
+        PR's head branch and pre-mapped gate state.
+
+        This is a batched alternative to calling `read_pr_state` once per PR:
+        one API call returns the whole open-PR set, which the catalog view uses
+        to build a `{slug: gate}` map for badge rendering.
+
+        Args:
+            working_dir: Path to the repository working directory.
+
+        Returns:
+            A list of dicts, one per open PR. Each dict has:
+              - "pr_number": int (the PR number on the provider)
+              - "head_branch": str (the source branch; e.g., "policycodex/draft-foo")
+              - "gate": str (one of "drafted" | "reviewed"; merged and closed
+                PRs are NOT included because they are not "open")
+              - "url": str (the PR's web URL, for future detail-view linking)
+        """
+        pass
