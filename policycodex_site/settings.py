@@ -22,6 +22,14 @@ POLICYCODEX_POLICY_REPO_URL = os.environ.get("POLICYCODEX_POLICY_REPO_URL", "")
 POLICYCODEX_POLICY_BRANCH = os.environ.get("POLICYCODEX_POLICY_BRANCH", "main")
 POLICYCODEX_WORKING_COPY_ROOT = os.environ.get("POLICYCODEX_WORKING_COPY_ROOT", "")
 
+# Onboarding state (APP-21). When False, the startup self-check downgrades
+# "working copy missing" failures to Warnings (lets `manage.py runserver`
+# start during the wizard). The wizard (APP-15) flips this to True when
+# the user completes setup. Truthy parser tolerates "1", "true", "yes"
+# (case-insensitive); empty string and "0"/"false"/"no" are falsy.
+_onboarding_raw = os.environ.get("POLICYCODEX_ONBOARDING_COMPLETE", "")
+POLICYCODEX_ONBOARDING_COMPLETE = _onboarding_raw.lower() in ("1", "true", "yes")
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -47,6 +55,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
+    'app.working_copy.apps.WorkingCopyAppConfig',
 ]
 
 MIDDLEWARE = [
