@@ -14,6 +14,20 @@
       </p>
     </section>
   {% else %}
+    <section class="approve-pr">
+      <h3>Approve a PR</h3>
+      <p>
+        Enter the GitHub PR number to approve. (APP-17 will wire this to
+        per-policy rows once PR tracking is persisted.)
+      </p>
+      <form method="post" action="/policies/approve/">
+        {% csrf_token %}
+        <label for="pr_number">PR number</label>
+        <input type="number" name="pr_number" id="pr_number" min="1" required>
+        <button type="submit">Approve PR</button>
+      </form>
+    </section>
+
     <ul class="policy-list">
       {% for row in rows %}
         <li class="policy">
