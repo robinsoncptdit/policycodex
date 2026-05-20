@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PolicyCodex v0.1 mockups</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f4f2ec;
+    color: #1a1a1a;
+    line-height: 1.5;
+    padding: 32px 16px 64px;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  .deck-intro {
+    max-width: 900px;
+    margin: 0 auto 48px;
+    padding: 32px;
+    background: white;
+    border: 1px solid #e0ddd6;
+    border-radius: 6px;
+  }
+  .deck-intro h1 { font-size: 28px; font-weight: 600; margin-bottom: 12px; }
+  .deck-intro p { color: #4a4742; margin-bottom: 12px; }
+  .deck-intro p:last-child { margin-bottom: 0; }
+  .deck-nav { margin-top: 16px; font-size: 13px; }
+  .deck-nav a { color: #3c3489; margin-right: 16px; }
+
+  .mockup {
+    max-width: 1080px;
+    margin: 0 auto 48px;
+  }
+  .mockup-label {
+    color: #6b6863;
+    font-size: 12px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 500;
+  }
+  .mockup-frame {
+    background: white;
+    border: 1px solid #e0ddd6;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+  }
+
+  .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid #e0ddd6;
+    background: white;
+  }
+  .app-logo { font-weight: 600; color: #1a1a1a; }
+  .app-logo-subtle { color: #6b6863; font-weight: 400; margin-left: 8px; font-size: 14px; }
+  .app-nav { display: flex; gap: 18px; color: #6b6863; font-size: 14px; }
+  .app-nav a.active { color: #1a1a1a; font-weight: 500; }
+  .app-user { font-size: 13px; color: #6b6863; }
+
+  .app-body { display: flex; min-height: 480px; }
+  .app-sidebar {
+    width: 200px;
+    padding: 20px 16px;
+    border-right: 1px solid #e0ddd6;
+    background: #faf9f5;
+    font-size: 14px;
+  }
+  .app-sidebar h4 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #8b8780;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .app-sidebar ul { list-style: none; margin-bottom: 20px; }
+  .app-sidebar li { padding: 6px 8px; border-radius: 4px; color: #4a4742; }
+  .app-sidebar li.active { background: white; color: #1a1a1a; font-weight: 500; border: 1px solid #e0ddd6; }
+
+  .app-main { flex: 1; padding: 24px 28px; }
+  .app-main h2 { font-size: 20px; margin-bottom: 4px; font-weight: 600; }
+  .app-main .subtitle { font-size: 13px; color: #6b6863; margin-bottom: 20px; }
+
+  .ai-banner {
+    background: #f0eef6;
+    border: 1px solid #c8c2da;
+    color: #3c3489;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    font-size: 13px;
+  }
+  .ai-banner a { color: #3c3489; font-weight: 500; }
+
+  .filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    flex-wrap: wrap;
+  }
+  .filter-chip {
+    border: 1px solid #d8d4cc;
+    padding: 4px 10px;
+    border-radius: 14px;
+    color: #4a4742;
+    background: white;
+  }
+  .filter-chip.active { background: #1a1a1a; color: white; border-color: #1a1a1a; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #efece5; }
+  th { background: #faf9f5; color: #6b6863; font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+  td.mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace; color: #4a4742; }
+
+  .gate {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .gate-drafted { background: #efece5; color: #6b6863; }
+  .gate-reviewed { background: #faeeda; color: #854F0B; }
+  .gate-published { background: #e1f5ee; color: #0F6E56; }
+
+  .edit-grid { display: grid; grid-template-columns: 1fr 280px; gap: 24px; }
+  .form-row { margin-bottom: 14px; }
+  .form-row label { display: block; font-size: 12px; color: #6b6863; margin-bottom: 4px; }
+  .form-row input, .form-row select, .form-row textarea {
+    width: 100%; border: 1px solid #d8d4cc; border-radius: 4px;
+    padding: 8px 10px; font-size: 14px; font-family: inherit; background: white;
+  }
+  .form-row textarea { min-height: 200px; resize: vertical; font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace; font-size: 13px; line-height: 1.6; }
+  .form-row-double { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .form-row-double .form-row { margin-bottom: 0; }
+  .form-row input:disabled { background: #faf9f5; color: #6b6863; }
+
+  .ai-sidebar {
+    background: #faf9f5;
+    border: 1px solid #e0ddd6;
+    border-radius: 6px;
+    padding: 16px;
+    font-size: 13px;
+    align-self: start;
+  }
+  .ai-sidebar h4 { font-size: 13px; margin-bottom: 8px; font-weight: 600; }
+  .ai-sidebar .sub { font-size: 12px; color: #6b6863; margin-bottom: 12px; }
+  .ai-suggestion { display: flex; justify-content: space-between; margin-bottom: 6px; }
+  .ai-suggestion .label { color: #6b6863; }
+  .ai-suggestion .value { font-weight: 500; color: #1a1a1a; }
+  .ai-source {
+    border-top: 1px solid #e0ddd6; margin-top: 12px; padding-top: 12px;
+    font-size: 12px; color: #4a4742;
+  }
+  .ai-source a { color: #3c3489; }
+
+  .btn-primary {
+    background: #1a1a1a; color: white; border: none;
+    padding: 9px 18px; border-radius: 4px; font-size: 14px;
+    cursor: pointer; font-weight: 500;
+  }
+  .btn-secondary {
+    background: white; color: #1a1a1a; border: 1px solid #d8d4cc;
+    padding: 9px 18px; border-radius: 4px; font-size: 14px; margin-right: 8px;
+    cursor: pointer;
+  }
+  .btn-success {
+    background: #1d9e75; color: white; border: none;
+    padding: 9px 18px; border-radius: 4px; font-size: 14px;
+    cursor: pointer; font-weight: 500;
+  }
+  .actions { margin-top: 20px; }
+  .note {
+    background: #faf9f5; border-left: 3px solid #6f5fa6;
+    padding: 10px 14px; font-size: 13px; color: #4a4742; margin-top: 16px;
+  }
+
+  .review-meta {
+    display: flex; gap: 28px; padding: 14px 18px;
+    background: #faf9f5; border: 1px solid #e0ddd6;
+    border-radius: 6px; margin-bottom: 20px;
+    font-size: 13px; align-items: center;
+  }
+  .review-meta-item { display: flex; flex-direction: column; gap: 2px; }
+  .review-meta-label { color: #6b6863; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .review-meta-value { color: #1a1a1a; font-weight: 500; }
+  .review-meta .gate { margin-left: auto; }
+
+  .diff-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px; }
+  .diff-side h5 { font-size: 11px; color: #6b6863; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.05em; }
+  .diff-side .content {
+    background: #faf9f5; border-radius: 4px; padding: 10px 12px;
+    font-size: 13px; min-height: 40px; line-height: 1.55;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+    border: 1px solid #efece5;
+  }
+  .diff-side .content.removed { background: #fcebeb; border-color: #f7c1c1; }
+  .diff-side .content.added { background: #eaf3de; border-color: #c0dd97; }
+
+  .diff-table {
+    margin-top: 14px; border: 1px solid #e0ddd6; border-radius: 6px;
+    overflow: hidden;
+  }
+  .diff-table-row {
+    display: grid; grid-template-columns: 180px 1fr 1fr;
+    padding: 10px 14px; border-bottom: 1px solid #efece5;
+    font-size: 13px;
+  }
+  .diff-table-row:last-child { border-bottom: none; }
+  .diff-table-row.header { background: #faf9f5; font-weight: 500; font-size: 11px; text-transform: uppercase; color: #6b6863; letter-spacing: 0.05em; }
+  .diff-table-row .field { color: #6b6863; }
+  .diff-table-row .old { color: #6b6863; text-decoration: line-through; }
+  .diff-table-row .new { color: #1d9e75; font-weight: 500; }
+
+  .reviewer-comment {
+    background: white; border: 1px solid #e0ddd6;
+    border-radius: 6px; padding: 14px 16px; margin-top: 14px;
+    font-size: 14px;
+  }
+  .reviewer-comment textarea { width: 100%; border: none; padding: 6px 0; font-family: inherit; font-size: 14px; resize: none; }
+
+  .handbook-header {
+    background: #2c2825; color: white;
+    padding: 16px 28px; font-size: 14px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .handbook-header-title { font-family: Georgia, "Times New Roman", serif; font-size: 18px; }
+  .handbook-header-nav { font-size: 13px; color: #c8c2bd; }
+  .handbook-body { display: flex; }
+  .handbook-nav {
+    width: 240px; padding: 24px 16px; background: #faf9f5;
+    border-right: 1px solid #e0ddd6; font-size: 14px;
+  }
+  .handbook-nav h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #8b8780; margin: 16px 0 6px; font-weight: 500; }
+  .handbook-nav h4:first-child { margin-top: 0; }
+  .handbook-nav ul { list-style: none; }
+  .handbook-nav li { padding: 4px 0; color: #4a4742; }
+  .handbook-nav li.active { font-weight: 500; color: #1a1a1a; }
+  .handbook-content {
+    flex: 1; padding: 40px 56px;
+    font-family: Georgia, "Times New Roman", serif;
+    color: #2a2a2a;
+  }
+  .handbook-breadcrumb { font-family: -apple-system, sans-serif; font-size: 12px; color: #6b6863; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .handbook-content h1 { font-size: 30px; font-weight: 600; margin-bottom: 10px; line-height: 1.25; }
+  .handbook-content .meta { font-family: -apple-system, sans-serif; font-size: 13px; color: #6b6863; margin-bottom: 32px; padding-bottom: 16px; border-bottom: 1px solid #e0ddd6; }
+  .handbook-content .meta span { margin-right: 18px; }
+  .handbook-content p { margin-bottom: 16px; line-height: 1.75; font-size: 16px; }
+  .handbook-content h2 { font-size: 20px; font-weight: 600; margin: 28px 0 10px; }
+  .handbook-content ul { margin: 0 0 16px 24px; }
+  .handbook-content li { margin-bottom: 6px; line-height: 1.7; }
+  .handbook-footer {
+    margin-top: 40px; padding-top: 16px; border-top: 1px solid #e0ddd6;
+    font-family: -apple-system, sans-serif; font-size: 13px; color: #6b6863;
+    display: flex; justify-content: space-between;
+  }
+  .handbook-footer a { color: #3c3489; }
+
+  .wizard-progress { display: flex; gap: 6px; margin-bottom: 8px; }
+  .wizard-step { flex: 1; height: 4px; background: #e0ddd6; border-radius: 2px; }
+  .wizard-step.done { background: #1d9e75; }
+  .wizard-step.current { background: #1a1a1a; }
+  .wizard-step-label { font-size: 12px; color: #6b6863; margin-bottom: 22px; }
+  .wizard-title { font-size: 24px; margin-bottom: 8px; font-weight: 600; }
+  .wizard-subtitle { color: #6b6863; margin-bottom: 24px; }
+
+  .wizard-grid { display: grid; grid-template-columns: 1fr 280px; gap: 28px; align-items: start; }
+  .wizard-side {
+    background: #faf9f5; border: 1px solid #e0ddd6;
+    border-radius: 6px; padding: 16px;
+    font-size: 13px; color: #4a4742; line-height: 1.6;
+  }
+  .wizard-side h5 { font-size: 13px; margin-bottom: 8px; font-weight: 600; }
+
+  .repo-card {
+    border: 2px solid #1a1a1a; border-radius: 6px; padding: 18px;
+    margin-bottom: 14px; cursor: pointer; background: #faf9f5;
+  }
+  .repo-card.unselected { border: 1px solid #d8d4cc; background: white; }
+  .repo-card h4 { font-size: 15px; margin-bottom: 4px; font-weight: 600; }
+  .repo-card p { font-size: 13px; color: #6b6863; }
+
+  .upload-zone {
+    border: 2px dashed #c8c2c0; border-radius: 6px;
+    padding: 36px; text-align: center; background: #faf9f5;
+    font-size: 14px; color: #6b6863;
+    margin-bottom: 16px;
+  }
+  .upload-zone strong { color: #1a1a1a; }
+
+  .ref-list { border: 1px solid #e0ddd6; border-radius: 6px; overflow: hidden; }
+  .ref-item {
+    padding: 14px 16px; border-bottom: 1px solid #efece5;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 14px;
+  }
+  .ref-item:last-child { border-bottom: none; }
+  .ref-item .meta { font-size: 12px; color: #6b6863; margin-top: 2px; }
+  .ref-status { font-size: 12px; padding: 3px 8px; border-radius: 10px; }
+  .ref-status.ok { background: #e1f5ee; color: #0F6E56; }
+  .ref-status.processing { background: #faeeda; color: #854F0B; }
+
+  .closing {
+    max-width: 900px; margin: 32px auto 0; padding: 24px 32px;
+    background: white; border: 1px solid #e0ddd6; border-radius: 6px;
+    font-size: 14px; color: #4a4742; line-height: 1.7;
+  }
+  .closing h2 { font-size: 18px; margin-bottom: 10px; font-weight: 600; }
+
+  .ai-pill {
+    display: inline-block;
+    background: #f0eef6;
+    color: #3c3489;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 1px 7px;
+    border-radius: 8px;
+    margin-left: 6px;
+    vertical-align: middle;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .ai-pill.low { background: #faeeda; color: #854F0B; }
+  .gap-badge {
+    display: inline-block;
+    background: #fcebeb;
+    color: #A32D2D;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 1px 7px;
+    border-radius: 8px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .ai-summary {
+    background: #f0eef6;
+    border: 1px solid #c8c2da;
+    border-radius: 6px;
+    padding: 16px 18px;
+    margin-bottom: 20px;
+    font-size: 14px;
+  }
+  .ai-summary-header {
+    font-size: 11px;
+    color: #3c3489;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+  .ai-summary-body { color: #2a2a2a; line-height: 1.55; }
+  .ai-summary-tags { margin-top: 12px; }
+  .ai-summary-tag {
+    display: inline-block;
+    background: white;
+    color: #3c3489;
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 10px;
+    margin-right: 6px;
+    border: 1px solid #c8c2da;
+  }
+  .ai-suggest-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: -8px;
+    margin-bottom: 14px;
+    padding: 8px 10px;
+    background: #faf9f5;
+    border-radius: 4px;
+    border-left: 3px solid #6f5fa6;
+  }
+  .ai-suggest-btn {
+    background: white;
+    color: #3c3489;
+    border: 1px solid #c8c2da;
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .ai-suggest-row .hint { font-size: 12px; color: #4a4742; line-height: 1.4; }
+  .ai-suggest-row .hint strong { color: #1a1a1a; }
+</style>
+</head>
+<body>
+
+<div class="deck-intro">
+  <h1>PolicyCodex v0.1 mockups</h1>
+  <p>Visual mockups for the DISC mid-June demo. Fake data, fake interactions, real intent. Six screens covering the wedge flow: admin catalog, edit form, reviewer approval, public handbook, plus two onboarding-wizard screens. Diocese of Pensacola-Tallahassee shown as install zero.</p>
+  <p>None of this is the shipping product. The actual code lives at <a href="https://github.com/robinsoncptdit/policycodex" style="color: #3c3489;">github.com/robinsoncptdit/policycodex</a>. These mockups exist to anchor the demo narrative.</p>
+  <div class="deck-nav">
+    <a href="#m1">1 Catalog</a>
+    <a href="#m2">2 Edit</a>
+    <a href="#m3">3 Review</a>
+    <a href="#m4">4 Handbook</a>
+    <a href="#m5">5 Wizard step 1</a>
+    <a href="#m6">6 Wizard step 7</a>
+  </div>
+</div>
+
+<div class="mockup" id="m1">
+  <div class="mockup-label">Screen 1 of 6 · Admin catalog (after first AI inventory pass)</div>
+  <div class="mockup-frame">
+    <div class="app-header">
+      <div>
+        <span class="app-logo">PolicyCodex</span>
+        <span class="app-logo-subtle">Diocese of Pensacola-Tallahassee</span>
+      </div>
+      <div class="app-nav">
+        <a class="active" href="#">Catalog</a>
+        <a href="#">References</a>
+        <a href="#">Activity</a>
+        <a href="#">Settings</a>
+      </div>
+      <div class="app-user">Chuck Robinson · IT Director</div>
+    </div>
+    <div class="app-body">
+      <div class="app-sidebar">
+        <h4>Chapters</h4>
+        <ul>
+          <li>1. Pastoral</li>
+          <li>2. Schools</li>
+          <li class="active">3. Finance</li>
+          <li>4. HR</li>
+          <li>5. IT</li>
+          <li>6. Safe Environment</li>
+          <li>7. Worship</li>
+          <li>8. Parish Operations</li>
+        </ul>
+        <h4>Gates</h4>
+        <ul>
+          <li>All (164)</li>
+          <li>Drafted (12)</li>
+          <li>Reviewed (4)</li>
+          <li>Published (148)</li>
+        </ul>
+      </div>
+      <div class="app-main">
+        <h2>Catalog · Finance</h2>
+        <div class="subtitle">42 policies in chapter 3. 38 published. 3 drafted. 1 in review.</div>
+
+        <div class="ai-banner">
+          AI inventory pass completed 18 minutes ago against the ptdiocese.org policy export. 164 policies inventoried. 12 flagged as missing required metadata. <a href="#">Review the gaps</a>
+        </div>
+
+        <div class="filters">
+          <span class="filter-chip active">All</span>
+          <span class="filter-chip">Drafted</span>
+          <span class="filter-chip">Reviewed</span>
+          <span class="filter-chip">Needs review (90d)</span>
+          <span class="filter-chip">Missing metadata</span>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Address</th>
+              <th>Title</th>
+              <th>Owner</th>
+              <th>Effective</th>
+              <th>Next review</th>
+              <th>Gate</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">3.0.0</td>
+              <td>Document retention policy</td>
+              <td>Chancellor</td>
+              <td>2022-08-01</td>
+              <td>2026-08-01</td>
+              <td><span class="gate gate-published">Published</span></td>
+            </tr>
+            <tr>
+              <td class="mono">3.1.0</td>
+              <td>Internal controls (101)</td>
+              <td>CFO</td>
+              <td>2014-08-01</td>
+              <td>2026-08-01</td>
+              <td><span class="gate gate-published">Published</span></td>
+            </tr>
+            <tr>
+              <td class="mono">3.1.1</td>
+              <td>Funds management: income</td>
+              <td>CFO<span class="ai-pill">AI · high</span></td>
+              <td>2014-08-01</td>
+              <td>2026-08-01<span class="ai-pill">AI · high</span></td>
+              <td><span class="gate gate-drafted">Drafted</span></td>
+            </tr>
+            <tr>
+              <td class="mono">3.1.2</td>
+              <td>Funds management: expenditures</td>
+              <td>CFO</td>
+              <td>2016-12-01</td>
+              <td>2027-12-01</td>
+              <td><span class="gate gate-published">Published</span></td>
+            </tr>
+            <tr>
+              <td class="mono">3.1.3</td>
+              <td>Financial planning and control (201)</td>
+              <td>CFO</td>
+              <td>2016-09-01</td>
+              <td>2026-09-01</td>
+              <td><span class="gate gate-published">Published</span></td>
+            </tr>
+            <tr>
+              <td class="mono">3.1.18</td>
+              <td>Diocesan fraud policy (Appendix 18)</td>
+              <td>CFO</td>
+              <td>2014-08-01</td>
+              <td>2026-08-01</td>
+              <td><span class="gate gate-reviewed">Reviewed</span></td>
+            </tr>
+            <tr>
+              <td class="mono">3.1.19</td>
+              <td>Diocesan whistleblower policy<span class="gap-badge">Not in retention schedule</span></td>
+              <td>Vicar General<span class="ai-pill low">AI · low</span></td>
+              <td>2014-08-01</td>
+              <td>2026-08-01<span class="ai-pill">AI · high</span></td>
+              <td><span class="gate gate-drafted">Drafted</span></td>
+            </tr>
+            <tr>
+              <td class="mono">3.2.1</td>
+              <td>Parish finance council norms (Appendix 3)</td>
+              <td>CFO</td>
+              <td>2014-08-01</td>
+              <td>2026-08-01</td>
+              <td><span class="gate gate-published">Published</span></td>
+            </tr>
+            <tr>
+              <td class="mono">3.3.5</td>
+              <td>Handling of offertory collections (Appendix 5)</td>
+              <td>CFO</td>
+              <td>2014-08-01</td>
+              <td>2026-08-01</td>
+              <td><span class="gate gate-published">Published</span></td>
+            </tr>
+            <tr>
+              <td class="mono">3.5.1</td>
+              <td>Personnel, payroll, independent contractors (501)</td>
+              <td>HR Director</td>
+              <td>2016-09-01</td>
+              <td style="color: #A32D2D; font-weight: 500;">2025-09-01 (overdue)</td>
+              <td><span class="gate gate-published">Published</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mockup" id="m2">
+  <div class="mockup-label">Screen 2 of 6 · Edit form (the CFO never sees Git)</div>
+  <div class="mockup-frame">
+    <div class="app-header">
+      <div>
+        <span class="app-logo">PolicyCodex</span>
+        <span class="app-logo-subtle">Diocese of Pensacola-Tallahassee</span>
+      </div>
+      <div class="app-nav">
+        <a href="#">Catalog</a>
+        <a href="#">References</a>
+        <a class="active" href="#">Edit policy</a>
+        <a href="#">Settings</a>
+      </div>
+      <div class="app-user">Jane Smith · CFO</div>
+    </div>
+    <div class="app-body">
+      <div class="app-main" style="padding: 28px 32px;">
+        <h2>Edit · 3.1.1 Funds management: income</h2>
+        <div class="subtitle">Currently published as v2.1 · Last reviewed 2024-08-01 by R. Pohlmeier</div>
+
+        <div class="edit-grid">
+          <div>
+            <div class="form-row-double">
+              <div class="form-row">
+                <label>Title</label>
+                <input value="Funds management: income">
+              </div>
+              <div class="form-row">
+                <label>Owner role</label>
+                <select>
+                  <option>CFO</option>
+                  <option>HR Director</option>
+                  <option>IT Director</option>
+                  <option>Vicar General</option>
+                  <option>Chancellor</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row-double">
+              <div class="form-row">
+                <label>Category</label>
+                <select>
+                  <option>Finance</option>
+                  <option>HR</option>
+                  <option>IT</option>
+                  <option>Safe Environment</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>Chapter.Section.Item</label>
+                <input value="3.1.1">
+              </div>
+            </div>
+            <div class="form-row-double">
+              <div class="form-row">
+                <label>Effective date</label>
+                <input value="2014-08-01" type="date">
+              </div>
+              <div class="form-row">
+                <label>Next review</label>
+                <input value="2026-08-01" type="date">
+              </div>
+            </div>
+            <div class="form-row-double">
+              <div class="form-row">
+                <label>Retention period (years)</label>
+                <input value="7" type="number">
+              </div>
+              <div class="form-row">
+                <label>Version</label>
+                <input value="2.1 → 2.2" disabled>
+              </div>
+            </div>
+            <div class="form-row">
+              <label>Policy body (markdown)</label>
+              <textarea>## Purpose
+
+This policy establishes required and recommended procedures for the receipt, safeguarding, counting, depositing, recording, and donor acknowledgment of all income received by diocesan parishes and schools, emphasizing segregation of duties and internal controls.
+
+## Required procedures
+
+All cash receipts shall be counted by two unrelated individuals before deposit. Donor acknowledgments shall be issued within thirty (30) days of receipt of any gift exceeding $250, per IRS substantiation rules. The Diocesan Finance Officer shall maintain documentation of...</textarea>
+            </div>
+            <div class="actions">
+              <button class="btn-secondary">Save draft</button>
+              <button class="btn-primary">Submit for review</button>
+            </div>
+            <div class="note">
+              Clicking Submit for review opens a pull request on the diocesan policy repo under your name (Jane Smith, j.smith@ptdiocese.org). You do not need a GitHub account. The reviewer is notified by email.
+            </div>
+          </div>
+
+          <div class="ai-sidebar">
+            <h4>AI suggestions</h4>
+            <div class="sub">Based on the policy text and your diocese's retention schedule.</div>
+            <div class="ai-suggestion"><span class="label">Category</span><span class="value">Finance · high</span></div>
+            <div class="ai-suggestion"><span class="label">Owner role</span><span class="value">CFO · high</span></div>
+            <div class="ai-suggestion"><span class="label">Retention</span><span class="value">7 years · high</span></div>
+            <div class="ai-suggestion"><span class="label">Address</span><span class="value">3.1.1 · high</span></div>
+            <div class="ai-source">
+              Retention sourced from your Document Retention Policy section 4.2, row "Cash receipts and donor acknowledgments." <a href="#">View source</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mockup" id="m3">
+  <div class="mockup-label">Screen 3 of 6 · Reviewer approval (PR-as-gate)</div>
+  <div class="mockup-frame">
+    <div class="app-header">
+      <div>
+        <span class="app-logo">PolicyCodex</span>
+        <span class="app-logo-subtle">Diocese of Pensacola-Tallahassee</span>
+      </div>
+      <div class="app-nav">
+        <a href="#">Catalog</a>
+        <a href="#">References</a>
+        <a class="active" href="#">Review queue</a>
+        <a href="#">Settings</a>
+      </div>
+      <div class="app-user">R. Pohlmeier · COO</div>
+    </div>
+    <div class="app-body">
+      <div class="app-main" style="padding: 28px 32px;">
+        <h2>Review · 3.1.1 Funds management: income</h2>
+        <div class="subtitle">Pull request opened 14 minutes ago. v2.1 → v2.2 (minor revision).</div>
+
+        <div class="ai-summary">
+          <div class="ai-summary-header">AI summary of this change</div>
+          <div class="ai-summary-body">This pull request adds IRS substantiation language to the donor acknowledgment requirement and advances the next-review date by one year. Body text changes are clarifying, not substantive. One metadata field changes (next review).</div>
+          <div class="ai-summary-tags">
+            <span class="ai-summary-tag">Material obligations: unchanged</span>
+            <span class="ai-summary-tag">External reference: IRS</span>
+            <span class="ai-summary-tag">Retention schedule: still aligned</span>
+            <span class="ai-summary-tag">Confidence: high</span>
+          </div>
+        </div>
+
+        <div class="review-meta">
+          <div class="review-meta-item">
+            <span class="review-meta-label">Submitted by</span>
+            <span class="review-meta-value">Jane Smith · CFO</span>
+          </div>
+          <div class="review-meta-item">
+            <span class="review-meta-label">Branch</span>
+            <span class="review-meta-value" style="font-family: monospace; font-size: 12px;">policycodex/edit-3.1.1-funds-income-a3f9d4</span>
+          </div>
+          <div class="review-meta-item">
+            <span class="review-meta-label">Commits</span>
+            <span class="review-meta-value">2</span>
+          </div>
+          <span class="gate gate-drafted">Drafted · awaiting your approval</span>
+        </div>
+
+        <h5 style="font-size: 12px; color: #6b6863; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Body changes</h5>
+        <div class="diff-row">
+          <div class="diff-side">
+            <h5>Current (v2.1)</h5>
+            <div class="content removed">Donor acknowledgments shall be issued within thirty (30) days of receipt of any gift exceeding $250...</div>
+          </div>
+          <div class="diff-side">
+            <h5>Proposed (v2.2)</h5>
+            <div class="content added">Donor acknowledgments shall be issued within thirty (30) days of receipt of any gift exceeding $250, per IRS substantiation rules.</div>
+          </div>
+        </div>
+
+        <h5 style="font-size: 12px; color: #6b6863; text-transform: uppercase; letter-spacing: 0.05em; margin: 18px 0 4px;">Metadata changes</h5>
+        <div class="diff-table">
+          <div class="diff-table-row header">
+            <div>Field</div>
+            <div>Current</div>
+            <div>Proposed</div>
+          </div>
+          <div class="diff-table-row">
+            <div class="field">Next review</div>
+            <div class="old">2025-08-01</div>
+            <div class="new">2026-08-01</div>
+          </div>
+          <div class="diff-table-row">
+            <div class="field">Version</div>
+            <div class="old">2.1</div>
+            <div class="new">2.2</div>
+          </div>
+        </div>
+
+        <div class="reviewer-comment">
+          <div style="font-size: 12px; color: #6b6863; margin-bottom: 6px;">Add a comment (optional)</div>
+          <textarea rows="2" placeholder="Tell Jane what you think before approving"></textarea>
+        </div>
+
+        <div class="actions">
+          <button class="btn-secondary">Request changes</button>
+          <button class="btn-success">Approve</button>
+        </div>
+        <div class="note">
+          Approving advances this policy to the Reviewed gate. Publication is a separate step taken by the Document Control Owner.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mockup" id="m4">
+  <div class="mockup-label">Screen 4 of 6 · Public handbook (handbook.ptdiocese.org)</div>
+  <div class="mockup-frame">
+    <div class="handbook-header">
+      <div class="handbook-header-title">Diocese of Pensacola-Tallahassee · Policy Handbook</div>
+      <div class="handbook-header-nav">Search · Chapters · About · RSS</div>
+    </div>
+    <div class="handbook-body">
+      <div class="handbook-nav">
+        <h4>Chapter 3 · Finance</h4>
+        <ul>
+          <li>3.0 · Document retention</li>
+          <li>3.1.0 · Internal controls</li>
+          <li class="active">3.1.1 · Funds management: income</li>
+          <li>3.1.2 · Funds management: expenditures</li>
+          <li>3.1.3 · Financial planning</li>
+          <li>3.1.18 · Fraud policy</li>
+          <li>3.1.19 · Whistleblower policy</li>
+          <li>3.2.1 · Parish finance council</li>
+          <li>3.3.5 · Offertory collections</li>
+        </ul>
+        <h4>Other chapters</h4>
+        <ul>
+          <li>1. Pastoral</li>
+          <li>2. Schools</li>
+          <li>4. HR</li>
+          <li>5. IT</li>
+          <li>6. Safe Environment</li>
+        </ul>
+      </div>
+      <div class="handbook-content">
+        <div class="handbook-breadcrumb">Chapter 3 · Section 1 · Item 1</div>
+        <h1>Funds management: income</h1>
+        <div class="meta">
+          <span><strong>Version:</strong> 2.1</span>
+          <span><strong>Owner:</strong> CFO</span>
+          <span><strong>Effective:</strong> 2014-08-01</span>
+          <span><strong>Last reviewed:</strong> 2024-08-01</span>
+          <span><strong>Next review:</strong> 2025-08-01</span>
+        </div>
+
+        <h2>Purpose</h2>
+        <p>This policy establishes required and recommended procedures for the receipt, safeguarding, counting, depositing, recording, and donor acknowledgment of all income received by diocesan parishes and schools, emphasizing segregation of duties and internal controls.</p>
+
+        <h2>Required procedures</h2>
+        <p>All cash receipts shall be counted by two unrelated individuals before deposit. Donor acknowledgments shall be issued within thirty (30) days of receipt of any gift exceeding $250. The Diocesan Finance Officer shall maintain documentation of all extraordinary gifts and pledges in accordance with the Document Retention Policy (3.0).</p>
+
+        <h2>Segregation of duties</h2>
+        <p>Persons receiving cash shall not also be responsible for recording transactions in the parish accounting system. Persons recording transactions shall not also be responsible for bank reconciliation. The Pastor or his designate shall review the bank reconciliation each month.</p>
+
+        <h2>Donor acknowledgment</h2>
+        <p>All written acknowledgments shall include:</p>
+        <ul>
+          <li>The donor's name and address</li>
+          <li>The amount of the gift, or a description of non-cash gifts</li>
+          <li>A statement of whether goods or services were provided in exchange</li>
+          <li>The signature of an authorized parish or diocesan official</li>
+        </ul>
+
+        <div class="handbook-footer">
+          <div>Permalink: <a href="#">handbook.ptdiocese.org/3/1/1/</a> · <a href="#">View change history</a> · <a href="#">Suggest an edit</a></div>
+          <div>Questions: <a href="#">handbook@ptdiocese.org</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mockup" id="m5">
+  <div class="mockup-label">Screen 5 of 6 · Onboarding wizard step 1 of 7 · GitHub repository</div>
+  <div class="mockup-frame">
+    <div class="app-header">
+      <div>
+        <span class="app-logo">PolicyCodex</span>
+        <span class="app-logo-subtle">Diocese setup</span>
+      </div>
+      <div class="app-user">Setup mode</div>
+    </div>
+    <div class="app-body">
+      <div class="app-main" style="padding: 28px 40px;">
+        <div class="wizard-progress">
+          <div class="wizard-step current"></div>
+          <div class="wizard-step"></div>
+          <div class="wizard-step"></div>
+          <div class="wizard-step"></div>
+          <div class="wizard-step"></div>
+          <div class="wizard-step"></div>
+          <div class="wizard-step"></div>
+        </div>
+        <div class="wizard-step-label">Step 1 of 7 · GitHub repository</div>
+        <h2 class="wizard-title">Where should your policies live?</h2>
+        <p class="wizard-subtitle">PolicyCodex stores every policy as a markdown file in a private GitHub repo owned by your diocese. You control the repo. We just commit on your behalf.</p>
+
+        <div class="wizard-grid">
+          <div>
+            <div class="repo-card">
+              <h4>Create a new private repo</h4>
+              <p>We'll create `pt-policy` under the `Diocese-of-Pensacola-Tallahassee` org and apply branch protection on `main`.</p>
+            </div>
+            <div class="repo-card unselected">
+              <h4>Connect to an existing repo</h4>
+              <p>If you already have a policy repo, install the PolicyCodex GitHub App on it and we'll use it.</p>
+            </div>
+
+            <div class="form-row" style="margin-top: 18px;">
+              <label>GitHub organization</label>
+              <input value="Diocese-of-Pensacola-Tallahassee" disabled>
+            </div>
+            <div class="form-row">
+              <label>Repository name</label>
+              <input value="pt-policy">
+            </div>
+            <div class="ai-suggest-row">
+              <button class="ai-suggest-btn">AI suggest</button>
+              <span class="hint">Your org slug is <strong>Diocese-of-Pensacola-Tallahassee</strong>. AI suggests the repo name <strong>pt-policy</strong> (16 of 17 reference dioceses use the abbreviation-policy pattern).</span>
+            </div>
+
+            <div class="actions">
+              <button class="btn-secondary">Back</button>
+              <button class="btn-primary">Continue to step 2 · Address scheme</button>
+            </div>
+          </div>
+
+          <div class="wizard-side">
+            <h5>What this step does</h5>
+            <p>PolicyCodex installs a GitHub App on your organization, scoped to one repo. The App lets PolicyCodex open pull requests on your behalf when staff edit a policy. Branch protection is enabled so every change requires a reviewer's approval.</p>
+            <p style="margin-top: 8px; color: #6b6863;">Default branch: <strong>main</strong>. Required reviewers: <strong>1</strong>. Signed commits: <strong>on</strong>. Force push: <strong>blocked</strong>.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mockup" id="m6">
+  <div class="mockup-label">Screen 6 of 6 · Onboarding wizard step 7 of 7 · Source-of-truth references</div>
+  <div class="mockup-frame">
+    <div class="app-header">
+      <div>
+        <span class="app-logo">PolicyCodex</span>
+        <span class="app-logo-subtle">Diocese setup</span>
+      </div>
+      <div class="app-user">Setup mode</div>
+    </div>
+    <div class="app-body">
+      <div class="app-main" style="padding: 28px 40px;">
+        <div class="wizard-progress">
+          <div class="wizard-step done"></div>
+          <div class="wizard-step done"></div>
+          <div class="wizard-step done"></div>
+          <div class="wizard-step done"></div>
+          <div class="wizard-step done"></div>
+          <div class="wizard-step done"></div>
+          <div class="wizard-step current"></div>
+        </div>
+        <div class="wizard-step-label">Step 7 of 7 · Source-of-truth references</div>
+        <h2 class="wizard-title">Point us at the documents we should treat as ground truth.</h2>
+        <p class="wizard-subtitle">The AI inventory pass works much better when grounded in your diocese's own canonical documents. The Document Retention Policy is the classic example: it tells PolicyCodex how long to keep what, instead of forcing the AI to guess.</p>
+
+        <div class="wizard-grid">
+          <div>
+            <div class="ai-suggest-row">
+              <button class="ai-suggest-btn">AI detect candidates</button>
+              <span class="hint">AI scanned your inventory and found <strong>3 likely source-of-truth candidates</strong>: the Document Retention Policy (high confidence), the USCCB Charter (high), and the diocesan By-Laws (medium).</span>
+            </div>
+            <div class="upload-zone">
+              <strong>Drop your Document Retention Policy here</strong><br>
+              or browse local files · PDF, DOCX, MD supported
+            </div>
+
+            <div class="ref-list">
+              <div class="ref-item">
+                <div>
+                  <div>Document Retention Policy (rev. Aug 2022).pdf</div>
+                  <div class="meta">374 KB · Owner: Chancellor · Foundational bundle</div>
+                </div>
+                <span class="ref-status ok">Indexed · 237 retention rows</span>
+              </div>
+              <div class="ref-item">
+                <div>
+                  <div>USCCB Charter for the Protection of Children.pdf</div>
+                  <div class="meta">812 KB · Owner: Director of Safe Environment</div>
+                </div>
+                <span class="ref-status processing">Processing</span>
+              </div>
+              <div class="ref-item">
+                <div>
+                  <div>Diocesan by-laws and canonical structures.docx</div>
+                  <div class="meta">126 KB · Owner: Chancellor</div>
+                </div>
+                <span class="ref-status ok">Indexed</span>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="btn-secondary">Back</button>
+              <button class="btn-primary">Finish setup</button>
+            </div>
+          </div>
+
+          <div class="wizard-side">
+            <h5>Why this matters</h5>
+            <p>The AI inventory pass needs to know your diocese's own retention schedule, document-type taxonomy, and naming conventions. Without grounding, it guesses from general records-management norms and the quality drops sharply.</p>
+            <p style="margin-top: 8px;">On the PT test corpus, grounding the AI in the retention policy moved the retention-field acceptance rate from 14% to a projected 85%+.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="closing">
+  <h2>Demo flow for the presentation</h2>
+  <p>The story you walk DISC attendees through:</p>
+  <p>1. <strong>"Here is your policy library today"</strong> · open the catalog. Show 164 policies discovered from a SharePoint export, AI-suggested metadata, gate states. Filter by "Missing metadata" to show the gap report.</p>
+  <p>2. <strong>"Here is how a CFO updates a section"</strong> · open the edit form for 3.1.1. Show the AI suggestions sidebar grounded in the diocesan retention policy. Click Submit for Review.</p>
+  <p>3. <strong>"Here is what the reviewer sees"</strong> · switch to the COO's view. Show the diff, the metadata changes, the comment box. Click Approve.</p>
+  <p>4. <strong>"Here is what parish staff see"</strong> · open the public handbook subdomain. Show a stable URL, version metadata, RSS feed, change history.</p>
+  <p>5. <strong>"Here is how install zero went"</strong> · the seven-screen wizard. Step 1: GitHub repo. Step 7: point at the Document Retention Policy. Mention that everything in between is opinionated by default and configurable where dioceses have legitimate variation.</p>
+  <p style="margin-top: 16px; color: #6b6863;">These are mockups. The shipping product matches the spec at <code>PolicyWonk-v0.1-Spec.md</code>.</p>
+</div>
+
+</body>
+</html>
