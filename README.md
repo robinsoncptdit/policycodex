@@ -1,6 +1,6 @@
 # PolicyCodex
 
-**Status:** pre-alpha, active development. v0.1 targets DISC mid-June 2026. Not yet public.
+**Status:** pre-alpha, active development. v0.1 targets DISC mid-June 2026. The repo is public; the product has not launched.
 
 *Renamed from PolicyWonk to PolicyCodex on 2026-05-11. Primary domain: `policycodex.org`.*
 
@@ -10,7 +10,7 @@ PolicyCodex takes the pile of policies, procedures, and by-laws scattered across
 
 ## Status
 
-Pre-alpha. Active development for a public demo at DISC mid-June 2026. Diocese zero is the Diocese of Pensacola-Tallahassee. Design reviewed by the Archdiocese of Los Angeles.
+Pre-alpha. Active development for a public demo at DISC mid-June 2026. Diocese zero is the Diocese of Pensacola-Tallahassee. Design reviewed by the Archdioceses of Los Angeles and Baltimore.
 
 If you are a diocesan IT director and you want to be install number two, please open a discussion or reach out.
 
@@ -143,7 +143,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution flow and a clear sta
 ## Acknowledgments
 
 - The **Diocese of Pensacola-Tallahassee**, install zero and patient test subject.
-- The **Archdiocese of Los Angeles**, whose [public handbook](https://handbook.la-archdiocese.org/) is the reference implementation we are designing toward.
+- The **Archdiocese of Los Angeles**, whose [public handbook](https://handbook.la-archdiocese.org/) is the reference implementation we are designing toward, and **David Schmitt** (IT Director, Archdiocese of Los Angeles), reviewer.
+- **Marcus Madsen** (Director of IT, Archdiocese of Baltimore), design reviewer.
 - The **DISC** (Diocesan Information Systems Conference) community of diocesan IT directors.
 
 ## License
