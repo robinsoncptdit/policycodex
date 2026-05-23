@@ -26,7 +26,8 @@ Per Week-3 pattern: each Committed ticket gets its own writing-plans plan saved 
 |---|---|---|---|
 | OQ-08 | PT policy corpus exported beyond the 19 spike PDFs | INGEST-06 (Week 5 acceptance) and AI eval scale-up | Chuck + PT IT director: pick a concrete target date this week. **Hard near-blocker if it slips past EOD Week 4** because Week 5 is the polish/audit week. |
 | REPO-08 | PT GitHub org upgrade to Team tier (~$4/user/month) | Branch protection enforcement (PRD G3 audit trail). REPO-09 (L2 CI guard) lands in this sprint and benefits from real protection. | Chuck + PT IT director: budget conversation. **Must close this week** to satisfy PRD G3 for Week-5 lane acceptance. |
-| OQ-05 | LA contact outreach to David Schmitt re: README role/attribution language | README polish (Week 5) | Chuck: ping David Schmitt this week. Soft deadline EOD Week 4 (already slipped from EOD Week 3). |
+| OQ-06 | PT diocesan leadership sign-off for the handbook subdomain | PUBLISH-07 live-subdomain deploy (Week 5). PUBLISH-06 (Actions build) lands this week and does not need it. | Chuck + PT IT director: bundle with the OQ-08 + REPO-08 conversations (same contact). Initiate by Wed May 27, target a verbal go/no-go by EOD Fri May 29. **Hard gate before PUBLISH-07 (Week 5)** because diocese-side approval has lead time. |
+| OQ-05 | LA contact's role in README | (closed) | **Resolved 2026-05-23.** David Schmitt credited as reviewer and Marcus Madsen (Director of IT, Archdiocese of Baltimore) added as design reviewer in the README; OQ moved to Resolved. No Monday action. |
 | APP-22 ticket file entry | New hygiene ticket (`_resolve_repo` extraction) needs to land in `PolicyWonk-v0.1-Tickets.md` before subagent dispatch | APP-22 dispatch | Scarlet's first-action Monday AM. ~10 min. |
 
 ## Sprint Backlog
@@ -67,7 +68,8 @@ Ordered by dispatch wave. All P0 for the sprint.
 |---|---|---|
 | OQ-08 lock PT corpus export target date | 30 min conversation | Aim for a concrete date in Week 4 or early Week 5. Hard near-blocker if it slips. |
 | REPO-08 PT org Team-tier upgrade | 1 hr conversation + admin steps | Budget conversation with PT IT director, then GitHub org settings change. Must close this week. |
-| OQ-05 message David Schmitt | 15 min | Confirm role/attribution language for README. Loops back async. |
+| OQ-06 PT leadership subdomain sign-off | 30 min + diocese-side lead time | Open with the PT IT director (routes to diocesan leadership); bundle with OQ-08 + REPO-08, same contact. Initiate by Wed May 27, verbal go/no-go by EOD Fri. Hard gate before PUBLISH-07 (Week 5). |
+| OQ-05 message David Schmitt | done | **Resolved 2026-05-23.** David + Marcus credited in the README; no action needed. |
 
 ## Discipline Rules (carried from Week 3, no changes)
 
@@ -113,7 +115,7 @@ Ordered by dispatch wave. All P0 for the sprint.
 
 | Date | Event |
 |---|---|
-| Mon May 25 | Scarlet adds APP-22 ticket entry. Drafts Wave-1 ticket plans (7 plans). Wave 1 dispatch (sequential): APP-20, REPO-09, AI-12-revised, AI-07, INGEST-04, APP-22, APP-08. Chuck closes OQ-08 / REPO-08 / OQ-05 conversations. |
+| Mon May 25 | Scarlet adds APP-22 ticket entry. Drafts Wave-1 ticket plans (7 plans). Wave 1 dispatch (sequential): APP-20, REPO-09, AI-12-revised, AI-07, INGEST-04, APP-22, APP-08. Chuck opens OQ-08 / REPO-08 / OQ-06 PT IT conversations (OQ-05 resolved 2026-05-23). |
 | Tue May 26 | Wave 1 reviews + merges. APP-08 still in flight. |
 | Wed May 27 | APP-08 review + merge. **Wed-noon checkpoint:** if APP-08 isn't at "routes + session state working," replan and slide APP-09 to Week 5. Scarlet drafts Wave-2 ticket plans (3 plans). Wave 2 dispatch: PUBLISH-06, AI-13, APP-09. |
 | Thu May 28 | Wave 2 reviews + merges. Begin Stretch dispatch if calendar opens (likely candidates: INGEST-02, INGEST-05, APP-10, APP-11). |
