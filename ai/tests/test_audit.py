@@ -96,3 +96,21 @@ def test_extra_confidence_keys_appended_alphabetized():
     # canonical order first, then extras alphabetized
     assert keys[: len(CONFIDENCE_FIELD_ORDER)] == list(CONFIDENCE_FIELD_ORDER)
     assert keys[len(CONFIDENCE_FIELD_ORDER):] == ["alpha", "zeta"]
+
+
+def test_block_style_not_inline():
+    md = to_audit_yaml({"title": "T", "category_confidence": "high"})
+    assert "{" not in md          # block style, not inline {a: b}
+    assert "\n" in md
+
+
+def test_round_trip_spike_output():
+    path = SPIKE_OUTPUTS / "101 Internal Controls.json"
+    if not path.exists():
+        pytest.skip("Spike output not present in this worktree")
+    extraction = json.loads(path.read_text())
+    doc = _load(to_audit_yaml(extraction))
+    assert doc["title"] == extraction["title"]
+    assert doc["source_file"] == extraction["_source_file"]
+    assert doc["confidence"]["category"] == extraction["category_confidence"]
+    assert doc["confidence"]["address"] == extraction["address_confidence"]
