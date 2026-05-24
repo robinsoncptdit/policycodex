@@ -215,12 +215,12 @@ Acceptance:
 ### Stakeholder
 
 - Does the LA contact agree to be named as design reviewer or co-author in the README? **Blocking before DISC.**
-- Does PT diocesan leadership agree to PolicyCodex publishing a handbook subdomain on its behalf? **Blocking before public demo.**
+- Does PT diocesan leadership agree to PolicyCodex publishing a handbook subdomain on its behalf? **Resolved 2026-05-24 (OQ-06): yes. Subdomain `handbook.ptdiocese.org`; DNS owned by Chuck. Live cutover in Week 5 (PUBLISH-07).**
 - Does PT have an existing GitHub organization for the diocese, or do we need to create one? **Blocking before week 1.**
 
 ### Data
 
-- Has the PT policy corpus been fully exported to a local folder? The spike used 19 PDFs from `ptdiocese.org` public pages. The full inventory may include additional policies stored privately. Drives realistic demo timing. **Blocking before week 1.**
+- Has the PT policy corpus been fully exported to a local folder? **Resolved 2026-05-24 (OQ-08): the v0.1 corpus is the 19 spike PDFs in a local folder. No additional private export for v0.1; cloud-connector ingest stays v0.2 per P0.1 / P1.2.**
 
 ## Timeline Considerations
 
@@ -246,7 +246,7 @@ If only three coders are available, fold Publish into App.
 
 **Dependencies:**
 
-- PT policy corpus exported to a local folder. Required by week 1. Already partially complete: 19 PDFs from `ptdiocese.org` public pages used in the spike. Remaining work is whatever private policies the diocese wants in the v0.1 demo.
+- PT policy corpus exported to a local folder. Satisfied: the v0.1 corpus is the 19 spike PDFs from `ptdiocese.org` (OQ-08, 2026-05-24). No further export planned for v0.1; additional private policies and cloud-connector ingest are v0.2.
 - PT GitHub organization (or create one). Required by week 1.
 - LA contact's review of v0.1 wireframes or a working build. Required by end of week 3.
-- Domain registration for the handbook subdomain. Required by week 4.
+- Domain registration for the handbook subdomain. `handbook.ptdiocese.org` chosen, DNS owned by Chuck (OQ-06, 2026-05-24). Live cutover in Week 5 (PUBLISH-07).

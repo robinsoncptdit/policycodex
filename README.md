@@ -29,7 +29,7 @@ PolicyCodex is the tool you would have built yourself if you had three more hour
 
 ## What It Does
 
-1. **Ingests** policy documents from SharePoint, Google Drive, or a local folder.
+1. **Ingests** policy documents from a local folder (v0.1). SharePoint and Google Drive connectors are planned for v0.2.
 2. **Inventories** them with AI: proposes a category, owner, effective date, review cadence, retention period, and a chapter-section-item address for each policy.
 3. **Stores** every policy as a markdown file in a private GitHub repo your diocese owns. Every change is a commit. Every approval is a pull request review.
 4. **Routes** each entry through a simple human approval workflow with three default gates (Drafted, Reviewed, Published) that map to PR states.
@@ -92,7 +92,7 @@ PolicyCodex is **Git-backed**. Every diocese running PolicyCodex gets a private 
 
 Four lanes:
 
-- **Ingest** reads source documents from SharePoint, Google Drive, or local folders.
+- **Ingest** reads source documents from a local folder in v0.1. SharePoint and Google Drive connectors are v0.2.
 - **AI** runs the inventory pass via a model-agnostic provider interface and emits markdown plus YAML front matter.
 - **App** is the admin web interface. It commits to the diocese's GitHub repo, opens PRs on user actions, and surfaces PR state as gate state.
 - **Publish** is a GitHub Actions workflow that builds and deploys the handbook on every merge.
