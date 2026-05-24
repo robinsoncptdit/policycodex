@@ -53,3 +53,30 @@ def is_foundational(fm):
 def provides_of(fm):
     value = fm.get("provides")
     return value if isinstance(value, list) else []
+
+
+@dataclass(frozen=True)
+class Change:
+    path: str
+    change_type: str  # "added" | "modified" | "deleted" | "renamed"
+    base_frontmatter: dict
+    head_frontmatter: dict
+
+
+def find_violations(changes):
+    """Return human-readable violation messages for a list of Change. Empty = OK."""
+    violations = []
+    for ch in changes:
+        if ch.change_type == "deleted" and is_foundational(ch.base_frontmatter):
+            violations.append(
+                f"PR deletes foundational policy file: {ch.path}. Foundational "
+                f"policies supply app configuration and cannot be deleted through "
+                f"a PR. Soft-deprecate the affected entries instead."
+            )
+        elif ch.change_type == "modified" and is_foundational(ch.base_frontmatter):
+            if provides_of(ch.base_frontmatter) and not provides_of(ch.head_frontmatter):
+                violations.append(
+                    f"PR empties the 'provides:' list of foundational policy: "
+                    f"{ch.path}. Removing a declared capability breaks dependents."
+                )
+    return violations
