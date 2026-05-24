@@ -73,6 +73,32 @@ class GitHubProvider(GitProvider):
     def _installation_token(self) -> str:
         return _build_installation_token(self._config)
 
+    def _origin_url(self, working_dir: Path) -> str:
+        """Return the working copy's `origin` remote URL, stripped.
+
+        Raises RuntimeError if `git remote get-url origin` fails.
+        """
+        get_url = subprocess.run(
+            ["git", "remote", "get-url", "origin"],
+            cwd=working_dir,
+            capture_output=True,
+        )
+        if get_url.returncode != 0:
+            raise RuntimeError(
+                f"git remote get-url failed (exit {get_url.returncode}): "
+                f"{get_url.stderr.decode(errors='replace')}"
+            )
+        return get_url.stdout.decode().strip()
+
+    def _resolve_repo(self, working_dir: Path):
+        """Resolve the working copy's `origin` to a PyGithub Repository.
+
+        Combines the origin-URL lookup, owner/repo parse, and
+        `client.get_repo` call shared by every PR-related provider method.
+        """
+        owner_repo = _parse_owner_repo(self._origin_url(working_dir))
+        return self._client.get_repo(owner_repo)
+
     def clone(self, repo_url: str, dest: Path) -> None:
         if not repo_url.startswith("https://github.com/"):
             raise ValueError(
