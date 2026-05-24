@@ -9,7 +9,7 @@
 Week 4 closed all 10 Committed tickets across two waves, plus the live install and verification of the repo-side automation on the real diocese repo. The headline: the foundational-policy story is now end-to-end and **proven on `pt-policy`**, not just locally.
 
 - **The merge-to-handbook loop is live.** PUBLISH-06 vendored the Astro handbook + a GitHub Actions build into `repo-template/`; it is installed on `pt-policy` and, on a merge to `main`, builds the handbook from the diocese's real `policies/` and uploads a Pages artifact. Verified green on the real repo.
-- **The four-layer foundational-policy protection is real.** L1 UI gate (APP-20) hides edit/delete on foundational rows; L2 CI guard (REPO-09) is installed on `pt-policy` and was live-proven to fail a PR that empties a foundational `provides:`; L3 startup self-check (APP-21, Week 3) still guards boot. L0 branch protection (REPO-08) underpins it.
+- **The four-layer foundational-policy protection is real.** L1 UI gate (APP-20) hides edit/delete on foundational rows in the catalog (the detail-view gate is APP-23, Week 5); L2 CI guard (REPO-09) is installed on `pt-policy` and was live-proven to fail a PR that empties a foundational `provides:`; L3 startup self-check (APP-21, Week 3) still guards boot. L0 branch protection (REPO-08) underpins it.
 - **Gap detection surfaces uncovered policies** (AI-13): the catalog flags any policy whose type is not in the diocese's retention classification taxonomy.
 - **The onboarding wizard exists and has its first real screen.** APP-08 shipped the seven-step skeleton; APP-09 added screen 1 (GitHub repo: connect-existing or create-new) plus a reusable per-screen form pattern for APP-10..16.
 - **Live taxonomy sync** (AI-12-revised): AI extraction now reads the diocese's foundational bundle `data.yaml` from the working copy, so a CFO edit flows into the next extraction.
@@ -98,8 +98,9 @@ The two `pt-policy` merges that hit the protected `main` used a temporary reposi
 ## Decisions waiting on Chuck
 
 1. **PUBLISH-07 serving target** for Week 5 (`handbook.ptdiocese.org` DNS is Chuck-owned per OQ-06).
-2. **Whether to enforce `foundational-guard` as a required check** on `pt-policy` (needs the path-filter change first; documented in the HOWTO).
-3. **Confirm Week-5 scope** (polish, wizard screens, install verification on a clean VM = the REPO-10 generic-ship test).
+2. **Confirm Week-5 scope** (polish, wizard screens, install verification on a clean VM = the REPO-10 generic-ship test).
+
+(The `foundational-guard` required-check question is already decided: advisory for v0.1, with the optional per-diocese enforcement step documented in `HOWTO-GitHub-Team-Setup.md` Part 3. Not waiting on anyone.)
 
 ## Week 5 plan preview
 
