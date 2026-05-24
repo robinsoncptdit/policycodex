@@ -6,6 +6,8 @@
 
 *Week 3 closed six calendar days ahead of plan (Sat May 16 EOD vs. Fri May 22 freeze) with 10/10 Committed tickets merged and 265 tests passing on main. Week 4 starts from a clean main at `789476c`; carry-forwards from Week 3's Stretch (5 untouched) are folded into this plan's Committed and Stretch lists.*
 
+*Week-4 Wave-1 progress (2026-05-24, dispatched Sunday ahead of the Monday start): 4 of 7 Wave-1 Committed tickets merged: APP-20 (`7493be1`), REPO-09 (`2f36986`), AI-12-revised (`507eb1b`), APP-08 (`fb20b78`). Suite 265 -> 322 (+57). New tickets filed: APP-22 (`_resolve_repo` refactor), APP-23 (detail view + L1 gate), REPO-11 (pin Python). AI-07 scope resolved (separate audit-file producer per spec line 99, no UI). AI-12 eval-drift risk closed (PT data.yaml payload == seed). Remaining Wave-1, all small: AI-07, INGEST-04, APP-22. Full detail in CLAUDE.md and the daily log.*
+
 ## Roles
 
 Same as Week 3. See `internal/superpowers/specs/2026-05-05-agent-led-execution-design.md`.
