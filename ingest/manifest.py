@@ -58,3 +58,15 @@ def entry_for(path: Path, source_label: str) -> ManifestEntry:
         last_modified=stat.st_mtime,
         source_label=source_label,
     )
+
+
+def build_manifest(
+    paths: Iterable[Path], source_label: str
+) -> list[ManifestEntry]:
+    """Build a manifest for every path in ``paths``.
+
+    Entries are sorted by path so the output is deterministic regardless of
+    iteration order, keeping serialized-manifest diffs stable.
+    """
+    entries = [entry_for(p, source_label) for p in paths]
+    return sorted(entries, key=lambda e: str(e.path))

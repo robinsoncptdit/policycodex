@@ -28,3 +28,23 @@ def test_manifest_entry_is_frozen(tmp_path):
     entry = entry_for(f, source_label="local-folder")
     with pytest.raises(Exception):
         entry.content_hash = "tampered"  # frozen dataclass rejects mutation
+
+
+from ingest.manifest import build_manifest
+
+
+def test_build_manifest_one_entry_per_path_sorted(tmp_path):
+    (tmp_path / "b.txt").write_bytes(b"bbb")
+    (tmp_path / "a.txt").write_bytes(b"aaa")
+    paths = [tmp_path / "b.txt", tmp_path / "a.txt"]
+
+    manifest = build_manifest(paths, source_label="local-folder")
+
+    assert len(manifest) == 2
+    # Sorted by path for deterministic, diff-stable output.
+    assert [e.path.name for e in manifest] == ["a.txt", "b.txt"]
+    assert all(e.source_label == "local-folder" for e in manifest)
+
+
+def test_build_manifest_empty_iterable_returns_empty_list(tmp_path):
+    assert build_manifest([], source_label="local-folder") == []
