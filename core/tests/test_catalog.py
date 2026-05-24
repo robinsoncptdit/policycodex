@@ -507,3 +507,45 @@ def test_catalog_hides_edit_link_for_foundational_policy(client, user, stub_gh_p
 
     body = response.content.decode()
     assert 'href="/policies/document-retention/edit/"' not in body
+
+
+def test_catalog_shows_foundational_gate_banner_for_foundational_policy(client, user, stub_gh_provider):
+    """The foundational row shows the typed-table-editor banner."""
+    client.force_login(user)
+    policies = [_stub_policy(
+        slug="document-retention",
+        kind="bundle",
+        title="Document Retention",
+        foundational=True,
+        provides=("classifications",),
+    )]
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+        POLICYCODEX_WORKING_COPY_ROOT="/tmp",
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter(policies)
+                response = client.get("/catalog/")
+
+    body = response.content.decode()
+    assert "foundational-gate" in body
+    assert "typed-table editor" in body
+
+
+def test_catalog_does_not_show_gate_banner_for_non_foundational_policy(client, user, stub_gh_provider):
+    """The foundational banner appears only on foundational rows."""
+    client.force_login(user)
+    policies = [_stub_policy(slug="onboarding", kind="flat", title="Onboarding")]
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+        POLICYCODEX_WORKING_COPY_ROOT="/tmp",
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter(policies)
+                response = client.get("/catalog/")
+
+    body = response.content.decode()
+    assert "foundational-gate" not in body
+    assert "typed-table editor" not in body
