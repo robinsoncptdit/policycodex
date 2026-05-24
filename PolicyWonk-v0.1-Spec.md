@@ -198,10 +198,10 @@ Acceptance:
 
 ### Engineering
 
-- **Web framework for the admin app**: Python-Django, Node-Next, or thin Go plus HTMX? Driven by which lane owner has the strongest preference. **Blocking before week 1.**
-- **Git operations library**: shell out to `git` binary, or use `libgit2` bindings (e.g., pygit2, isomorphic-git)? Recommend shelling out for v0.1 simplicity. Non-blocking.
-- **Static-site generator inside CI**: Astro, Hugo, or Eleventy? Recommend Astro for component flexibility, Hugo for build speed. Non-blocking.
-- **AI extraction prompt architecture: monolithic vs split**. The spike validated a single monolithic prompt that extracts all eight metadata fields per call at 70.9% acceptance (excluding always-null fields). Tickets AI-04, AI-05, AI-06 currently split extraction into per-field-family prompts. **PM recommendation:** keep the monolithic prompt as the v0.1 baseline, treat AI-04/05/06 as eval-set work against that prompt rather than separate prompt files, and add AI-11 (taxonomy injection) and AI-12 (retention reference) as additional injected context on the existing prompt. Splitting a working 70.9% prompt risks regressing before improving, which is poor calendar economics six weeks from DISC. Final call is Chuck's, after the Plan subagent returns its recommendation. **Blocking before AI-04 dispatch.**
+- **Web framework for the admin app**: Python-Django, Node-Next, or thin Go plus HTMX? Driven by which lane owner has the strongest preference. **Resolved 2026-05-11: Python + Django (APP-01).**
+- **Git operations library**: shell out to `git` binary, or use `libgit2` bindings (e.g., pygit2, isomorphic-git)? Recommend shelling out for v0.1 simplicity. **Resolved: shell out to `git` (the `GitHubProvider` runs `git` via `subprocess`).**
+- **Static-site generator inside CI**: Astro, Hugo, or Eleventy? Recommend Astro for component flexibility, Hugo for build speed. **Resolved 2026-05-11 (OQ-09): Astro (PUBLISH-01).**
+- **AI extraction prompt architecture: monolithic vs split**. The spike validated a single monolithic prompt that extracts all eight metadata fields per call at 70.9% acceptance (excluding always-null fields). Tickets AI-04, AI-05, AI-06 currently split extraction into per-field-family prompts. **PM recommendation:** keep the monolithic prompt as the v0.1 baseline, treat AI-04/05/06 as eval-set work against that prompt rather than separate prompt files, and add AI-11 (taxonomy injection) and AI-12 (retention reference) as additional injected context on the existing prompt. Splitting a working 70.9% prompt risks regressing before improving, which is poor calendar economics six weeks from DISC. **Resolved 2026-05: kept the monolithic prompt; AI-04/05/06 are eval-set work against it, AI-11/AI-12 inject taxonomy + retention-bundle context. See `internal/PolicyWonk-Prompt-Architecture-Decision.md`.**
 - **Category taxonomy is provisional.** The 12 categories used in the spike prompt (Finance, HR, IT, Safe Environment, Schools, Worship, Parish Operations, Stewardship, By-Laws, Communications, Risk, Other) are working defaults from the spike. The final v0.1 list should be confirmed against the LA handbook chapter structure and the PT corpus during Week 2. Non-blocking.
 
 ### Design
@@ -214,9 +214,9 @@ Acceptance:
 
 ### Stakeholder
 
-- Does the LA contact agree to be named as design reviewer or co-author in the README? **Blocking before DISC.**
+- Does the LA contact agree to be named as design reviewer or co-author in the README? **Resolved 2026-05-23 (OQ-05): yes. David Schmitt (IT Director, Archdiocese of Los Angeles) is credited as reviewer and Marcus Madsen (Director of IT, Archdiocese of Baltimore) as design reviewer in the README, with consent.**
 - Does PT diocesan leadership agree to PolicyCodex publishing a handbook subdomain on its behalf? **Resolved 2026-05-24 (OQ-06): yes. Subdomain `handbook.ptdiocese.org`; DNS owned by Chuck. Live cutover in Week 5 (PUBLISH-07).**
-- Does PT have an existing GitHub organization for the diocese, or do we need to create one? **Blocking before week 1.**
+- Does PT have an existing GitHub organization for the diocese, or do we need to create one? **Resolved: the `Diocese-of-Pensacola-Tallahassee` org exists (Team tier; private `pt-policy` repo with an enforced `main` ruleset; REPO-08).**
 
 ### Data
 
