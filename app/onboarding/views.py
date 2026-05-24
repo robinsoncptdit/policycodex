@@ -35,6 +35,29 @@ def onboarding_step(request, step):
 
     state = WizardState(request.session)
 
+    if request.method == "POST":
+        # Per-step form validation/processing lands in APP-09..16; the
+        # skeleton treats every step's submit as a no-op save then navigates.
+        action = request.POST.get("action")
+        if action == "back":
+            prev = wizard.prev_step(step)
+            return redirect("onboarding_step", step=prev.slug if prev else step)
+        if action == "save_exit":
+            messages.info(request, "Your progress is saved. Resume onboarding any time.")
+            return redirect("catalog")
+        if action == "continue":
+            state.mark_complete(step)
+            if wizard.is_last(step):
+                # APP-15/APP-16 hook: commit wizard config to the policy repo
+                # and flip POLICYCODEX_ONBOARDING_COMPLETE. Not done here.
+                messages.success(request, "Onboarding steps complete.")
+                return redirect("catalog")
+            nxt = wizard.next_step(step)
+            state.set_current(nxt.slug)
+            return redirect("onboarding_step", step=nxt.slug)
+        # Unknown or missing action: fall through to a defensive re-render.
+        return render(request, "onboarding/step.html", _nav_context(target, state))
+
     # GET gating: cannot skip ahead of the furthest step reached. Revisiting
     # the current step or any earlier/completed step is allowed. GET never
     # mutates current_step; only a `continue` POST advances it (keeps
