@@ -344,7 +344,6 @@ def test_catalog_degrades_gracefully_when_list_open_prs_raises(client, user):
     assert "gate-published" in body
 
 
-
 def test_catalog_renders_approve_pr_form(client, user):
     """The catalog has a POST form pointing at /policies/approve/ with pr_number input."""
     client.force_login(user)
@@ -507,6 +506,9 @@ def test_catalog_hides_edit_link_for_foundational_policy(client, user, stub_gh_p
 
     body = response.content.decode()
     assert 'href="/policies/document-retention/edit/"' not in body
+    # Positive companion assertion: the foundational branch rendered (banner present),
+    # so this test fails if the whole foundational {% if %} block is accidentally removed.
+    assert "foundational-gate" in body
 
 
 def test_catalog_shows_foundational_gate_banner_for_foundational_policy(client, user, stub_gh_provider):
