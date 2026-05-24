@@ -465,3 +465,45 @@ def test_catalog_does_not_render_publish_button_for_never_edited_policy(client, 
                     response = client.get("/catalog/")
     body = response.content.decode()
     assert 'action="/policies/pristine/publish/"' not in body
+
+
+def test_catalog_shows_edit_link_for_non_foundational_policy(client, user, stub_gh_provider):
+    """A non-foundational policy row links to its ordinary edit form."""
+    client.force_login(user)
+    policies = [_stub_policy(slug="onboarding", kind="flat", title="Onboarding")]
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+        POLICYCODEX_WORKING_COPY_ROOT="/tmp",
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter(policies)
+                response = client.get("/catalog/")
+
+    body = response.content.decode()
+    assert 'href="/policies/onboarding/edit/"' in body
+    assert "Edit" in body
+
+
+def test_catalog_hides_edit_link_for_foundational_policy(client, user, stub_gh_provider):
+    """A foundational policy must not expose the ordinary edit-form link;
+    it edits only through the typed-table UI."""
+    client.force_login(user)
+    policies = [_stub_policy(
+        slug="document-retention",
+        kind="bundle",
+        title="Document Retention",
+        foundational=True,
+        provides=("classifications", "retention-schedule"),
+    )]
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+        POLICYCODEX_WORKING_COPY_ROOT="/tmp",
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter(policies)
+                response = client.get("/catalog/")
+
+    body = response.content.decode()
+    assert 'href="/policies/document-retention/edit/"' not in body

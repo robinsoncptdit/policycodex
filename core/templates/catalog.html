@@ -45,6 +45,19 @@
             <span class="foundational-badge">(foundational)</span>
           {% endif %}
           <span class="gate-badge gate-{{ row.gate }}">{{ row.gate|title }}</span>
+
+          {# L1 foundational gate (APP-20). Edit/Delete affordances are hidden #}
+          {# for foundational policies, which edit only through the typed-table #}
+          {# UI. Any future per-row Delete affordance MUST live inside this #}
+          {# not-foundational branch so it inherits the gate by construction. #}
+          {# Gate transitions (Publish, below) are intentionally NOT gated here: #}
+          {# a foundational edit still flows drafted, reviewed, published via its PR. #}
+          {% if row.policy.foundational %}
+            <span class="foundational-gate">Foundational policy. Edit through the typed-table editor.</span>
+          {% else %}
+            <a class="action-edit" href="{% url 'policy_edit' slug=row.policy.slug %}">Edit</a>
+          {% endif %}
+
           {% if row.gate == "reviewed" %}
             <form method="post" action="{% url 'publish_policy' slug=row.policy.slug %}" style="display:inline">
               {% csrf_token %}
