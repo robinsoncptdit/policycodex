@@ -21,19 +21,25 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Make the repo root importable so the standalone `python extract.py` run can
+# load the shared taxonomy loader even when invoked from inside spike/.
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+from ai.taxonomy_loader import resolve_taxonomy  # noqa: E402 (needs the sys.path bootstrap above)
+
 # Switch to "claude-opus-4-6" if Sonnet acceptance is marginal.
 MODEL = os.getenv("POLICYWONK_MODEL", "claude-sonnet-4-6")
 
-# Seed taxonomy for the install-zero diocese (Pensacola-Tallahassee).
-# Built from the diocese's Document Retention Policy (rev. Aug, 2022).
-# When the Week-3 bundle scaffolding lands this file moves to
-# policies/document-retention/data.yaml; the injection logic is the same.
-TAXONOMY_PATH = Path(__file__).resolve().parent.parent / "ai" / "taxonomies" / "pt_classification.yaml"
-
-def _load_taxonomy(path: Path = TAXONOMY_PATH) -> dict:
-    """Read the PT taxonomy YAML once at import time."""
-    with path.open(encoding="utf-8") as fh:
-        return yaml.safe_load(fh)
+# Taxonomy source (AI-12-revised). Prefer the diocese's foundational bundle
+# in the local working copy so a published edit to the retention policy flows
+# into the next extraction (live sync). Set POLICYCODEX_POLICIES_DIR to the
+# working copy's policies/ dir to enable it. When unset or no matching bundle
+# exists, fall back to the seed taxonomy below (the dev default). The bundle
+# is found by capability (`provides:`), not by a hardcoded slug.
+SEED_TAXONOMY_PATH = Path(__file__).resolve().parent.parent / "ai" / "taxonomies" / "pt_classification.yaml"
+REQUIRED_CAPABILITIES = ("classifications", "retention-schedule")
 
 
 # Acceptable sample-size band for the rendered prompt section. Catches
@@ -81,7 +87,15 @@ def _build_taxonomy_section(taxonomy: dict) -> str:
     return "\n".join(lines)
 
 
-TAXONOMY = _load_taxonomy()
+_policies_dir = os.environ.get("POLICYCODEX_POLICIES_DIR")
+TAXONOMY, _taxonomy_source = resolve_taxonomy(
+    _policies_dir, REQUIRED_CAPABILITIES, SEED_TAXONOMY_PATH
+)
+if _taxonomy_source == "seed" and _policies_dir:
+    print(
+        f"  note: no foundational bundle in {_policies_dir}; using seed taxonomy",
+        file=sys.stderr,
+    )
 TAXONOMY_SECTION = _build_taxonomy_section(TAXONOMY)
 
 
