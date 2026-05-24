@@ -106,7 +106,7 @@ Both `@login_required` (onboarding is admin-only; matches `LOGIN_URL = "/login/"
 
 - `onboarding_step(request, step)`:
   - Unknown `step` slug -> `Http404`.
-  - **GET gating:** if `index_of(step) > index_of(furthest_step())`, redirect to the furthest step (no skipping ahead). Visiting the current step or any earlier/completed step is allowed (review and edit). On a valid GET, set `current` to `step` and render `step.html` with nav context: `step`, `index` (1-based), `total`, `prev_step`, `next_step`, `is_last`, `is_complete`.
+  - **GET gating:** if `index_of(step) > index_of(furthest_step())`, redirect to the furthest step (no skipping ahead). Visiting the current step or any earlier/completed step is allowed (review and edit). On a valid GET, render `step.html` with nav context: `step`, `index` (1-based), `total`, `prev_step`, `next_step`, `is_last`, `is_complete`. A GET does NOT mutate `current_step`; only a `continue` POST advances it. This keeps `furthest_step` monotonic, so revisiting an earlier step to review never lowers the resume point or traps the user behind the ahead-jump gate.
   - **POST actions** (read `request.POST.get("action")`):
     - `continue`: (skeleton) mark the step complete, then if `is_last(step)` redirect to completion, else redirect to `next_step`. Per-step form validation/processing is a no-op placeholder here; APP-09..16 add it before the mark-complete/advance.
     - `back`: redirect to `prev_step` (no-op redirect to self when already first).
