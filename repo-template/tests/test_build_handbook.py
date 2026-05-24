@@ -65,3 +65,10 @@ def test_workflow_grants_pages_artifact_permissions():
     perms = wf["permissions"]
     assert perms.get("pages") == "write"
     assert perms.get("id-token") == "write"
+
+
+def test_workflow_serializes_builds_with_concurrency():
+    wf = yaml.safe_load(WORKFLOW.read_text())
+    concurrency = wf["concurrency"]
+    assert concurrency["group"]
+    assert concurrency["cancel-in-progress"] is True
