@@ -259,18 +259,7 @@ class GitHubProvider(GitProvider):
         base_branch: str,
         working_dir: Path,
     ) -> dict:
-        get_url = subprocess.run(
-            ["git", "remote", "get-url", "origin"],
-            cwd=working_dir,
-            capture_output=True,
-        )
-        if get_url.returncode != 0:
-            raise RuntimeError(
-                f"git remote get-url failed (exit {get_url.returncode}): "
-                f"{get_url.stderr.decode(errors='replace')}"
-            )
-        owner_repo = _parse_owner_repo(get_url.stdout.decode())
-        repo = self._client.get_repo(owner_repo)
+        repo = self._resolve_repo(working_dir)
         pr = repo.create_pull(title=title, body=body, head=head_branch, base=base_branch)
         return {
             "pr_number": pr.number,
@@ -279,18 +268,7 @@ class GitHubProvider(GitProvider):
         }
 
     def read_pr_state(self, pr_number: int, working_dir: Path) -> str:
-        get_url = subprocess.run(
-            ["git", "remote", "get-url", "origin"],
-            cwd=working_dir,
-            capture_output=True,
-        )
-        if get_url.returncode != 0:
-            raise RuntimeError(
-                f"git remote get-url failed (exit {get_url.returncode}): "
-                f"{get_url.stderr.decode(errors='replace')}"
-            )
-        owner_repo = _parse_owner_repo(get_url.stdout.decode())
-        repo = self._client.get_repo(owner_repo)
+        repo = self._resolve_repo(working_dir)
         pr = repo.get_pull(pr_number)
         return _pr_to_gate(pr)
 
@@ -298,18 +276,7 @@ class GitHubProvider(GitProvider):
         """Batched alternative to read_pr_state: one API call returns all open
         PRs along with their head branch + gate state, so the catalog view can
         build a {slug: gate} map without N round-trips."""
-        get_url = subprocess.run(
-            ["git", "remote", "get-url", "origin"],
-            cwd=working_dir,
-            capture_output=True,
-        )
-        if get_url.returncode != 0:
-            raise RuntimeError(
-                f"git remote get-url failed (exit {get_url.returncode}): "
-                f"{get_url.stderr.decode(errors='replace')}"
-            )
-        owner_repo = _parse_owner_repo(get_url.stdout.decode())
-        repo = self._client.get_repo(owner_repo)
+        repo = self._resolve_repo(working_dir)
         result: list[dict] = []
         for pr in repo.get_pulls(state="open"):
             result.append({
@@ -326,18 +293,7 @@ class GitHubProvider(GitProvider):
         working_dir: Path,
         body: str = "",
     ) -> dict:
-        get_url = subprocess.run(
-            ["git", "remote", "get-url", "origin"],
-            cwd=working_dir,
-            capture_output=True,
-        )
-        if get_url.returncode != 0:
-            raise RuntimeError(
-                f"git remote get-url failed (exit {get_url.returncode}): "
-                f"{get_url.stderr.decode(errors='replace')}"
-            )
-        owner_repo = _parse_owner_repo(get_url.stdout.decode())
-        repo = self._client.get_repo(owner_repo)
+        repo = self._resolve_repo(working_dir)
         pr = repo.get_pull(pr_number)
         review = pr.create_review(body=body, event="APPROVE")
         return {
@@ -356,18 +312,7 @@ class GitHubProvider(GitProvider):
             raise ValueError(
                 f"merge_method must be one of {_VALID_MERGE_METHODS}, got {merge_method!r}"
             )
-        get_url = subprocess.run(
-            ["git", "remote", "get-url", "origin"],
-            cwd=working_dir,
-            capture_output=True,
-        )
-        if get_url.returncode != 0:
-            raise RuntimeError(
-                f"git remote get-url failed (exit {get_url.returncode}): "
-                f"{get_url.stderr.decode(errors='replace')}"
-            )
-        owner_repo = _parse_owner_repo(get_url.stdout.decode())
-        repo = self._client.get_repo(owner_repo)
+        repo = self._resolve_repo(working_dir)
         pr = repo.get_pull(pr_number)
         try:
             # PyGithub forwards keyword args to the PUT /merge endpoint.
