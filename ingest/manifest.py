@@ -70,3 +70,26 @@ def build_manifest(
     """
     entries = [entry_for(p, source_label) for p in paths]
     return sorted(entries, key=lambda e: str(e.path))
+
+
+def to_dict(entry: ManifestEntry) -> dict[str, Any]:
+    """Serialize a ManifestEntry to a plain JSON/YAML-friendly dict.
+
+    ``path`` is stored as a string so the dict survives JSON/YAML round-trips.
+    """
+    return {
+        "path": str(entry.path),
+        "content_hash": entry.content_hash,
+        "last_modified": entry.last_modified,
+        "source_label": entry.source_label,
+    }
+
+
+def from_dict(data: dict[str, Any]) -> ManifestEntry:
+    """Rebuild a ManifestEntry from a dict produced by ``to_dict``."""
+    return ManifestEntry(
+        path=Path(data["path"]),
+        content_hash=data["content_hash"],
+        last_modified=data["last_modified"],
+        source_label=data["source_label"],
+    )
