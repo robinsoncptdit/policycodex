@@ -21,6 +21,20 @@ specific diocese.
    `main` branch protection as a required status check (Settings -> Rules,
    or the repo ruleset). This makes the guard blocking rather than advisory.
 
+## Handbook build (PUBLISH-06)
+
+`handbook/` is a vendored copy of the PolicyCodex Astro handbook, and
+`.github/workflows/build-handbook.yml` builds it. On every push to `main`
+that touches `policies/**`, the workflow copies your `policies/` into the
+handbook content directory, runs `npm ci && npm run build`, verifies the
+output, and uploads a GitHub Pages artifact named `github-pages`.
+
+This builds and uploads the handbook; it does not serve it. Serving the
+artifact at your subdomain is PUBLISH-07.
+
+To update the vendored handbook after the upstream Astro project changes,
+run `./sync-handbook.sh` from this directory and commit the result.
+
 ## Tests
 
 The script's tests live in `repo-template/tests/` in the PolicyCodex repo
