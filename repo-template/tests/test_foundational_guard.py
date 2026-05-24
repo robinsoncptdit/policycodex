@@ -5,6 +5,7 @@ and is copied verbatim into a diocese policy repo, so it must stay
 standalone. We load it by path here rather than importing a package.
 """
 import importlib.util
+import subprocess
 from pathlib import Path
 
 _SCRIPT = (
@@ -16,7 +17,7 @@ def _load_guard():
     import sys
     spec = importlib.util.spec_from_file_location("foundational_guard", _SCRIPT)
     mod = importlib.util.module_from_spec(spec)
-    sys.modules["foundational_guard"] = mod
+    sys.modules["foundational_guard"] = mod  # required: @dataclass __module__ resolution on Python 3.14+
     spec.loader.exec_module(mod)
     return mod
 
@@ -118,9 +119,6 @@ def test_multiple_violations_aggregate():
                 head_fm={"foundational": True, "provides": []}),
     ]
     assert len(guard.find_violations(changes)) == 2
-
-
-import subprocess
 
 
 def _run(cmd, cwd):

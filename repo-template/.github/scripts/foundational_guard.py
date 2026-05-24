@@ -94,6 +94,9 @@ def _show(ref, path):
 
 
 _STATUS = {"A": "added", "M": "modified", "D": "deleted", "R": "renamed"}
+# T (type-change) and U (unmerged) fall through to "modified", which is safe:
+# the guard still reads both base and head frontmatter and evaluates correctly.
+# C (copy) cannot appear because the diff uses -M only (no -C).
 
 
 def collect_changes(base_sha, head_sha):
