@@ -1,0 +1,52 @@
+name: Build handbook
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'policies/**'
+      - 'handbook/**'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Serialize handbook builds so a later merge's artifact always wins; an
+# in-flight build for a superseded commit is cancelled.
+concurrency:
+  group: handbook-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the policy repo
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: handbook/package-lock.json
+      - name: Stage policies into the handbook content dir
+        run: |
+          rm -rf handbook/src/content/policies/*
+          # `policies/.` copies the directory contents without relying on
+          # glob expansion, so an empty or dotfile-only policies/ does not
+          # error the step (the build then fails clearly at verify instead).
+          cp -r policies/. handbook/src/content/policies/
+      - name: Install dependencies
+        working-directory: handbook
+        run: npm ci
+      - name: Build the handbook
+        working-directory: handbook
+        run: npm run build
+      - name: Verify the build output
+        working-directory: handbook
+        run: npm run verify
+      - name: Upload the Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: handbook/dist
