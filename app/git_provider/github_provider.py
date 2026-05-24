@@ -190,17 +190,7 @@ class GitHubProvider(GitProvider):
         return rev.stdout.decode().strip()
 
     def push(self, branch: str, working_dir: Path) -> None:
-        get_url = subprocess.run(
-            ["git", "remote", "get-url", "origin"],
-            cwd=working_dir,
-            capture_output=True,
-        )
-        if get_url.returncode != 0:
-            raise RuntimeError(
-                f"git remote get-url failed (exit {get_url.returncode}): "
-                f"{get_url.stderr.decode(errors='replace')}"
-            )
-        origin_url = get_url.stdout.decode().strip()
+        origin_url = self._origin_url(working_dir)
         if not origin_url.startswith("https://github.com/"):
             raise ValueError(f"Origin is not an https://github.com/ URL: {origin_url}")
         token = self._installation_token()
@@ -221,17 +211,7 @@ class GitHubProvider(GitProvider):
             )
 
     def pull(self, branch: str, working_dir: Path) -> None:
-        get_url = subprocess.run(
-            ["git", "remote", "get-url", "origin"],
-            cwd=working_dir,
-            capture_output=True,
-        )
-        if get_url.returncode != 0:
-            raise RuntimeError(
-                f"git remote get-url failed (exit {get_url.returncode}): "
-                f"{get_url.stderr.decode(errors='replace')}"
-            )
-        origin_url = get_url.stdout.decode().strip()
+        origin_url = self._origin_url(working_dir)
         if not origin_url.startswith("https://github.com/"):
             raise ValueError(f"Origin is not an https://github.com/ URL: {origin_url}")
         token = self._installation_token()
