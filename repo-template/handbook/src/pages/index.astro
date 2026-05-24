@@ -1,0 +1,23 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+
+const policies = (await getCollection('policies')).sort((a, b) =>
+  a.id.localeCompare(b.id)
+);
+
+function slugFromId(id: string): string {
+  return id.endsWith('/policy') ? id.slice(0, -'/policy'.length) : id;
+}
+---
+<Base title="Diocese of Anytown Handbook">
+  <h2>Policies</h2>
+  <ul>
+    {policies.map((p) => (
+      <li>
+        <a href={`/policies/${slugFromId(p.id)}/`}>{p.data.title}</a>
+        {p.data.foundational && <span> (foundational)</span>}
+      </li>
+    ))}
+  </ul>
+</Base>
