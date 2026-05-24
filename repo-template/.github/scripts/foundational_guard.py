@@ -80,3 +80,63 @@ def find_violations(changes):
                     f"{ch.path}. Removing a declared capability breaks dependents."
                 )
     return violations
+
+
+def _show(ref, path):
+    """Return file content at ref:path, or None if it does not exist there."""
+    try:
+        return subprocess.run(
+            ["git", "show", f"{ref}:{path}"],
+            check=True, capture_output=True, text=True,
+        ).stdout
+    except subprocess.CalledProcessError:
+        return None
+
+
+_STATUS = {"A": "added", "M": "modified", "D": "deleted", "R": "renamed"}
+
+
+def collect_changes(base_sha, head_sha):
+    """Build the Change list for every changed markdown file in base..head."""
+    diff = subprocess.run(
+        ["git", "diff", "--name-status", "-M", base_sha, head_sha],
+        check=True, capture_output=True, text=True,
+    ).stdout
+    changes = []
+    for line in diff.splitlines():
+        parts = line.split("\t")
+        code = parts[0][0]  # first char: A / M / D / R
+        change_type = _STATUS.get(code, "modified")
+        old_path = parts[1]
+        new_path = parts[-1]  # same as old_path except for renames
+        if not new_path.endswith(".md"):
+            continue
+        base_text = None if code == "A" else _show(base_sha, old_path)
+        head_text = None if code == "D" else _show(head_sha, new_path)
+        changes.append(Change(
+            path=new_path,
+            change_type=change_type,
+            base_frontmatter=parse_frontmatter(base_text),
+            head_frontmatter=parse_frontmatter(head_text),
+        ))
+    return changes
+
+
+def main():
+    base = os.environ.get("BASE_SHA")
+    head = os.environ.get("HEAD_SHA")
+    if not base or not head:
+        print("foundational-guard: BASE_SHA and HEAD_SHA must be set.", file=sys.stderr)
+        return 2
+    violations = find_violations(collect_changes(base, head))
+    if violations:
+        print("Foundational-policy guard FAILED:", file=sys.stderr)
+        for v in violations:
+            print(f"  - {v}", file=sys.stderr)
+        return 1
+    print("Foundational-policy guard passed: no protected deletions or emptied capabilities.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
