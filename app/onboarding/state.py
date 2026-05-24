@@ -35,7 +35,10 @@ class WizardState:
         self._session.modified = True
 
     def get_data(self, slug: str) -> dict:
-        return self._store["data"].get(slug, {})
+        # Return a copy. Callers that mutate the result must write back through
+        # set_data; otherwise they would change the session store without it
+        # being flagged modified. APP-09..16 read this per screen.
+        return dict(self._store["data"].get(slug, {}))
 
     def set_data(self, slug: str, data: dict) -> None:
         self._store["data"][slug] = data
