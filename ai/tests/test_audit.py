@@ -47,3 +47,52 @@ def test_missing_confidence_emits_null():
         assert base in doc["confidence"]
     assert doc["confidence"]["category"] == "high"
     assert doc["confidence"]["owner_role"] is None
+
+
+def test_title_and_source_file_top_level():
+    extraction = {
+        "title": "Internal Controls Policy",
+        "_source_file": "101 Internal Controls.pdf",
+        "category_confidence": "high",
+    }
+    doc = _load(to_audit_yaml(extraction))
+    assert doc["title"] == "Internal Controls Policy"
+    assert doc["source_file"] == "101 Internal Controls.pdf"
+
+
+def test_title_and_source_file_null_when_absent():
+    doc = _load(to_audit_yaml({"category_confidence": "high"}))
+    assert doc["title"] is None
+    assert doc["source_file"] is None
+
+
+def test_non_confidence_fields_excluded():
+    extraction = {
+        "title": "T",
+        "category": "Finance",
+        "owner_role": "CFO",
+        "summary": "long body text",
+        "retention_period_years": 7,
+        "category_confidence": "high",
+    }
+    md = to_audit_yaml(extraction)
+    doc = _load(md)
+    # No policy content leaks anywhere in the audit document.
+    assert "summary" not in doc
+    assert "owner_role" not in doc          # only inside confidence map
+    assert "retention_period_years" not in doc
+    assert "long body text" not in md
+    assert doc["confidence"]["category"] == "high"
+
+
+def test_extra_confidence_keys_appended_alphabetized():
+    extraction = {
+        "category_confidence": "high",
+        "zeta_confidence": "low",
+        "alpha_confidence": "medium",
+    }
+    doc = _load(to_audit_yaml(extraction))
+    keys = list(doc["confidence"].keys())
+    # canonical order first, then extras alphabetized
+    assert keys[: len(CONFIDENCE_FIELD_ORDER)] == list(CONFIDENCE_FIELD_ORDER)
+    assert keys[len(CONFIDENCE_FIELD_ORDER):] == ["alpha", "zeta"]
