@@ -79,9 +79,14 @@ def test_non_confidence_fields_excluded():
     doc = _load(md)
     # No policy content leaks anywhere in the audit document.
     assert "summary" not in doc
-    assert "owner_role" not in doc          # only inside confidence map
+    # owner_role is absent at top level; it appears in the confidence map only
+    # as null here, because no owner_role_confidence key was supplied.
+    assert "owner_role" not in doc
+    assert doc["confidence"]["owner_role"] is None
     assert "retention_period_years" not in doc
+    # Value fields must not leak into the rendered audit text at all.
     assert "long body text" not in md
+    assert "CFO" not in md
     assert doc["confidence"]["category"] == "high"
 
 
@@ -114,3 +119,19 @@ def test_round_trip_spike_output():
     assert doc["source_file"] == extraction["_source_file"]
     assert doc["confidence"]["category"] == extraction["category_confidence"]
     assert doc["confidence"]["address"] == extraction["address_confidence"]
+
+
+def test_empty_extraction_emits_all_nulls():
+    """An empty dict still yields the full canonical schema, all null."""
+    doc = _load(to_audit_yaml({}))
+    assert doc["title"] is None
+    assert doc["source_file"] is None
+    assert list(doc["confidence"].keys()) == list(CONFIDENCE_FIELD_ORDER)
+    assert all(v is None for v in doc["confidence"].values())
+
+
+def test_non_string_confidence_value_passes_through():
+    """Numeric confidence scores survive to YAML unchanged (provider may switch
+    from low/medium/high strings to numbers)."""
+    doc = _load(to_audit_yaml({"category_confidence": 0.95}))
+    assert doc["confidence"]["category"] == 0.95
