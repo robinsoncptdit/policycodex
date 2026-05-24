@@ -102,7 +102,7 @@ Acceptance:
 
 Behavior: During onboarding, the diocese can designate one or more existing documents as "source of truth" references that the AI inventory pass uses to ground its proposals. The Document Retention Policy is the canonical example: pointed at it, the AI reads the retention schedule, the document-type taxonomy, and uses both to constrain its suggestions for retention period, category, and (when no separate address scheme is provided) a starter chapter ordering. If the diocese has no such policy, PolicyCodex offers a starter retention schedule derived from USCCB norms plus state nonprofit law that the diocese can adapt.
 
-Reference documents also drive gap detection: any policy in the catalog that is not represented in the retention schedule is flagged for human review.
+Reference documents also drive gap detection: any policy in the catalog that is not represented in the retention schedule is flagged for human review. **v0.1 scope (AI-13, 2026-05-24):** "represented" is implemented as the policy's `category` matching one of the bundle's `classifications` (the controlled type vocabulary), case-insensitive; per-policy matching against the free-text `retention_schedule` rows is deferred because those rows are prose and do not map reliably to a policy. Surfaced in the catalog as a count banner plus a per-row badge. See `internal/superpowers/specs/2026-05-24-ai-13-gap-detection-design.md`.
 
 Acceptance:
 - Given a designated retention policy reference, when the inventory pass runs, then proposed retention periods are sourced from that document for at least 80% of the catalog, and any policy not represented in the schedule is flagged in its YAML front matter.
@@ -235,13 +235,13 @@ Acceptance:
 
 If only three coders are available, fold Publish into App.
 
-**Suggested phasing within six weeks:**
+**Phasing within six weeks** (updated 2026-05-24 to reflect actual progress; the team ran ahead of the original plan, with Weeks 1-4 complete):
 
-- **Week 1**: Lane setup. Local folder ingest working end to end on the PT corpus. AI inventory pass producing first markdown file with YAML front matter. GitHub App registered. License decision made. PolicyCodex public repo created. PT diocese's policy repo created (private).
-- **Week 2**: App skeleton with list view reading from a local working copy of the policy repo. Static-site generator producing a single chapter page. GitHub Actions workflow scaffolded. Compliance framework directory seeded with one checklist. **Scope freeze at end of week 2.**
-- **Week 3**: Edit form opens PRs end to end. Gate states reflect PR states. Handbook generator produces full chapter hierarchy with RSS. Onboarding wizard skeleton.
-- **Week 4**: AI inventory pass tested against full PT corpus. Onboarding wizard complete (six screens). Handbook deployed to a real subdomain via GitHub Actions.
-- **Week 5**: Bug bash. README polish. Install path verified on a clean VM. Demo script rehearsed.
+- **Week 1 (done)**: Lane setup. Local-folder ingest. First AI inventory extraction producing markdown + YAML front matter. GitHub App registered. License decided (AGPL-3.0). PolicyCodex public repo + PT private `pt-policy` repo created.
+- **Week 2 (done, closed 2026-05-13)**: App skeleton, LLM provider abstraction + Claude implementation, extractors, eval harness. **v0.1 spec + tickets locked.** Foundational-policy bundle pattern designed and approved.
+- **Week 3 (done, closed 2026-05-16)**: PR-backed edit flow end to end (edit -> open PR -> approve -> publish squash-merges; gate states reflect PR states). Astro handbook proof. Bundle-aware policy reader. Catalog view + L3 startup self-check.
+- **Week 4 (done, 2026-05-24)**: Foundational-policy protection layers (L1 UI gate, L2 CI guard, live taxonomy read). Onboarding wizard skeleton + screen 1 (GitHub repo) with the reusable per-screen form pattern. Gap detection. Confidence audit sidecar. Source manifest model. Handbook build workflow live on `pt-policy` (builds + uploads a Pages artifact; serving deferred to Week 5).
+- **Week 5**: Serve the handbook at the real subdomain (PUBLISH-07). Remaining wizard screens (APP-10..16) + completion provisioning (APP-15/16). Read-only policy detail view (APP-23). Generic-ship audit + clean-VM install verification (REPO-10). Pin the Python version (REPO-11). Incremental re-run + full PT-corpus run (INGEST-05/06). Inventory-pass orchestrator (AI-10). **Hard feature freeze for v0.1 at end of Week 5.**
 - **Week 6**: DISC presentation prep. Last-mile fixes. Public announcement coordinated.
 
 **Dependencies:**
