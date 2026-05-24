@@ -98,8 +98,8 @@ jobs:
 ```
 
 Notes:
-- `npm ci` requires a committed `handbook/package-lock.json`. The current `handbook/` has none; generating and committing it is a plan step (also feeds the npm cache key).
-- `verify-build.mjs` currently asserts a fixed sample-file list. It must be generalized to verify the build produced `index.html` plus at least one `policies/<slug>/index.html`, rather than naming the sample slugs. This is a plan step.
+- `npm ci` requires a committed `handbook/package-lock.json`. The app `handbook/` already has one; the vendored copy carries it (it also feeds the npm cache key).
+- `verify-build.mjs` currently asserts a fixed sample-file list. It must be generalized to verify the build produced `index.html` plus at least one policy page (any non-trivial `index.html` under `dist/policies/`), rather than naming the sample slugs. This is a plan step done in the app `handbook/` (the source) and carried to the vendored copy by `sync-handbook.sh`.
 
 ### 3. `repo-template/sync-handbook.sh`
 
@@ -149,6 +149,7 @@ Document the new build workflow: what it does, that it depends on a vendored `ha
 - Create: `repo-template/.github/workflows/build-handbook.yml`.
 - Create: `repo-template/sync-handbook.sh`.
 - Create: `repo-template/tests/test_build_handbook.py`.
-- Modify: `repo-template/handbook/scripts/verify-build.mjs` (generalize the expected-files check).
-- Create: `handbook/package-lock.json` (and its vendored copy) for `npm ci`.
+- Modify: `handbook/scripts/verify-build.mjs` (generalize the expected-files check; carried to the vendored copy by the sync script).
 - Modify: `repo-template/README.md`.
+
+(`handbook/package-lock.json` already exists; no new lockfile is created.)
