@@ -689,3 +689,4 @@ def test_catalog_degrades_when_taxonomy_load_raises(client, user, stub_gh_provid
     assert response.status_code == 200
     body = response.content.decode()
     assert "gap-banner" not in body
+    assert "gap-badge" not in body
