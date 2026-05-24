@@ -49,10 +49,10 @@ Scope per the v0.1 PRD: **Local folder ingest only.** Native SharePoint, OneDriv
 | INGEST-03 | File content extraction for PDF, DOCX, MD, TXT | M | 1-2 | None |
 | INGEST-04 | Source manifest data model (path, hash, last-modified, source label) | S | 2 | None |
 | INGEST-05 | Incremental re-run support (skip unchanged files via hash comparison) | S | 3 | INGEST-04 |
-| INGEST-06 | Test ingest against the full PT policy corpus exported to a local folder | S | 4 | All Ingest tickets |
+| INGEST-06 | Test ingest against the v0.1 PT corpus (the 19 spike PDFs) in a local folder. Per OQ-08 (2026-05-24) the v0.1 corpus is the 19 PDFs; no larger export. Generic 50+-file scale target stays covered by P0.1. | S | 4 | All Ingest tickets |
 | INGEST-07 | Bundle-aware policy reader: when `policies/<slug>/` is a directory containing `policy.md` (frontmatter declares `foundational: true` and `provides: [...]`) plus `data.yaml`, treat the directory as one logical policy in the inventory. Non-data-bearing policies stay as flat `policies/<slug>.md` files. See `internal/PolicyWonk-Foundational-Policy-Design.md`. | S | 3 | INGEST-03 |
 
-**Lane acceptance (week 4):** Given a local directory containing the full PT policy corpus (50+ files), the ingest returns a structured manifest with source paths, content hashes, and timestamps in under 5 minutes. Re-running against the same directory with one file changed re-processes only the changed file. Running against a missing or empty directory fails with a clear error naming the offending path.
+**Lane acceptance (week 4):** Given a local directory containing the v0.1 PT corpus (the 19 spike PDFs; OQ-08), the ingest returns a structured manifest with source paths, content hashes, and timestamps in under 5 minutes. Re-running against the same directory with one file changed re-processes only the changed file. Running against a missing or empty directory fails with a clear error naming the offending path. (The generic 50+-file scale target lives in spec P0.1.)
 
 ## AI Lane (P0.2)
 
