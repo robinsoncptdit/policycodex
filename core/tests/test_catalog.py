@@ -549,3 +549,41 @@ def test_catalog_does_not_show_gate_banner_for_non_foundational_policy(client, u
     body = response.content.decode()
     assert "foundational-gate" not in body
     assert "typed-table editor" not in body
+
+
+def test_catalog_foundational_policy_still_publishable_when_reviewed(client, user):
+    """L1 gates Edit/Delete, not gate transitions: a foundational policy in
+    'reviewed' state must still expose the Publish button while the ordinary
+    edit-form link stays hidden."""
+    client.force_login(user)
+    policies = [_stub_policy(
+        slug="document-retention",
+        kind="bundle",
+        title="Document Retention",
+        foundational=True,
+        provides=("classifications",),
+    )]
+    open_prs = [{
+        "pr_number": 5,
+        "head_branch": "policycodex/draft-document-retention",
+        "gate": "reviewed",
+        "url": "https://example.com/p/5",
+    }]
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+        POLICYCODEX_WORKING_COPY_ROOT="/tmp",
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter(policies)
+                with patch("core.views.GitHubProvider") as MockProvider:
+                    MockProvider.return_value.list_open_prs.return_value = open_prs
+                    response = client.get("/catalog/")
+
+    body = response.content.decode()
+    # Publish affordance present despite foundational status.
+    assert 'action="/policies/document-retention/publish/"' in body
+    assert "Publish" in body
+    # The ordinary edit-form link is still hidden, and the banner still shows.
+    assert 'href="/policies/document-retention/edit/"' not in body
+    assert "foundational-gate" in body
