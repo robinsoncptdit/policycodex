@@ -49,3 +49,53 @@ def test_ahead_jump_is_gated(client, user):
     resp = client.get("/onboarding/versioning/")
     assert resp.status_code == 302
     assert resp.url == "/onboarding/github-repo/"
+
+
+def test_continue_advances_and_marks_complete(client, user):
+    client.force_login(user)
+    resp = client.post("/onboarding/github-repo/", {"action": "continue"})
+    assert resp.status_code == 302
+    assert resp.url == "/onboarding/address-scheme/"
+    assert client.get("/onboarding/").url == "/onboarding/address-scheme/"
+
+
+def test_back_goes_to_previous_step(client, user):
+    client.force_login(user)
+    client.post("/onboarding/github-repo/", {"action": "continue"})
+    resp = client.post("/onboarding/address-scheme/", {"action": "back"})
+    assert resp.status_code == 302
+    assert resp.url == "/onboarding/github-repo/"
+
+
+def test_back_on_first_step_is_noop_redirect(client, user):
+    client.force_login(user)
+    resp = client.post("/onboarding/github-repo/", {"action": "back"})
+    assert resp.status_code == 302
+    assert resp.url == "/onboarding/github-repo/"
+
+
+def test_save_exit_redirects_to_catalog(client, user):
+    client.force_login(user)
+    resp = client.post("/onboarding/github-repo/", {"action": "save_exit"})
+    assert resp.status_code == 302
+    assert resp.url == "/catalog/"
+
+
+def test_can_revisit_completed_step_without_trapping(client, user):
+    client.force_login(user)
+    client.post("/onboarding/github-repo/", {"action": "continue"})
+    assert client.get("/onboarding/github-repo/").status_code == 200
+    assert client.get("/onboarding/address-scheme/").status_code == 200
+
+
+def test_last_step_continue_completes_and_redirects_to_catalog(client, user):
+    client.force_login(user)
+    slugs = [
+        "github-repo", "address-scheme", "versioning", "reviewer-roles",
+        "retention", "llm-provider", "retention-policy",
+    ]
+    for slug in slugs[:-1]:
+        client.post(f"/onboarding/{slug}/", {"action": "continue"})
+    resp = client.post("/onboarding/retention-policy/", {"action": "continue"})
+    assert resp.status_code == 302
+    assert resp.url == "/catalog/"
