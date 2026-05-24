@@ -1,7 +1,11 @@
 {% extends "onboarding/base_wizard.html" %}
 
 {% block step_content %}
-  <p class="wizard-placeholder">
-    This screen's content lands in APP-09 through APP-16.
-  </p>
+  {% if form %}
+    {{ form.as_p }}
+  {% else %}
+    <p class="wizard-placeholder">
+      This screen's content lands in APP-09 through APP-16.
+    </p>
+  {% endif %}
 {% endblock %}
