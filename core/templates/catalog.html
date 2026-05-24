@@ -22,6 +22,11 @@
       </p>
     </section>
   {% else %}
+    {% if gap_count %}
+      <p class="gap-banner">
+        {{ gap_count }} polic{{ gap_count|pluralize:"y,ies" }} flagged: type not in the retention taxonomy. Review and re-classify.
+      </p>
+    {% endif %}
     <section class="approve-pr">
       <h3>Approve a PR</h3>
       <p>
@@ -45,6 +50,9 @@
             <span class="foundational-badge">(foundational)</span>
           {% endif %}
           <span class="gate-badge gate-{{ row.gate }}">{{ row.gate|title }}</span>
+          {% if row.is_gap %}
+            <span class="gap-badge">no retention match</span>
+          {% endif %}
 
           {# L1 foundational gate (APP-20). Edit/Delete affordances are hidden #}
           {# for foundational policies, which edit only through the typed-table #}
