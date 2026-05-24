@@ -61,6 +61,37 @@ Add the `handbook-build` status check as required once your publish workflow
 (the GitHub Actions handbook build) is in place. Leave it off until then so the
 check does not block merges.
 
+## Part 3 (optional): Require the foundational-policy guard
+
+PolicyCodex installs a `foundational-guard` GitHub Action in your policy repo
+(from the repo template). On a pull request that changes `policies/`, it fails
+the check if the diff deletes a foundational policy or empties a foundational
+policy's `provides:` list. By default this check is **advisory**: it shows a red
+mark on the pull request but does not block the merge.
+
+To make it **blocking**, add it as a required status check:
+
+1. On the policy repo, open **Settings**, then **Rules**, then your `main`
+   ruleset.
+2. Enable **Require status checks to pass**, then add the check named
+   **`foundational-guard`**.
+3. Save the ruleset.
+
+**Caveat, read before you do this.** The guard's workflow only runs on pull
+requests that change `policies/`. If you require the check while it still only
+runs on `policies/` changes, then any pull request that does **not** touch
+`policies/` (for example a docs or workflow change) will wait forever on a check
+that never reports, and you will not be able to merge it. Two ways to avoid that:
+
+- Only require the check if you accept that limitation, **or**
+- Before requiring it, edit your copy of
+  `.github/workflows/foundational-guard.yml` and remove the `paths:` filter so
+  the guard runs on every pull request. The guard passes automatically when no
+  policy file changed, so non-policy pull requests stay unblocked. Then add the
+  required check.
+
+PolicyCodex ships the guard advisory by default; requiring it is your choice.
+
 ## Verify it works
 
 1. On the policy repo, try to push a commit directly to `main`. It should be

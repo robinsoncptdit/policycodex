@@ -17,9 +17,13 @@ specific diocese.
 
 1. Copy the contents of `repo-template/.github/` into the policy repo's
    `.github/` directory and open a PR.
-2. After it merges, add the `foundational-guard` check to the policy repo's
-   `main` branch protection as a required status check (Settings -> Rules,
-   or the repo ruleset). This makes the guard blocking rather than advisory.
+2. After it merges, the guard runs on pull requests that change `policies/` and
+   shows a red mark on violations (advisory). To make it **blocking**, add the
+   `foundational-guard` check to the policy repo's `main` ruleset as a required
+   status check. Before you do, read the path-filter caveat (a naive required
+   check blocks pull requests that do not touch `policies/`): see
+   "Part 3 (optional): Require the foundational-policy guard" in
+   `HOWTO-GitHub-Team-Setup.md`.
 
 ## Handbook build (PUBLISH-06)
 
