@@ -58,3 +58,66 @@ def test_find_requires_all_capabilities(tmp_path):
     policies.mkdir()
     _make_bundle(policies, "partial", ["classifications"], {"classifications": []})
     assert find_foundational_bundle(policies, REQUIRED) is None
+
+
+def test_load_returns_parsed_dict(tmp_path):
+    policies = tmp_path / "policies"
+    policies.mkdir()
+    _make_bundle(
+        policies, "document-retention", list(REQUIRED),
+        {
+            "classifications": [{"id": "fin", "name": "Finance"}],
+            "retention_schedule": [{"group": "G", "type": "T", "retention": "7y"}],
+        },
+    )
+    data = load_foundational_taxonomy(policies, REQUIRED)
+    assert data["classifications"][0]["id"] == "fin"
+    assert data["retention_schedule"][0]["group"] == "G"
+
+
+def test_load_returns_none_when_no_bundle(tmp_path):
+    policies = tmp_path / "policies"
+    policies.mkdir()
+    assert load_foundational_taxonomy(policies, REQUIRED) is None
+
+
+def test_resolve_prefers_bundle(tmp_path):
+    policies = tmp_path / "policies"
+    policies.mkdir()
+    _make_bundle(
+        policies, "document-retention", list(REQUIRED),
+        {"classifications": [{"id": "b", "name": "Bundle"}], "retention_schedule": []},
+    )
+    seed = tmp_path / "seed.yaml"
+    seed.write_text(
+        yaml.safe_dump({"classifications": [{"id": "s", "name": "Seed"}], "retention_schedule": []}),
+        encoding="utf-8",
+    )
+    taxonomy, source = resolve_taxonomy(policies, REQUIRED, seed)
+    assert source == "bundle"
+    assert taxonomy["classifications"][0]["id"] == "b"
+
+
+def test_resolve_falls_back_to_seed_when_no_policies_dir(tmp_path):
+    seed = tmp_path / "seed.yaml"
+    seed.write_text(
+        yaml.safe_dump({"classifications": [{"id": "s", "name": "Seed"}], "retention_schedule": []}),
+        encoding="utf-8",
+    )
+    taxonomy, source = resolve_taxonomy(None, REQUIRED, seed)
+    assert source == "seed"
+    assert taxonomy["classifications"][0]["id"] == "s"
+
+
+def test_resolve_falls_back_to_seed_when_no_matching_bundle(tmp_path):
+    policies = tmp_path / "policies"
+    policies.mkdir()
+    _make_flat(policies, "code-of-conduct")
+    seed = tmp_path / "seed.yaml"
+    seed.write_text(
+        yaml.safe_dump({"classifications": [{"id": "s", "name": "Seed"}], "retention_schedule": []}),
+        encoding="utf-8",
+    )
+    taxonomy, source = resolve_taxonomy(str(policies), REQUIRED, seed)
+    assert source == "seed"
+    assert taxonomy["classifications"][0]["id"] == "s"

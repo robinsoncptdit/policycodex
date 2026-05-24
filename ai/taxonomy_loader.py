@@ -17,16 +17,6 @@ import yaml
 from ingest.policy_reader import BundleAwarePolicyReader
 
 
-def load_foundational_taxonomy(policies_dir, required):
-    """Stub - implemented in Task 3."""
-    raise NotImplementedError
-
-
-def resolve_taxonomy(policies_dir, required, seed_path):
-    """Stub - implemented in Task 3."""
-    raise NotImplementedError
-
-
 def find_foundational_bundle(policies_dir, required):
     """Return the data.yaml Path of the foundational policy whose `provides`
     covers every capability in `required`, or None.
@@ -44,3 +34,27 @@ def find_foundational_bundle(policies_dir, required):
         if policy.foundational and required_set.issubset(set(policy.provides)):
             return policy.data_path
     return None
+
+
+def load_foundational_taxonomy(policies_dir, required):
+    """Load the data.yaml of the matching foundational bundle as a dict, or None."""
+    data_path = find_foundational_bundle(policies_dir, required)
+    if data_path is None:
+        return None
+    with data_path.open(encoding="utf-8") as fh:
+        return yaml.safe_load(fh)
+
+
+def resolve_taxonomy(policies_dir, required, seed_path):
+    """Return (taxonomy_dict, source) where source is "bundle" or "seed".
+
+    Prefers the foundational bundle in `policies_dir` (the live working
+    copy); falls back to `seed_path` when `policies_dir` is falsy or has no
+    matching bundle. The caller decides whether to warn on a seed fallback.
+    """
+    if policies_dir:
+        taxonomy = load_foundational_taxonomy(policies_dir, required)
+        if taxonomy is not None:
+            return taxonomy, "bundle"
+    with Path(seed_path).open(encoding="utf-8") as fh:
+        return yaml.safe_load(fh), "seed"
