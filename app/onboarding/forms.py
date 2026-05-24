@@ -15,8 +15,9 @@ import re
 
 from django import forms
 
-# Mirrors app/git_provider/github_provider.py's owner/repo URL shape.
-_GITHUB_URL_RE = re.compile(r"^https://github\.com/[^/]+/.+?(?:\.git)?/?$")
+# An owner/repo GitHub URL: exactly two path segments (no deep paths like
+# /tree/main or /blob/...), optional .git suffix and trailing slash.
+_GITHUB_URL_RE = re.compile(r"^https://github\.com/[^/]+/[^/]+(?:\.git)?/?$")
 
 
 class GitHubRepoForm(forms.Form):
