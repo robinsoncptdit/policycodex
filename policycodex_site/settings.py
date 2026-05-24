@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core',
     'app.working_copy.apps.WorkingCopyAppConfig',
+    'app.onboarding.apps.OnboardingAppConfig',
 ]
 
 MIDDLEWARE = [

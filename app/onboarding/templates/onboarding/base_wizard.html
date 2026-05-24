@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Onboarding | PolicyCodex{% endblock %}
+
+{% block content %}
+  <h2>Onboarding</h2>
+  <p class="wizard-progress">Step {{ index }} of {{ total }}: {{ step.title }}</p>
+
+  <form method="post">
+    {% csrf_token %}
+    {% block step_content %}{% endblock %}
+    <div class="wizard-nav">
+      {% if prev_step %}
+        <button type="submit" name="action" value="back">Back</button>
+      {% endif %}
+      {% if is_last %}
+        <button type="submit" name="action" value="continue">Finish</button>
+      {% else %}
+        <button type="submit" name="action" value="continue">Continue</button>
+      {% endif %}
+      <button type="submit" name="action" value="save_exit">Save and exit</button>
+    </div>
+  </form>
+{% endblock %}
