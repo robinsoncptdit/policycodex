@@ -20,5 +20,6 @@ urlpatterns = [
         LogoutView.as_view(next_page='/login/'),
         name='logout',
     ),
+    path('onboarding/', include('app.onboarding.urls')),
     path('', include('core.urls')),
 ]
