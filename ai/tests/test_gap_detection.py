@@ -3,12 +3,13 @@ from ai.gap_detection import find_gaps, is_gap, known_types
 
 
 def test_known_types_collects_ids_and_names():
+    # Distinct id and name tokens so this independently proves BOTH are harvested.
     classifications = [
-        {"id": "financial", "name": "Financial"},
-        {"id": "personnel", "name": "Personnel"},
+        {"id": "fin", "name": "Financial"},
+        {"id": "hr", "name": "Personnel"},
     ]
     assert known_types(classifications) == {
-        "financial", "personnel",
+        "fin", "financial", "hr", "personnel",
     }
 
 
