@@ -118,3 +118,83 @@ def test_multiple_violations_aggregate():
                 head_fm={"foundational": True, "provides": []}),
     ]
     assert len(guard.find_violations(changes)) == 2
+
+
+import subprocess
+
+
+def _run(cmd, cwd):
+    subprocess.run(cmd, cwd=cwd, check=True, capture_output=True, text=True)
+
+
+def _init_repo(tmp_path):
+    _run(["git", "init", "-b", "main"], tmp_path)
+    _run(["git", "config", "user.email", "t@example.com"], tmp_path)
+    _run(["git", "config", "user.name", "Test"], tmp_path)
+    return tmp_path
+
+
+def _commit_all(tmp_path, msg):
+    _run(["git", "add", "-A"], tmp_path)
+    _run(["git", "commit", "-m", msg], tmp_path)
+    return subprocess.run(["git", "rev-parse", "HEAD"], cwd=tmp_path,
+                          check=True, capture_output=True, text=True).stdout.strip()
+
+
+_FOUNDATIONAL_MD = (
+    "---\nfoundational: true\nprovides:\n  - classifications\n---\n"
+    "Retention policy body.\n"
+)
+
+
+def test_integration_deleting_foundational_blocks(tmp_path, monkeypatch):
+    repo = _init_repo(tmp_path)
+    bundle = repo / "policies" / "document-retention"
+    bundle.mkdir(parents=True)
+    (bundle / "policy.md").write_text(_FOUNDATIONAL_MD, encoding="utf-8")
+    base = _commit_all(repo, "add foundational policy")
+    (bundle / "policy.md").unlink()
+    head = _commit_all(repo, "delete foundational policy")
+
+    monkeypatch.chdir(repo)
+    monkeypatch.setenv("BASE_SHA", base)
+    monkeypatch.setenv("HEAD_SHA", head)
+    assert guard.main() == 1
+
+
+def test_integration_deleting_ordinary_policy_passes(tmp_path, monkeypatch):
+    repo = _init_repo(tmp_path)
+    (repo / "policies").mkdir()
+    (repo / "policies" / "code-of-conduct.md").write_text(
+        "---\ntitle: Code of Conduct\n---\nBody.\n", encoding="utf-8")
+    base = _commit_all(repo, "add ordinary policy")
+    (repo / "policies" / "code-of-conduct.md").unlink()
+    head = _commit_all(repo, "delete ordinary policy")
+
+    monkeypatch.chdir(repo)
+    monkeypatch.setenv("BASE_SHA", base)
+    monkeypatch.setenv("HEAD_SHA", head)
+    assert guard.main() == 0
+
+
+def test_integration_emptying_provides_blocks(tmp_path, monkeypatch):
+    repo = _init_repo(tmp_path)
+    bundle = repo / "policies" / "document-retention"
+    bundle.mkdir(parents=True)
+    (bundle / "policy.md").write_text(_FOUNDATIONAL_MD, encoding="utf-8")
+    base = _commit_all(repo, "add foundational policy")
+    (bundle / "policy.md").write_text(
+        "---\nfoundational: true\nprovides: []\n---\nRetention policy body.\n",
+        encoding="utf-8")
+    head = _commit_all(repo, "empty provides")
+
+    monkeypatch.chdir(repo)
+    monkeypatch.setenv("BASE_SHA", base)
+    monkeypatch.setenv("HEAD_SHA", head)
+    assert guard.main() == 1
+
+
+def test_integration_missing_env_returns_2(monkeypatch):
+    monkeypatch.delenv("BASE_SHA", raising=False)
+    monkeypatch.delenv("HEAD_SHA", raising=False)
+    assert guard.main() == 2
