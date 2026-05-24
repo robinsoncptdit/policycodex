@@ -48,3 +48,35 @@ def test_build_manifest_one_entry_per_path_sorted(tmp_path):
 
 def test_build_manifest_empty_iterable_returns_empty_list(tmp_path):
     assert build_manifest([], source_label="local-folder") == []
+
+
+from ingest.manifest import to_dict, from_dict
+
+
+def test_to_dict_from_dict_round_trip(tmp_path):
+    f = tmp_path / "doc.pdf"
+    f.write_bytes(b"PDF-bytes")
+    entry = entry_for(f, source_label="local-folder")
+
+    d = to_dict(entry)
+    assert d == {
+        "path": str(f),
+        "content_hash": entry.content_hash,
+        "last_modified": entry.last_modified,
+        "source_label": "local-folder",
+    }
+
+    restored = from_dict(d)
+    assert restored == entry  # frozen dataclass equality, Path == Path
+
+
+def test_from_dict_coerces_path_string(tmp_path):
+    d = {
+        "path": str(tmp_path / "x.txt"),
+        "content_hash": "abc",
+        "last_modified": 1.0,
+        "source_label": "local-folder",
+    }
+    entry = from_dict(d)
+    from pathlib import Path as _P
+    assert isinstance(entry.path, _P)
