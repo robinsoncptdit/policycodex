@@ -1,9 +1,17 @@
 """Tests for ingest.manifest (INGEST-04: source manifest data model)."""
+import dataclasses
 import hashlib
+from pathlib import Path
 
 import pytest
 
-from ingest.manifest import ManifestEntry, entry_for
+from ingest.manifest import (
+    ManifestEntry,
+    build_manifest,
+    entry_for,
+    from_dict,
+    to_dict,
+)
 
 
 def test_entry_for_captures_path_hash_mtime_label(tmp_path):
@@ -26,11 +34,8 @@ def test_manifest_entry_is_frozen(tmp_path):
     f = tmp_path / "a.txt"
     f.write_bytes(b"x")
     entry = entry_for(f, source_label="local-folder")
-    with pytest.raises(Exception):
+    with pytest.raises(dataclasses.FrozenInstanceError):
         entry.content_hash = "tampered"  # frozen dataclass rejects mutation
-
-
-from ingest.manifest import build_manifest
 
 
 def test_build_manifest_one_entry_per_path_sorted(tmp_path):
@@ -48,9 +53,6 @@ def test_build_manifest_one_entry_per_path_sorted(tmp_path):
 
 def test_build_manifest_empty_iterable_returns_empty_list(tmp_path):
     assert build_manifest([], source_label="local-folder") == []
-
-
-from ingest.manifest import to_dict, from_dict
 
 
 def test_to_dict_from_dict_round_trip(tmp_path):
@@ -78,5 +80,5 @@ def test_from_dict_coerces_path_string(tmp_path):
         "source_label": "local-folder",
     }
     entry = from_dict(d)
-    from pathlib import Path as _P
-    assert isinstance(entry.path, _P)
+    assert isinstance(entry.path, Path)
+    assert entry.path == Path(d["path"])
