@@ -17,9 +17,16 @@ from pathlib import Path
 
 import yaml
 from anthropic import Anthropic
-from dotenv import load_dotenv
 
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    # python-dotenv is an optional dev convenience (loads .env for local API
+    # keys). Its absence must not break importing this module, e.g. under the
+    # test suite, which does not install spike/requirements.txt. anthropic, by
+    # contrast, is already a universal suite dependency via ai/claude_provider.
+    pass
 
 # Make the repo root importable so the standalone `python extract.py` run can
 # load the shared taxonomy loader even when invoked from inside spike/.
