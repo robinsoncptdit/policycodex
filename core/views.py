@@ -12,6 +12,8 @@ from github import GithubException
 from app.git_provider.github_provider import GitHubProvider
 from app.git_provider.states import branch_to_slug
 from app.working_copy.config import load_working_copy_config
+from ai.gap_detection import is_gap, known_types
+from ai.taxonomy_loader import load_foundational_taxonomy
 from core.forms import PolicyEditForm
 from core.git_identity import get_git_author
 from core.policy_writer import _render_policy_md
@@ -74,11 +76,36 @@ def catalog(request):
 
     policies = list(BundleAwarePolicyReader(policies_dir).read())
     gate_lookup = _build_gate_lookup(config.working_dir)
-    rows = [
-        {"policy": policy, "gate": gate_lookup.get(policy.slug, "published")}
-        for policy in policies
-    ]
-    return render(request, "catalog.html", {"is_empty_onboarding": False, "rows": rows})
+
+    # AI-13: flag policies whose type is not in the diocese's retention
+    # bundle classifications. Load via the same taxonomy loader the AI
+    # extraction uses, so both see identical types. Any load failure (no
+    # bundle, malformed data.yaml) degrades to no gap detection rather than
+    # 500-ing the catalog; gap flags only appear when classifications exist.
+    try:
+        taxonomy = load_foundational_taxonomy(policies_dir, ["classifications"])
+    except Exception as exc:  # noqa: BLE001 - catalog must always render
+        logger.warning("AI-13 taxonomy load failed (%s); gap detection off", exc)
+        taxonomy = None
+    known = known_types((taxonomy or {}).get("classifications"))
+
+    rows = []
+    gap_count = 0
+    for policy in policies:
+        gap = bool(known) and is_gap(policy.frontmatter.get("category"), known)
+        if gap:
+            gap_count += 1
+        rows.append({
+            "policy": policy,
+            "gate": gate_lookup.get(policy.slug, "published"),
+            "is_gap": gap,
+        })
+
+    return render(
+        request,
+        "catalog.html",
+        {"is_empty_onboarding": False, "rows": rows, "gap_count": gap_count},
+    )
 
 
 def root_redirect(request):
