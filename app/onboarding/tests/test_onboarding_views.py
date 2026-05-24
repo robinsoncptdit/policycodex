@@ -108,7 +108,9 @@ def test_last_step_continue_completes_and_redirects_to_catalog(client, user):
         "retention", "llm-provider", "retention-policy",
     ]
     for slug in slugs[:-1]:
-        client.post(f"/onboarding/{slug}/", {"action": "continue"})
+        # github-repo now has a real form; the rest are still no-op steps.
+        payload = GITHUB_REPO_CONTINUE if slug == "github-repo" else {"action": "continue"}
+        client.post(f"/onboarding/{slug}/", payload)
     resp = client.post("/onboarding/retention-policy/", {"action": "continue"})
     assert resp.status_code == 302
     assert resp.url == "/catalog/"

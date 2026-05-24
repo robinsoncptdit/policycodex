@@ -57,3 +57,23 @@ def test_branch_defaults_to_main():
     # branch omitted -> field initial is "main"; an unbound form exposes it.
     form = GitHubRepoForm()
     assert form.fields["branch"].initial == "main"
+
+
+def test_connect_rejects_deep_github_path():
+    # A clone target is owner/repo, not a deep path like /tree/main.
+    form = GitHubRepoForm(data={
+        "mode": "connect",
+        "repo_url": "https://github.com/acme/policies/tree/main",
+        "branch": "main",
+    })
+    assert not form.is_valid()
+    assert "repo_url" in form.errors
+
+
+def test_connect_accepts_dot_git_and_trailing_slash():
+    for url in (
+        "https://github.com/acme/policies.git",
+        "https://github.com/acme/policies/",
+    ):
+        form = GitHubRepoForm(data={"mode": "connect", "repo_url": url, "branch": "main"})
+        assert form.is_valid(), (url, form.errors)

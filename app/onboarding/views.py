@@ -74,7 +74,9 @@ def onboarding_step(request, step):
             nxt = wizard.next_step(step)
             state.set_current(nxt.slug)
             return redirect("onboarding_step", step=nxt.slug)
-        # Unknown or missing action: fall through to a defensive re-render.
+        # Unknown or missing action: defensive re-render only. The normal
+        # wizard UI never posts without a known action, so binding request.POST
+        # here (which may show form errors) is acceptable for this dead path.
         form_cls = onboarding_forms.form_class_for(step)
         form = form_cls(request.POST) if form_cls is not None else None
         return render(request, "onboarding/step.html", _step_context(target, state, form))
