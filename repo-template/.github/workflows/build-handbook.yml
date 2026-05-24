@@ -12,6 +12,12 @@ permissions:
   pages: write
   id-token: write
 
+# Serialize handbook builds so a later merge's artifact always wins; an
+# in-flight build for a superseded commit is cancelled.
+concurrency:
+  group: handbook-pages
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -27,7 +33,10 @@ jobs:
       - name: Stage policies into the handbook content dir
         run: |
           rm -rf handbook/src/content/policies/*
-          cp -r policies/* handbook/src/content/policies/
+          # `policies/.` copies the directory contents without relying on
+          # glob expansion, so an empty or dotfile-only policies/ does not
+          # error the step (the build then fails clearly at verify instead).
+          cp -r policies/. handbook/src/content/policies/
       - name: Install dependencies
         working-directory: handbook
         run: npm ci
