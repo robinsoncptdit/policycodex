@@ -20,6 +20,10 @@ def test_onboarding_requires_login(client):
     resp = client.get("/onboarding/")
     assert resp.status_code == 302
     assert resp.url.startswith("/login/")
+    # The per-step view is guarded too.
+    step_resp = client.get("/onboarding/github-repo/")
+    assert step_resp.status_code == 302
+    assert step_resp.url.startswith("/login/")
 
 
 def test_root_redirects_to_first_step_when_fresh(client, user):
