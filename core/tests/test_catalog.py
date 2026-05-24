@@ -26,6 +26,15 @@ def stub_gh_provider():
         yield MockProvider
 
 
+@pytest.fixture(autouse=True)
+def _no_taxonomy_by_default():
+    """Default the catalog's taxonomy load to None so existing tests are
+    independent of any real /tmp/policies. Gap tests re-patch the same
+    target inside the test body (inner patch wins)."""
+    with patch("core.views.load_foundational_taxonomy", return_value=None):
+        yield
+
+
 def test_catalog_url_resolves():
     assert reverse("catalog") == "/catalog/"
 
@@ -48,17 +57,20 @@ def test_catalog_empty_state_when_repo_url_unset(client, user):
     assert "pull_working_copy" in body or "onboarding" in body.lower()
 
 
-def _stub_policy(*, slug, kind="flat", title=None, foundational=False, provides=()):
+def _stub_policy(*, slug, kind="flat", title=None, foundational=False, provides=(), category=None):
     """Build a stand-in for an ingest.policy_reader.LogicalPolicy."""
     from pathlib import Path
     from ingest.policy_reader import LogicalPolicy
     pp = Path(f"/tmp/policies/{slug}.md") if kind == "flat" else Path(f"/tmp/policies/{slug}/policy.md")
+    frontmatter = {"title": title or slug.replace("-", " ").title()}
+    if category is not None:
+        frontmatter["category"] = category
     return LogicalPolicy(
         slug=slug,
         kind=kind,
         policy_path=pp,
         data_path=None if kind == "flat" else pp.parent / "data.yaml",
-        frontmatter={"title": title or slug.replace("-", " ").title()},
+        frontmatter=frontmatter,
         body="",
         foundational=foundational,
         provides=provides,
@@ -589,3 +601,91 @@ def test_catalog_foundational_policy_still_publishable_when_reviewed(client, use
     # The ordinary edit-form link is still hidden, and the banner still shows.
     assert 'href="/policies/document-retention/edit/"' not in body
     assert "foundational-gate" in body
+
+
+_TAXONOMY = {"classifications": [{"id": "financial", "name": "Financial"}]}
+
+
+def test_catalog_flags_policy_with_unknown_category(client, user, stub_gh_provider):
+    """One in-vocabulary policy + one out-of-vocabulary policy -> gap_count 1,
+    badge on the out-of-vocabulary row."""
+    client.force_login(user)
+    policies = [
+        _stub_policy(slug="known", kind="flat", title="Known", category="Financial"),
+        _stub_policy(slug="unknown", kind="flat", title="Unknown", category="Marketing"),
+    ]
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+        POLICYCODEX_WORKING_COPY_ROOT="/tmp",
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter(policies)
+                with patch("core.views.load_foundational_taxonomy", return_value=_TAXONOMY):
+                    response = client.get("/catalog/")
+
+    body = response.content.decode()
+    assert response.status_code == 200
+    assert "gap-banner" in body
+    assert "1 policy flagged" in body
+    # Exactly one row badge.
+    assert body.count("gap-badge") == 1
+
+
+def test_catalog_no_gaps_when_all_categories_known(client, user, stub_gh_provider):
+    client.force_login(user)
+    policies = [
+        _stub_policy(slug="a", kind="flat", category="Financial"),
+        _stub_policy(slug="b", kind="flat", category="financial"),  # casefold match
+    ]
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+        POLICYCODEX_WORKING_COPY_ROOT="/tmp",
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter(policies)
+                with patch("core.views.load_foundational_taxonomy", return_value=_TAXONOMY):
+                    response = client.get("/catalog/")
+
+    body = response.content.decode()
+    assert "gap-banner" not in body
+    assert "gap-badge" not in body
+
+
+def test_catalog_no_gap_detection_without_bundle(client, user, stub_gh_provider):
+    """With no foundational bundle (taxonomy None, the autouse default), even an
+    odd category is not flagged."""
+    client.force_login(user)
+    policies = [_stub_policy(slug="x", kind="flat", category="Whatever")]
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+        POLICYCODEX_WORKING_COPY_ROOT="/tmp",
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter(policies)
+                response = client.get("/catalog/")
+
+    body = response.content.decode()
+    assert "gap-banner" not in body
+    assert "gap-badge" not in body
+
+
+def test_catalog_degrades_when_taxonomy_load_raises(client, user, stub_gh_provider):
+    """A taxonomy load error must not 500 the catalog; it degrades to no gaps."""
+    client.force_login(user)
+    policies = [_stub_policy(slug="x", kind="flat", category="Marketing")]
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+        POLICYCODEX_WORKING_COPY_ROOT="/tmp",
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter(policies)
+                with patch("core.views.load_foundational_taxonomy", side_effect=RuntimeError("boom")):
+                    response = client.get("/catalog/")
+
+    assert response.status_code == 200
+    body = response.content.decode()
+    assert "gap-banner" not in body
