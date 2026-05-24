@@ -24,9 +24,9 @@ Per Week-3 pattern: each Committed ticket gets its own writing-plans plan saved 
 
 | OQ / Action | Decision needed | Blocks | Status |
 |---|---|---|---|
-| OQ-08 | PT policy corpus exported beyond the 19 spike PDFs | INGEST-06 (Week 5 acceptance) and AI eval scale-up | Chuck + PT IT director: pick a concrete target date this week. **Hard near-blocker if it slips past EOD Week 4** because Week 5 is the polish/audit week. |
-| REPO-08 | PT GitHub org upgrade to Team tier (~$4/user/month) | Branch protection enforcement (PRD G3 audit trail). REPO-09 (L2 CI guard) lands in this sprint and benefits from real protection. | Chuck + PT IT director: budget conversation. **Must close this week** to satisfy PRD G3 for Week-5 lane acceptance. |
-| OQ-06 | PT diocesan leadership sign-off for the handbook subdomain | PUBLISH-07 live-subdomain deploy (Week 5). PUBLISH-06 (Actions build) lands this week and does not need it. | Chuck + PT IT director: bundle with the OQ-08 + REPO-08 conversations (same contact). Initiate by Wed May 27, target a verbal go/no-go by EOD Fri May 29. **Hard gate before PUBLISH-07 (Week 5)** because diocese-side approval has lead time. |
+| OQ-08 | PT policy corpus exported beyond the 19 spike PDFs | INGEST-06 (Week 5) | **Resolved 2026-05-24.** Scope decision: v0.1 ingest is local-folder only; the corpus is the 19 spike PDFs. No bulk export, no cloud connectors in v0.1. No Monday action. |
+| REPO-08 | PT GitHub org upgrade to Team tier (~$4/user/month) | Branch protection enforcement (PRD G3 audit trail). REPO-09 (L2 CI guard) lands in this sprint and benefits from real protection. | **Resolved 2026-05-24.** Org on Team (1 seat); `main` ruleset now enforcing (verified via API). REPO-09 lands on a protected repo. No Monday action. |
+| OQ-06 | PT diocesan leadership sign-off for the handbook subdomain | PUBLISH-07 live-subdomain deploy (Week 5). | **Resolved 2026-05-23.** Go. Subdomain `handbook.ptdiocese.org`, DNS owner Chuck. Feeds PUBLISH-07 (Week 5). No Monday action. |
 | OQ-05 | LA contact's role in README | (closed) | **Resolved 2026-05-23.** David Schmitt credited as reviewer and Marcus Madsen (Director of IT, Archdiocese of Baltimore) added as design reviewer in the README; OQ moved to Resolved. No Monday action. |
 | APP-22 ticket file entry | New hygiene ticket (`_resolve_repo` extraction) needs to land in `PolicyWonk-v0.1-Tickets.md` before subagent dispatch | APP-22 dispatch | Scarlet's first-action Monday AM. ~10 min. |
 
@@ -66,9 +66,9 @@ Ordered by dispatch wave. All P0 for the sprint.
 
 | Action | Estimate | Notes |
 |---|---|---|
-| OQ-08 lock PT corpus export target date | 30 min conversation | Aim for a concrete date in Week 4 or early Week 5. Hard near-blocker if it slips. |
-| REPO-08 PT org Team-tier upgrade | 1 hr conversation + admin steps | Budget conversation with PT IT director, then GitHub org settings change. Must close this week. |
-| OQ-06 PT leadership subdomain sign-off | 30 min + diocese-side lead time | Open with the PT IT director (routes to diocesan leadership); bundle with OQ-08 + REPO-08, same contact. Initiate by Wed May 27, verbal go/no-go by EOD Fri. Hard gate before PUBLISH-07 (Week 5). |
+| OQ-08 lock PT corpus export target date | done | **Resolved 2026-05-24.** v0.1 corpus is the 19 spike PDFs via local folder; cloud connectors deferred to v0.2. No action needed. |
+| REPO-08 PT org Team-tier upgrade | done | **Resolved 2026-05-24.** Org upgraded to Team (1 seat); `main` ruleset enforcing (verified via API). |
+| OQ-06 PT leadership subdomain sign-off | done | **Resolved 2026-05-23.** Go; subdomain `handbook.ptdiocese.org`; DNS owner Chuck. No action needed. |
 | OQ-05 message David Schmitt | done | **Resolved 2026-05-23.** David + Marcus credited in the README; no action needed. |
 
 ## Discipline Rules (carried from Week 3, no changes)
@@ -92,8 +92,8 @@ Ordered by dispatch wave. All P0 for the sprint.
 | Risk | Impact | Mitigation | Status |
 |---|---|---|---|
 | APP-08 wizard skeleton spans Wave 1 + Wave 2 (3-day M) and gates APP-09..16 | Wizard work for Weeks 4 + 5 cascades if APP-08 slips | Dispatch APP-08 in Wave 1 alongside the smaller Wave-1 tickets so it has the full week. Wed-noon checkpoint: if APP-08 isn't at "routes + session state working" by then, replan Wed PM and slide APP-09 to Week 5. | Active |
-| OQ-08 PT corpus export keeps slipping (now slipping 3 weeks) | INGEST-06 has no data; Week 5 acceptance at risk; demo at DISC may run on synthetic corpus | Hard nag this week. The 19 spike PDFs are enough for everything in Week 4; Week 5 is the deadline. | Active |
-| REPO-08 PT org Team-tier slips past Week 4 | Branch protection unenforced; PRD G3 audit-trail claim at risk for Week-5 lane acceptance; REPO-09 (L2 CI guard) lands but operates on an unprotected repo | Track separately; Chuck owns. Surface to PT IT director early in the week. | Active |
+| OQ-08 PT corpus export keeps slipping (was slipping 3 weeks) | INGEST-06 had no data; Week 5 acceptance at risk; DISC demo corpus uncertain | **Closed 2026-05-24** by descoping: v0.1 is local-folder only and the corpus is the 19 spike PDFs (real PT documents, not synthetic). Residual: AI eval ground-truth stays at ~19 docs for v0.1. | Closed |
+| REPO-08 PT org Team-tier slips past Week 4 | Branch protection unenforced; PRD G3 audit-trail claim at risk for Week-5 lane acceptance; REPO-09 (L2 CI guard) lands but operates on an unprotected repo | **Closed 2026-05-24.** Org on Team; `main` ruleset enforcing (verified via API). REPO-09 now lands on a protected repo. | Closed |
 | AI-12-revised re-points taxonomy read away from `ai/taxonomies/pt_classification.yaml`; existing eval sets target those outputs | Eval regressions across category + the 4 AI-05 fields if the bundle data.yaml differs from the seed | Verify `policies/document-retention/data.yaml` in PT repo (committed 2026-05-14 at `34a1671`) is byte-equal to the seed YAML before dispatching AI-12-revised. If diff, fix the YAML in PT, re-extract baseline, and update eval seeds in the same sprint. | Active |
 | `_resolve_repo` refactor (APP-22) touches 5 provider methods that the entire app stack depends on | Regression in the PR-backed edit flow if the helper is wrong | Pre-merge code review is mandatory; full Python test suite (265 tests) must pass on the worktree branch and after merge. Reviewer must verify zero behavior change at the call-site level. | Active |
 | New ticket APP-22 doesn't exist in `PolicyWonk-v0.1-Tickets.md` yet | Subagent dispatch references a ticket the brief can't link to | Scarlet adds the entry first-thing Monday AM as a Cross-Cutting / App-lane hygiene ticket; ~10 min. | Active |
@@ -115,7 +115,7 @@ Ordered by dispatch wave. All P0 for the sprint.
 
 | Date | Event |
 |---|---|
-| Mon May 25 | Scarlet adds APP-22 ticket entry. Drafts Wave-1 ticket plans (7 plans). Wave 1 dispatch (sequential): APP-20, REPO-09, AI-12-revised, AI-07, INGEST-04, APP-22, APP-08. Chuck opens OQ-08 / REPO-08 / OQ-06 PT IT conversations (OQ-05 resolved 2026-05-23). |
+| Mon May 25 | Scarlet adds APP-22 ticket entry. Drafts Wave-1 ticket plans (7 plans). Wave 1 dispatch (sequential): APP-20, REPO-09, AI-12-revised, AI-07, INGEST-04, APP-22, APP-08. All Chuck-owned open questions are already resolved (OQ-05, OQ-06, OQ-08, REPO-08), so no Monday OQ conversations remain. |
 | Tue May 26 | Wave 1 reviews + merges. APP-08 still in flight. |
 | Wed May 27 | APP-08 review + merge. **Wed-noon checkpoint:** if APP-08 isn't at "routes + session state working," replan and slide APP-09 to Week 5. Scarlet drafts Wave-2 ticket plans (3 plans). Wave 2 dispatch: PUBLISH-06, AI-13, APP-09. |
 | Thu May 28 | Wave 2 reviews + merges. Begin Stretch dispatch if calendar opens (likely candidates: INGEST-02, INGEST-05, APP-10, APP-11). |
@@ -127,6 +127,6 @@ Ordered by dispatch wave. All P0 for the sprint.
 - Wizard screens APP-10..16. These are Week-5 native; APP-09 lands first in this sprint as the per-screen pattern anchor.
 - PUBLISH-07 (subdomain deployment): Week 5.
 - REPO-10 (generic-ship audit pass): Week 5 polish week.
-- INGEST-06 (full PT corpus run): Week 5, gated on OQ-08.
+- INGEST-06 (PT corpus run): Week 5. OQ-08 resolved 2026-05-24 to local-folder / 19-PDF scope, so this runs against the 19-PDF local folder, not a larger export.
 - DISC presentation prep: Week 6.
 - Public-push polish, README final pass, pricing, brand decisions: out of v0.1 sprint scope per `PolicyWonk-v0.1-Spec.md`.

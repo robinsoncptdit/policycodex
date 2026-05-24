@@ -5,7 +5,7 @@
 **Author:** Scarlet, Friday-night Phase 3 prep
 **Reference ticket:** REPO-04 in `PolicyWonk-v0.1-Tickets.md`
 
-## Status (2026-05-11): partial; only OQ-10 remains
+## Status (2026-05-24): complete
 
 Done:
 - `pt-policy` exists on `Diocese-of-Pensacola-Tallahassee` (private, `main` default).
@@ -13,11 +13,9 @@ Done:
 - Initial README + `policies/.gitkeep` + `references/.gitkeep` + `.github/.gitkeep` committed.
 - PolicyCodex GitHub App installed on the org, scoped to `pt-policy` (step 6).
 - Step 7 (collaborator add) not applicable — Chuck is an Owner of the org.
+- **Org upgraded to GitHub Team and the `main` ruleset now enforces (2026-05-24, OQ-10 / REPO-08).** Verified read-only via the GitHub API: plan=team (1 seat); ruleset enforcement=active on the default branch with require-PR, 1 approval, dismiss-stale-reviews, conversation-resolution, linear-history, block-force-push, block-deletion, and required-signatures.
 
-Remaining (all gated on **OQ-10**, the Free → Team upgrade, currently deferred):
-1. Enforcement status: Disabled → Active.
-2. Target branches: add `main`.
-3. Underlying upgrade: GitHub Free → Team so (1) takes effect.
+**Done 2026-05-24 (OQ-10 / REPO-08):** the Free to Team upgrade landed, so the pre-existing active ruleset now enforces. No separate Disabled to Active flip was needed; the ruleset was already active in config (since 2026-05-11) and only inert because Free orgs do not enforce rulesets on private repos. Required-signatures is ON (step 3 had it optional): the squash-merge PR flow produces GitHub-signed merge commits on `main`, so the app is unaffected, while a manual unsigned direct push to `main` is rejected, which is intended.
 
 App-lane work against `pt-policy` (clone, branch, commit, push, open PR) functions today without enforcement. Branch protection is the audit-trail mechanism for PRD G3; it needs to be enforcing before week 4 lane acceptance, not before APP-04 starts.
 
@@ -94,7 +92,7 @@ The PT diocese's policy repo. **Separate** from the public PolicyCodex app repo.
 When done, share in chat:
 - Confirmation that the repo was created at `https://github.com/Diocese-of-Pensacola-Tallahassee/pt-policy`
 - Confirmation that the GitHub App is installed on the org and scoped to `pt-policy`
-- The handbook subdomain PT plans to use (Week 4 dependency, OQ-06; useful to know now even if the DNS isn't live)
+- The handbook subdomain PT plans to use (Week 4 dependency, OQ-06). **Resolved 2026-05-23: `handbook.ptdiocese.org`; DNS owner Chuck Robinson.** Feeds PUBLISH-07 (Week 5 live-subdomain deploy).
 
 ## Notes
 
