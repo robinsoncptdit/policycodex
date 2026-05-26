@@ -132,7 +132,7 @@ Acceptance:
 
 **P0.5 Handbook Static-Site Generator (CI-Driven)**
 
-Behavior: A GitHub Actions workflow in the policy repo runs on every merge to `main`. It takes the merged markdown content and YAML front matter and generates a public handbook with chapter-section-item addressing, stable per-policy URLs, a changelog page derived from the Git history, and an RSS feed. The generated site deploys to a configurable subdomain (Caddy or Nginx reverse proxy on the diocese's VM, or optionally GitHub Pages).
+Behavior: A GitHub Actions workflow in the policy repo runs on every merge to `main`. It takes the merged markdown content and YAML front matter and generates a public handbook with chapter-section-item addressing, stable per-policy URLs, a changelog page derived from the Git history, and an RSS feed. The generated site deploys to a public subdomain. v0.1 ships GitHub Pages with a custom subdomain (PUBLISH-07, resolved 2026-05-26 with PT live at `https://handbook.ptdiocese.org/`); self-hosted serving via Caddy or Nginx reverse proxy on the diocese's own VM is deferred to v0.2 along with the wizard's serving-target selection.
 
 Acceptance:
 - Given at least one merged PR for a policy, when the GitHub Actions workflow runs, then a static handbook with chapter pages, individual policy pages, a changelog, and an RSS feed is built and deployed to the configured subdomain within 5 minutes of merge.
@@ -215,7 +215,7 @@ Acceptance:
 ### Stakeholder
 
 - Does the LA contact agree to be named as design reviewer or co-author in the README? **Resolved 2026-05-23 (OQ-05): yes. David Schmitt (IT Director, Archdiocese of Los Angeles) is credited as reviewer and Marcus Madsen (Director of IT, Archdiocese of Baltimore) as design reviewer in the README, with consent.**
-- Does PT diocesan leadership agree to PolicyCodex publishing a handbook subdomain on its behalf? **Resolved 2026-05-24 (OQ-06): yes. Subdomain `handbook.ptdiocese.org`; DNS owned by Chuck. Live cutover in Week 5 (PUBLISH-07).**
+- Does PT diocesan leadership agree to PolicyCodex publishing a handbook subdomain on its behalf? **Resolved 2026-05-24 (OQ-06): yes. Subdomain `handbook.ptdiocese.org`; DNS owned by Chuck. Live cutover completed 2026-05-26 (PUBLISH-07); `https://handbook.ptdiocese.org/` deploying on every merge to `pt-policy/main`.**
 - Does PT have an existing GitHub organization for the diocese, or do we need to create one? **Resolved: the `Diocese-of-Pensacola-Tallahassee` org exists (Team tier; private `pt-policy` repo with an enforced `main` ruleset; REPO-08).**
 
 ### Data
@@ -241,7 +241,7 @@ If only three coders are available, fold Publish into App.
 - **Week 2 (done, closed 2026-05-13)**: App skeleton, LLM provider abstraction + Claude implementation, extractors, eval harness. **v0.1 spec + tickets locked.** Foundational-policy bundle pattern designed and approved.
 - **Week 3 (done, closed 2026-05-16)**: PR-backed edit flow end to end (edit -> open PR -> approve -> publish squash-merges; gate states reflect PR states). Astro handbook proof. Bundle-aware policy reader. Catalog view + L3 startup self-check.
 - **Week 4 (done, 2026-05-24)**: Foundational-policy protection layers (L1 UI gate, L2 CI guard, live taxonomy read). Onboarding wizard skeleton + screen 1 (GitHub repo) with the reusable per-screen form pattern. Gap detection. Confidence audit sidecar. Source manifest model. Handbook build workflow live on `pt-policy` (builds + uploads a Pages artifact; serving deferred to Week 5).
-- **Week 5**: Serve the handbook at the real subdomain (PUBLISH-07). Remaining wizard screens (APP-10..16) + completion provisioning (APP-15/16). Read-only policy detail view (APP-23). Generic-ship audit + clean-VM install verification (REPO-10). Pin the Python version (REPO-11). Incremental re-run + full PT-corpus run (INGEST-05/06). Inventory-pass orchestrator (AI-10). **Hard feature freeze for v0.1 at end of Week 5.**
+- **Week 5**: ~~Serve the handbook at the real subdomain (PUBLISH-07).~~ done 2026-05-26 ahead of Week 5. Remaining wizard screens (APP-10..16) + completion provisioning (APP-15/16). Read-only policy detail view (APP-23). Generic-ship audit + clean-VM install verification (REPO-10). Pin the Python version (REPO-11). `workflow_dispatch:` on shipped workflows (REPO-12, follow-up from PUBLISH-07). Incremental re-run + full PT-corpus run (INGEST-05/06). Inventory-pass orchestrator (AI-10). **Hard feature freeze for v0.1 at end of Week 5.**
 - **Week 6**: DISC presentation prep. Last-mile fixes. Public announcement coordinated.
 
 **Dependencies:**
@@ -249,4 +249,4 @@ If only three coders are available, fold Publish into App.
 - PT policy corpus exported to a local folder. Satisfied: the v0.1 corpus is the 19 spike PDFs from `ptdiocese.org` (OQ-08, 2026-05-24). No further export planned for v0.1; additional private policies and cloud-connector ingest are v0.2.
 - PT GitHub organization (or create one). Required by week 1.
 - LA contact's review of v0.1 wireframes or a working build. Required by end of week 3.
-- Domain registration for the handbook subdomain. `handbook.ptdiocese.org` chosen, DNS owned by Chuck (OQ-06, 2026-05-24). Live cutover in Week 5 (PUBLISH-07).
+- Domain registration for the handbook subdomain. `handbook.ptdiocese.org` chosen, DNS owned by Chuck (OQ-06, 2026-05-24). Live cutover completed 2026-05-26 (PUBLISH-07); HTTP/2 200 with Let's Encrypt R12 cert through 2026-08-24.

@@ -35,8 +35,11 @@ into `src/content/policies/` and runs the Astro build. That directory
 therefore ships empty here (only a `.gitkeep`); do not add policy files to
 it by hand. Edit policies through PolicyCodex, not in this directory.
 
-The build uploads a GitHub Pages artifact. Serving it at your subdomain is
-handled separately (PUBLISH-07).
+The build uploads a GitHub Pages artifact; the same workflow's `deploy`
+job then publishes it via `actions/deploy-pages@v5` (skipped gracefully
+when Pages is not enabled on the repo). See "Part 4: Publish the handbook
+at a public custom subdomain" in `HOWTO-GitHub-Team-Setup.md` for the
+one-time DNS + Pages setup.
 
 Maintainers re-vendor this directory by running `sync-handbook.sh` in the
 PolicyCodex repo after the upstream handbook changes.

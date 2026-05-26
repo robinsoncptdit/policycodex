@@ -25,16 +25,29 @@ specific diocese.
    "Part 3 (optional): Require the foundational-policy guard" in
    `HOWTO-GitHub-Team-Setup.md`.
 
-## Handbook build (PUBLISH-06)
+## Handbook build and deploy (PUBLISH-06 + PUBLISH-07)
 
 `handbook/` is a vendored copy of the PolicyCodex Astro handbook, and
-`.github/workflows/build-handbook.yml` builds it. On every push to `main`
-that touches `policies/**`, the workflow copies your `policies/` into the
-handbook content directory, runs `npm ci && npm run build`, verifies the
-output, and uploads a GitHub Pages artifact named `github-pages`.
+`.github/workflows/build-handbook.yml` builds and deploys it. On every push
+to `main` that touches `policies/**` or `handbook/**`, the workflow runs
+three jobs:
 
-This builds and uploads the handbook; it does not serve it. Serving the
-artifact at your subdomain is PUBLISH-07.
+1. `preflight` calls the GitHub Pages API for the repo and outputs
+   `pages_configured` (whether you have enabled Pages) plus `site_url`
+   (your custom-domain URL if set, otherwise the default `<org>.github.io`).
+2. `build` copies your `policies/` into the handbook content directory,
+   runs `npm ci && npm run build`, verifies the output, and uploads a
+   `github-pages` artifact. The Astro `site:` URL is set from
+   `preflight.site_url` so canonical URLs use your real domain.
+3. `deploy` publishes the artifact to GitHub Pages. It is skipped (gray,
+   not red) when `pages_configured` is `false`, so a fresh policy repo
+   without Pages enabled does not red-flag its merges. Pinned to
+   `actions/deploy-pages@v5`.
+
+To turn on serving at your subdomain, follow Part 4 of
+`HOWTO-GitHub-Team-Setup.md` (DNS CNAME, org-level apex verification,
+repo Pages settings = GitHub Actions source + custom domain). After the
+one-time setup, every merge to `main` re-deploys the handbook.
 
 To update the vendored handbook after the upstream Astro project changes,
 run `./sync-handbook.sh` from this directory and commit the result.

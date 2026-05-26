@@ -92,16 +92,16 @@ The two `pt-policy` merges that hit the protected `main` used a temporary reposi
 
 - **`foundational-guard` is advisory, not enforced, on `pt-policy`.** It runs and goes red on violations (proven), but is not a required check. Making it required cleanly needs the path-filter change; documented for the diocese to opt into.
 - **The wizard does not provision yet.** APP-09 captures config only; nothing clones/creates a repo or commits wizard config. APP-15/16 close that. Until then, onboarding is not end-to-end.
-- **Handbook is built but not served.** PUBLISH-06 uploads an artifact; PUBLISH-07 serves it. No public handbook URL until then.
+- **Handbook is built but not served.** PUBLISH-06 uploads an artifact; PUBLISH-07 serves it. No public handbook URL until then. **Resolved 2026-05-26 (PUBLISH-07): `https://handbook.ptdiocese.org/` LIVE; see `internal/PolicyWonk-Daily-Log.md` for the install detail.**
 - **`pt-policy` merges currently need an admin bypass.** The ruleset requires an approving review the PR author cannot self-supply; v0.1 merges via temporary bypass (restored after). A second reviewer or a standing admin-bypass entry would remove the friction; deferred as a per-diocese operational choice.
 
 ## Decisions waiting on Chuck
 
-1. **PUBLISH-07 serving target** for Week 5 (`handbook.ptdiocese.org` DNS is Chuck-owned per OQ-06).
+1. **PUBLISH-07 serving target** for Week 5 (`handbook.ptdiocese.org` DNS is Chuck-owned per OQ-06). **Resolved 2026-05-26: GitHub Pages with custom subdomain; live at `https://handbook.ptdiocese.org/`.**
 2. **Confirm Week-5 scope** (polish, wizard screens, install verification on a clean VM = the REPO-10 generic-ship test).
 
 (The `foundational-guard` required-check question is already decided: advisory for v0.1, with the optional per-diocese enforcement step documented in `HOWTO-GitHub-Team-Setup.md` Part 3. Not waiting on anyone.)
 
 ## Week 5 plan preview
 
-Polish week: PUBLISH-07 (serve the handbook at the real subdomain), the remaining wizard screens (APP-10..16) + provisioning (APP-15/16), APP-23 (read-only detail view), REPO-10 (generic-ship audit + clean-VM install verification), REPO-11 (Python pin), INGEST-05/06 (incremental re-run + full PT-corpus run), AI-10 (inventory-pass orchestrator). Hard scope freeze at end of Week 5 ahead of the mid-June DISC demo.
+Polish week: ~~PUBLISH-07 (serve the handbook at the real subdomain)~~ done 2026-05-26 ahead of Week 5, the remaining wizard screens (APP-10..16) + provisioning (APP-15/16), APP-23 (read-only detail view), REPO-10 (generic-ship audit + clean-VM install verification), REPO-11 (Python pin), REPO-12 (workflow_dispatch on shipped workflows, follow-up from PUBLISH-07), INGEST-05/06 (incremental re-run + full PT-corpus run), AI-10 (inventory-pass orchestrator). Hard scope freeze at end of Week 5 ahead of the mid-June DISC demo.
