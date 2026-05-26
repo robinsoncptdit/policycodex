@@ -92,6 +92,26 @@ that never reports, and you will not be able to merge it. Two ways to avoid that
 
 PolicyCodex ships the guard advisory by default; requiring it is your choice.
 
+## Part 4: Publish the handbook at a public custom subdomain
+
+PolicyCodex builds your handbook on every merge to `main` (the build runs from `.github/workflows/build-handbook.yml`, vendored from the repo template). Once you complete this part, every merge also publishes the handbook to a public subdomain you control, served by GitHub Pages with HTTPS via Let's Encrypt. Cost is zero on the Team plan or higher.
+
+Pages publishing from a private repo requires the Team plan or higher. Access-restricted ("private") Pages requires Enterprise Cloud and is out of scope for v0.1.
+
+You need DNS control of the parent zone of your chosen subdomain. For example, to publish at `handbook.example.org`, you must be able to add CNAME and TXT records under `example.org`.
+
+1. **Verify your apex domain at the org level (one-time, recommended).** This locks every subdomain at your apex (`*.example.org`) to your GitHub org, so no one else can stand up a `*.example.org` Pages site on a different account. On GitHub, open your org's **Settings**, then **Pages**, then **Add a domain**, and enter your apex (`example.org`, not `handbook.example.org`). GitHub shows you a TXT record. Add it to your DNS at the name `_github-pages-challenge-<your-org>.example.org` with the value GitHub provides. Verify propagation with `dig +short TXT _github-pages-challenge-<your-org>.example.org`. Back in GitHub, click **Verify**. Leave the TXT record in place; removing it un-verifies the apex.
+
+2. **Create the subdomain CNAME.** In your DNS provider, add a CNAME record: name `handbook` (resolving to `handbook.example.org`), value `<your-org>.github.io` (your GitHub org name only, no repo name). Wait for DNS to propagate (a few minutes to a few hours). Verify with `dig +short CNAME handbook.example.org`; it should return `<your-org>.github.io.`.
+
+3. **Enable Pages on the policy repo.** Open your policy repo's **Settings**, then **Pages**. Under **Build and deployment**, set **Source** to **GitHub Actions** (not "Deploy from a branch"). Under **Custom domain**, enter `handbook.example.org` and **Save**. GitHub runs a DNS check; wait for the green check (usually under a minute, once Step 2 has propagated). Do NOT commit a `CNAME` file to your repo; with the Actions source, the custom domain lives in Settings only.
+
+4. **Trigger a deploy.** Push any commit to `main` (or re-run the latest **Build handbook** workflow from the Actions tab). The workflow now has three jobs: `preflight` checks the Pages configuration, `build` builds the handbook with your custom domain set as the canonical site URL, and `deploy` publishes to Pages. All three should go green. The `deploy` job summary shows the live URL. Visit it and confirm the handbook loads.
+
+5. **Enforce HTTPS.** After Let's Encrypt provisions a certificate for your subdomain (this can take up to 24 hours from when DNS first resolved correctly), GitHub makes an **Enforce HTTPS** checkbox available in **Settings**, **Pages**. Enable it. From that point, plain-HTTP requests automatically redirect to HTTPS.
+
+If the `deploy` job is gray rather than green, Pages is not yet enabled on the repo; complete Step 3. If the `deploy` job is red, open its log; the most common causes are a mismatch between the CNAME target and your GitHub org name (the target uses the org name only, not the repo path), or DNS that has not yet propagated. If the **Enforce HTTPS** checkbox is missing, Let's Encrypt has not provisioned yet; come back later. If you accidentally remove the `_github-pages-challenge-<your-org>` TXT record, re-add it from your org's Settings, Pages page; the apex stays verified for a grace period.
+
 ## Verify it works
 
 1. On the policy repo, try to push a commit directly to `main`. It should be
