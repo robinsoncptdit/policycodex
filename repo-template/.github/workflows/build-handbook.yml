@@ -54,6 +54,8 @@ jobs:
   build:
     needs: preflight
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Check out the policy repo
         uses: actions/checkout@v6
