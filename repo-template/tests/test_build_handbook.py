@@ -90,7 +90,9 @@ def test_preflight_job_queries_pages_api_and_declares_outputs():
     wf = yaml.safe_load(WORKFLOW.read_text())
     preflight = wf["jobs"]["preflight"]
     assert preflight["runs-on"] == "ubuntu-latest"
-    assert preflight["permissions"] == {"contents": "read"}
+    # `pages: read` is required for `gh api repos/$REPO/pages`; verified on
+    # the first live install when it was missing and the deploy was skipped.
+    assert preflight["permissions"] == {"contents": "read", "pages": "read"}
     outputs = preflight["outputs"]
     assert "pages_configured" in outputs
     assert "site_url" in outputs
