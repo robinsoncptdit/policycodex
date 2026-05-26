@@ -92,7 +92,7 @@ The PT diocese's policy repo. **Separate** from the public PolicyCodex app repo.
 When done, share in chat:
 - Confirmation that the repo was created at `https://github.com/Diocese-of-Pensacola-Tallahassee/pt-policy`
 - Confirmation that the GitHub App is installed on the org and scoped to `pt-policy`
-- The handbook subdomain PT plans to use (Week 4 dependency, OQ-06). **Resolved 2026-05-23: `handbook.ptdiocese.org`; DNS owner Chuck Robinson.** Feeds PUBLISH-07 (Week 5 live-subdomain deploy).
+- The handbook subdomain PT plans to use (Week 4 dependency, OQ-06). **Resolved 2026-05-23: `handbook.ptdiocese.org`; DNS owner Chuck Robinson.** Live since 2026-05-26 (PUBLISH-07): GitHub Pages with custom subdomain, Let's Encrypt R12 cert through 2026-08-24, Enforce HTTPS on. Re-deploys on every merge to `pt-policy/main` via `.github/workflows/build-handbook.yml` (three jobs: preflight + build + deploy).
 
 ## Notes
 
