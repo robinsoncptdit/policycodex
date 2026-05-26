@@ -2,7 +2,8 @@
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  // Site is required for canonical URLs at build time. Replace with the
-  // diocese's deploy URL when PUBLISH-07 wires the production subdomain.
-  site: 'https://handbook.example.org',
+  // Set automatically by .github/workflows/build-handbook.yml from your
+  // repo's Pages config. The literal fallback below only applies for local
+  // builds without Pages enabled.
+  site: process.env.ASTRO_SITE_URL || 'https://handbook.example.org',
 });
