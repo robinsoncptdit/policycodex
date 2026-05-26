@@ -1,6 +1,8 @@
-"""Structural tests for the vendored handbook build (PUBLISH-06).
+"""Structural tests for the vendored handbook build and deploy (PUBLISH-06 + PUBLISH-07).
 
-These assert the shape of repo-template/handbook/ and the build workflow.
+These assert the shape of repo-template/handbook/ and the build workflow,
+including the three-job preflight + build + deploy structure and the
+upstream/vendored astro.config.mjs byte-equality guard.
 They do not run Node; the Astro build smoke is a separate manual/CI step.
 """
 from pathlib import Path
