@@ -36,8 +36,9 @@ if str(_REPO_ROOT) not in sys.path:
 
 from ai.taxonomy_loader import resolve_taxonomy  # noqa: E402 (needs the sys.path bootstrap above)
 
-# Switch to "claude-opus-4-6" if Sonnet acceptance is marginal.
-MODEL = os.getenv("POLICYWONK_MODEL", "claude-sonnet-4-6")
+# Override with POLICYWONK_MODEL (e.g. a cheaper Sonnet tier) if cost matters
+# more than extraction quality for a given run.
+MODEL = os.getenv("POLICYWONK_MODEL", "claude-opus-4-8")
 
 # Taxonomy source (AI-12-revised). Prefer the diocese's foundational bundle
 # in the local working copy so a published edit to the retention policy flows
