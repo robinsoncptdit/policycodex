@@ -15,7 +15,7 @@ def test_claude_provider_is_llm_provider():
 def test_default_model_and_max_tokens(monkeypatch):
     monkeypatch.delenv("POLICYCODEX_MODEL", raising=False)
     provider = ClaudeProvider(client=MagicMock())
-    assert provider.model == "claude-sonnet-4-6"
+    assert provider.model == "claude-opus-4-8"
     assert provider.default_max_tokens == 1024
 
 

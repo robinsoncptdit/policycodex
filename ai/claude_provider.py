@@ -8,7 +8,7 @@ from anthropic import Anthropic
 
 from ai.provider import LLMProvider
 
-DEFAULT_MODEL = "claude-sonnet-4-6"
+DEFAULT_MODEL = "claude-opus-4-8"
 DEFAULT_MAX_TOKENS = 1024
 
 
