@@ -127,7 +127,20 @@ Open `http://localhost:8000` and complete the seven-screen onboarding wizard:
 6. Pick an LLM provider (Claude default)
 7. Point PolicyCodex at any source-of-truth reference documents you already have (Document Retention Policy, by-laws, etc.). The AI extractor uses them as ground truth rather than guessing.
 
-A packaged `docker compose` install is planned for v0.1.
+### Docker (recommended for non-developers)
+
+PolicyCodex ships as a container. From the repo root:
+
+```bash
+cp .env.example .env          # set DJANGO_SECRET_KEY and your hostnames
+./install.sh                  # builds the image and starts the stack
+```
+
+Open `http://localhost:8000` and complete the onboarding wizard.
+
+- **State** (the SQLite database and cloned policy working copies) persists in the `policycodex-data` Docker volume.
+- **Credentials** (the GitHub App private key and your LLM API key) stay on the host in `~/.config/policycodex/`, bind-mounted read-only into the container. They never enter the image or any committed file. Inside `~/.config/policycodex/config.env`, set `POLICYCODEX_GH_PRIVATE_KEY_PATH` to a `/secrets/...` path.
+- A pre-built published image (no local build) is coming post-DISC; `docker-compose.pull.yml` is the placeholder for that path.
 
 ## Roadmap
 
