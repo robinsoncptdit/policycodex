@@ -24,7 +24,11 @@ def scaffold_retention_bundle(
     data_yaml_text: str,
     source_pdf: Path | None,
 ) -> Path:
-    """Create the document-retention bundle under `policies_dir`. Returns its dir."""
+    """Create the document-retention bundle under `policies_dir`. Returns its dir.
+
+    Idempotent on the directory; re-running overwrites an existing bundle's
+    files in place (onboarding writes once into a fresh working copy).
+    """
     bundle_dir = Path(policies_dir) / BUNDLE_SLUG
     bundle_dir.mkdir(parents=True, exist_ok=True)
 
