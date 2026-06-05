@@ -1,0 +1,5 @@
+# PolicyCodex onboarding scratch space - never commit. The app stages an
+# uploaded retention PDF and an extraction draft here during the wizard. The app
+# only ever `git add`s explicit paths, so this is defense-in-depth for any
+# manual git use in the diocese repo.
+.policycodex-staging/
