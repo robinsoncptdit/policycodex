@@ -5,6 +5,7 @@ import pytest
 
 from ai.inventory_extract import (
     EXTRACTION_MAX_TOKENS,
+    MAX_DOCUMENT_CHARS,
     InventoryExtractionError,
     build_inventory_prompt,
     build_taxonomy_section,
@@ -101,6 +102,21 @@ def test_taxonomy_section_dedupes_group_pairs():
     assert section.count("G: ") == 1
 
 
+def test_taxonomy_section_keeps_distinct_sub_groups():
+    # The dedup key is (group, sub_group): a sub_group row is a DIFFERENT pair
+    # from the bare-group row, so both must survive.
+    taxonomy = {
+        "classifications": [],
+        "retention_schedule": [
+            {"group": "G", "type": "A", "retention": "1 year"},
+            {"group": "G", "sub_group": "S", "type": "B", "retention": "2 years"},
+        ],
+    }
+    section = build_taxonomy_section(taxonomy)
+    assert "G: A -> 1 year" in section
+    assert "G / S: B -> 2 years" in section
+
+
 def test_build_prompt_without_taxonomy_omits_section():
     prompt = build_inventory_prompt(None)
     assert "taxonomy reference" not in prompt
@@ -124,6 +140,8 @@ def test_extract_policy_metadata_calls_provider_and_parses():
 
 def test_extract_truncates_long_document():
     provider = FakeProvider(json.dumps(VALID_EXTRACTION))
+    static_x = build_inventory_prompt(None).count("x")
     extract_policy_metadata(provider, "x" * 100000, None)
-    # The injected document text is capped; the prompt cannot carry the whole 100k.
-    assert provider.last_prompt.count("x") <= 50000
+    # The 100k-char document is truncated to exactly MAX_DOCUMENT_CHARS; the
+    # only other "x" chars come from the static prompt scaffold.
+    assert provider.last_prompt.count("x") == MAX_DOCUMENT_CHARS + static_x
