@@ -71,3 +71,48 @@ def make_onboarding_branch_name() -> str:
     catalog's slug-mapped gate lookup ignores it (this PR is repo init, not a
     single-policy edit)."""
     return f"policycodex/onboarding-{uuid.uuid4().hex[:8]}"
+
+
+def finalize_onboarding(
+    *,
+    working_dir: Path,
+    config_yaml_text: str,
+    bundle_dir: Path,
+    provider,
+    author_name: str,
+    author_email: str,
+    base_branch: str,
+    username: str,
+) -> dict:
+    """Write the config file, then branch -> commit -> push -> open PR.
+
+    Commits exactly [config_path, bundle_dir]; never `git add .`. Returns the PR
+    metadata dict from the provider. Any provider exception propagates to the
+    caller, which is responsible for the user-facing degrade.
+    """
+    config_path = write_config_file(working_dir, config_yaml_text)
+    branch_name = make_onboarding_branch_name()
+    message = "Initialize diocese configuration and document-retention policy"
+
+    provider.branch(branch_name, working_dir)
+    provider.commit(
+        message=message,
+        files=[config_path, bundle_dir],
+        author_name=author_name,
+        author_email=author_email,
+        working_dir=working_dir,
+    )
+    provider.push(branch_name, working_dir)
+    pr_body = (
+        f"Opened by PolicyCodex during onboarding on behalf of {username}.\n\n"
+        f"Contents:\n"
+        f"- {CONFIG_DIR_NAME}/{CONFIG_FILE_NAME} (diocese configuration)\n"
+        f"- policies/{bundle_dir.name}/ (document-retention foundational policy)\n"
+    )
+    return provider.open_pr(
+        title="Initialize policy repository",
+        body=pr_body,
+        head_branch=branch_name,
+        base_branch=base_branch,
+        working_dir=working_dir,
+    )
