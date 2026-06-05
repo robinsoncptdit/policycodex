@@ -11,7 +11,9 @@ the git author. The thin management command
 
 Re-run safety: a slug whose flat policies/<slug>.md OR bundle dir
 policies/<slug>/ already exists is skipped, never overwritten. This protects
-human edits and the foundational document-retention bundle.
+human edits and the foundational document-retention bundle. Two source files
+that slugify to the same name within one pass are also non-destructive: the
+first wins, the rest are reported as collisions rather than clobbering it.
 """
 from __future__ import annotations
 
@@ -57,14 +59,18 @@ class InventoryResult:
 
     written: slugs whose .md + .audit.yaml were written and staged.
     skipped_existing: slugs already present in the working copy (not clobbered).
+    skipped_collision: source filenames that slugify to a slug already drafted
+        earlier in THIS pass (a real document, dropped to avoid clobbering its
+        sibling; rename the source to disambiguate).
     skipped_empty: source filenames whose extracted text was blank.
     skipped_unsupported: source filenames with no registered extractor.
-    errors: {slug: message} for files whose extraction failed to parse.
+    errors: {slug: message} for files whose extraction or text read failed.
     pr: provider open_pr() metadata dict, or None when nothing was written.
     """
 
     written: list[str] = field(default_factory=list)
     skipped_existing: list[str] = field(default_factory=list)
+    skipped_collision: list[str] = field(default_factory=list)
     skipped_empty: list[str] = field(default_factory=list)
     skipped_unsupported: list[str] = field(default_factory=list)
     errors: dict[str, str] = field(default_factory=dict)
@@ -81,6 +87,15 @@ def _build_pr_body(result: "InventoryResult", username: str) -> str:
     if result.skipped_existing:
         lines += ["", f"Skipped {len(result.skipped_existing)} already present:"]
         lines += [f"- {slug}" for slug in result.skipped_existing]
+    if result.skipped_collision:
+        lines += ["", f"Skipped {len(result.skipped_collision)} slug collisions (rename to include):"]
+        lines += [f"- {name}" for name in result.skipped_collision]
+    if result.skipped_empty:
+        lines += ["", f"Skipped {len(result.skipped_empty)} with no extractable text:"]
+        lines += [f"- {name}" for name in result.skipped_empty]
+    if result.skipped_unsupported:
+        lines += ["", f"Skipped {len(result.skipped_unsupported)} unsupported formats:"]
+        lines += [f"- {name}" for name in result.skipped_unsupported]
     if result.errors:
         lines += ["", f"{len(result.errors)} extraction errors (not committed):"]
         lines += [f"- {slug}: {msg}" for slug, msg in result.errors.items()]
@@ -116,6 +131,7 @@ def run_inventory_pass(
 
     result = InventoryResult()
     to_commit: list[Path] = []
+    written_slugs: set[str] = set()
 
     for entry in manifest:
         slug = _slugify(entry.path.stem)
@@ -123,6 +139,12 @@ def run_inventory_pass(
         audit_path = policies_dir / f"{slug}.audit.yaml"
         bundle_dir = policies_dir / slug
 
+        # Two source files in one pass can slugify to the same name. Treat that
+        # as a distinct, surfaced outcome rather than a silent "already present"
+        # skip, so a real document is never quietly dropped.
+        if slug in written_slugs:
+            result.skipped_collision.append(entry.path.name)
+            continue
         if md_path.exists() or bundle_dir.is_dir():
             result.skipped_existing.append(slug)
             continue
@@ -131,6 +153,11 @@ def run_inventory_pass(
             text = extract(entry.path)
         except UnsupportedFormatError:
             result.skipped_unsupported.append(entry.path.name)
+            continue
+        except Exception as exc:  # noqa: BLE001
+            # extract() reads untrusted external document files; one corrupt
+            # file must not sink a bulk pass over dozens of others.
+            result.errors[slug] = f"read failed: {exc}"
             continue
         if not text.strip():
             result.skipped_empty.append(entry.path.name)
@@ -147,6 +174,7 @@ def run_inventory_pass(
         audit_path.write_text(audit.to_audit_yaml(metadata), encoding="utf-8")
         to_commit.extend([md_path, audit_path])
         result.written.append(slug)
+        written_slugs.add(slug)
 
     if not to_commit:
         return result

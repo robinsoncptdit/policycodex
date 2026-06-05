@@ -46,6 +46,7 @@ def test_inventory_result_defaults_empty():
     result = InventoryResult()
     assert result.written == []
     assert result.skipped_existing == []
+    assert result.skipped_collision == []
     assert result.skipped_empty == []
     assert result.skipped_unsupported == []
     assert result.errors == {}
@@ -252,3 +253,68 @@ def test_empty_manifest_opens_no_pr(tmp_path):
     assert result.written == []
     assert provider.open_pr_calls == []
     assert result.pr is None
+
+
+def test_in_pass_slug_collision_is_surfaced_not_silently_dropped(tmp_path):
+    # Two distinct source files that slugify to the same name: the first is
+    # drafted; the second must be reported as a collision (a real document we
+    # refused to clobber), NOT mislabeled as an already-present skip.
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+    work = tmp_path / "work"
+    (work / "policies").mkdir(parents=True)
+
+    manifest = _manifest(
+        _src(src_dir, "Finance Policy.txt"),   # -> finance-policy (first wins)
+        _src(src_dir, "finance_policy.md"),    # -> finance-policy (collision)
+    )
+    provider = FakeGitProvider()
+    result = run_inventory_pass(
+        manifest=manifest, working_dir=work, provider=provider,
+        llm_provider=FakeLLM(), taxonomy=None, author_name="PolicyCodex",
+        author_email="bot@policycodex.local", base_branch="main",
+    )
+
+    assert result.written == ["finance-policy"]
+    assert result.skipped_collision == ["finance_policy.md"]
+    assert result.skipped_existing == []
+    # Only the first file's pair is committed; the collision is in the PR body.
+    committed = {p.name for p in provider.commit_calls[0]["files"]}
+    assert committed == {"finance-policy.md", "finance-policy.audit.yaml"}
+    assert "slug collisions" in provider.open_pr_calls[0]["body"]
+
+
+def test_corrupt_file_read_error_is_non_fatal(tmp_path, monkeypatch):
+    # A read/extract failure other than UnsupportedFormatError on one file must
+    # not sink the bulk pass; it lands in errors and the rest proceed.
+    import ai.inventory as inv
+
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+    work = tmp_path / "work"
+    (work / "policies").mkdir(parents=True)
+
+    good = _src(src_dir, "good.txt")
+    corrupt = _src(src_dir, "corrupt.pdf")
+
+    real_extract = inv.extract
+
+    def flaky_extract(path):
+        if path.name == "corrupt.pdf":
+            raise RuntimeError("PdfReadError: stream truncated")
+        return real_extract(path)
+
+    monkeypatch.setattr(inv, "extract", flaky_extract)
+
+    provider = FakeGitProvider()
+    result = run_inventory_pass(
+        manifest=_manifest(corrupt, good), working_dir=work, provider=provider,
+        llm_provider=FakeLLM(), taxonomy=None, author_name="PolicyCodex",
+        author_email="bot@policycodex.local", base_branch="main",
+    )
+
+    assert result.written == ["good"]
+    assert "corrupt" in result.errors
+    assert "read failed" in result.errors["corrupt"]
+    # The good file still drafted and a PR still opened.
+    assert result.pr is not None
