@@ -44,3 +44,116 @@ def test_inventory_result_defaults_empty():
     assert result.skipped_unsupported == []
     assert result.errors == {}
     assert result.pr is None
+
+
+import json
+from pathlib import Path
+
+import pytest
+
+from ai.inventory import run_inventory_pass
+from ingest.manifest import ManifestEntry
+
+
+class FakeLLM:
+    """Returns a canned extraction JSON, varying title by call count."""
+    def __init__(self):
+        self.calls = 0
+
+    def complete(self, prompt, max_tokens):
+        self.calls += 1
+        return json.dumps({
+            "title": f"Policy {self.calls}",
+            "summary": "A summary.",
+            "category": "IT",
+            "category_confidence": "high",
+            "retention_period_years": 7,
+            "version_stamp": "1.0",
+        })
+
+
+class FakeGitProvider:
+    """Records branch/commit/push/open_pr calls; opens one fake PR."""
+    def __init__(self):
+        self.branch_calls = []
+        self.commit_calls = []
+        self.push_calls = []
+        self.open_pr_calls = []
+
+    def branch(self, name, working_dir):
+        self.branch_calls.append(name)
+
+    def commit(self, message, files, author_name, author_email, working_dir):
+        self.commit_calls.append({
+            "message": message, "files": list(files),
+            "author_name": author_name, "author_email": author_email,
+        })
+        return "deadbeef"
+
+    def push(self, branch, working_dir):
+        self.push_calls.append(branch)
+
+    def open_pr(self, title, body, head_branch, base_branch, working_dir):
+        self.open_pr_calls.append({
+            "title": title, "body": body,
+            "head_branch": head_branch, "base_branch": base_branch,
+        })
+        return {"pr_number": 42, "url": "https://example/pr/42", "state": "open"}
+
+
+def _src(tmp_path: Path, name: str, body: str = "Real policy text.") -> Path:
+    p = tmp_path / name
+    p.write_text(body, encoding="utf-8")
+    return p
+
+
+def _manifest(*paths: Path) -> list[ManifestEntry]:
+    return [
+        ManifestEntry(path=p, content_hash="h", last_modified=0.0, source_label="local-folder")
+        for p in paths
+    ]
+
+
+def test_happy_path_writes_drafts_and_opens_one_bulk_pr(tmp_path):
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+    work = tmp_path / "work"
+    (work / "policies").mkdir(parents=True)
+
+    manifest = _manifest(_src(src_dir, "acceptable-use.txt"), _src(src_dir, "by-laws.md"))
+    provider = FakeGitProvider()
+    llm = FakeLLM()
+
+    result = run_inventory_pass(
+        manifest=manifest,
+        working_dir=work,
+        provider=provider,
+        llm_provider=llm,
+        taxonomy=None,
+        author_name="PolicyCodex",
+        author_email="bot@policycodex.local",
+        base_branch="main",
+        username="PolicyCodex",
+    )
+
+    assert result.written == ["acceptable-use", "by-laws"]
+    assert (work / "policies" / "acceptable-use.md").exists()
+    assert (work / "policies" / "acceptable-use.audit.yaml").exists()
+    assert (work / "policies" / "by-laws.md").exists()
+    assert (work / "policies" / "by-laws.audit.yaml").exists()
+    assert (work / "policies" / "acceptable-use.md").read_text().startswith("---\n")
+    assert "confidence:" in (work / "policies" / "acceptable-use.audit.yaml").read_text()
+
+    assert len(provider.branch_calls) == 1
+    assert provider.branch_calls[0].startswith("policycodex/inventory-")
+    assert len(provider.commit_calls) == 1
+    committed = {p.name for p in provider.commit_calls[0]["files"]}
+    assert committed == {
+        "acceptable-use.md", "acceptable-use.audit.yaml",
+        "by-laws.md", "by-laws.audit.yaml",
+    }
+    assert provider.commit_calls[0]["author_name"] == "PolicyCodex"
+    assert provider.push_calls == provider.branch_calls
+    assert len(provider.open_pr_calls) == 1
+    assert provider.open_pr_calls[0]["base_branch"] == "main"
+    assert result.pr == {"pr_number": 42, "url": "https://example/pr/42", "state": "open"}

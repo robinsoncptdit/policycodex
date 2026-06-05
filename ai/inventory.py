@@ -18,6 +18,14 @@ from __future__ import annotations
 import re
 import uuid
 from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
+
+from ai import audit, emit
+from ai.inventory_extract import InventoryExtractionError, extract_policy_metadata
+from ai.provider import LLMProvider
+from ingest.extractors import UnsupportedFormatError, extract
+from ingest.manifest import ManifestEntry
 
 # Capabilities the inventory pass needs the diocese's foundational bundle to
 # provide for retention/address grounding. Matches spike/extract.py.
@@ -61,3 +69,104 @@ class InventoryResult:
     skipped_unsupported: list[str] = field(default_factory=list)
     errors: dict[str, str] = field(default_factory=dict)
     pr: dict | None = None
+
+
+def _build_pr_body(result: "InventoryResult", username: str) -> str:
+    lines = [
+        f"Opened by PolicyCodex inventory pass on behalf of {username}.",
+        "",
+        f"Drafted {len(result.written)} policies:",
+    ]
+    lines += [f"- policies/{slug}.md" for slug in result.written]
+    if result.skipped_existing:
+        lines += ["", f"Skipped {len(result.skipped_existing)} already present:"]
+        lines += [f"- {slug}" for slug in result.skipped_existing]
+    if result.errors:
+        lines += ["", f"{len(result.errors)} extraction errors (not committed):"]
+        lines += [f"- {slug}: {msg}" for slug, msg in result.errors.items()]
+    return "\n".join(lines) + "\n"
+
+
+def run_inventory_pass(
+    *,
+    manifest: list[ManifestEntry],
+    working_dir: Path,
+    provider,
+    llm_provider: LLMProvider,
+    taxonomy: dict[str, Any] | None,
+    author_name: str,
+    author_email: str,
+    base_branch: str,
+    username: str = "PolicyCodex",
+) -> InventoryResult:
+    """Extract every manifest file, emit drafts, and open one bulk PR.
+
+    For each entry: extract text, run metadata extraction, emit
+    policies/<slug>.md + policies/<slug>.audit.yaml into the working copy.
+    Slugs already present are skipped (never clobbered). When at least one
+    draft is written, branch -> commit (all files) -> push -> open one PR.
+    When nothing is written, no branch/commit/PR happens and result.pr is None.
+
+    `provider` is a GitProvider; only branch/commit/push/open_pr are used.
+    Any git-provider exception propagates to the caller (the command degrades).
+    """
+    working_dir = Path(working_dir)
+    policies_dir = working_dir / "policies"
+    policies_dir.mkdir(parents=True, exist_ok=True)
+
+    result = InventoryResult()
+    to_commit: list[Path] = []
+
+    for entry in manifest:
+        slug = _slugify(entry.path.stem)
+        md_path = policies_dir / f"{slug}.md"
+        audit_path = policies_dir / f"{slug}.audit.yaml"
+        bundle_dir = policies_dir / slug
+
+        if md_path.exists() or bundle_dir.is_dir():
+            result.skipped_existing.append(slug)
+            continue
+
+        try:
+            text = extract(entry.path)
+        except UnsupportedFormatError:
+            result.skipped_unsupported.append(entry.path.name)
+            continue
+        if not text.strip():
+            result.skipped_empty.append(entry.path.name)
+            continue
+
+        try:
+            metadata = extract_policy_metadata(llm_provider, text, taxonomy)
+        except InventoryExtractionError as exc:
+            result.errors[slug] = str(exc)
+            continue
+
+        metadata["_source_file"] = entry.path.name
+        md_path.write_text(emit.to_markdown(metadata), encoding="utf-8")
+        audit_path.write_text(audit.to_audit_yaml(metadata), encoding="utf-8")
+        to_commit.extend([md_path, audit_path])
+        result.written.append(slug)
+
+    if not to_commit:
+        return result
+
+    branch_name = make_inventory_branch_name()
+    message = f"Inventory pass: add {len(result.written)} draft policies"
+    provider.branch(branch_name, working_dir)
+    provider.commit(
+        message=message,
+        files=to_commit,
+        author_name=author_name,
+        author_email=author_email,
+        working_dir=working_dir,
+    )
+    provider.push(branch_name, working_dir)
+    result.pr = provider.open_pr(
+        title=f"Inventory pass: {len(result.written)} draft policies",
+        body=_build_pr_body(result, username),
+        head_branch=branch_name,
+        base_branch=base_branch,
+        working_dir=working_dir,
+    )
+    return result
