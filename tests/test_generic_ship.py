@@ -22,6 +22,17 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 # Dirs whose contents are part of the shipping artifact and must stay generic.
 _SHIPPING_ROOTS = ("app", "core", "ai", "ingest", "policycodex_site", "repo-template")
 
+# Root-level files that ship in the public repo and must stay generic.
+_SHIPPING_ROOT_FILES = (
+    "Dockerfile",
+    ".dockerignore",
+    "docker-compose.yml",
+    "docker-compose.pull.yml",
+    ".env.example",
+    "install.sh",
+    "docker/entrypoint.sh",
+)
+
 # Text file types present in the shipping roots. This is an allowlist: a new
 # shipping file type (e.g. .toml, a Dockerfile) is NOT scanned until added here.
 _SCANNED_SUFFIXES = {
@@ -64,6 +75,12 @@ def _scanned_files():
                 continue
             if any(part in _EXCLUDED_PARTS for part in path.parts):
                 continue
+            yield path
+    # Root-level shipping files have no/uncommon suffixes (Dockerfile,
+    # .env.example), so yield them directly rather than via the suffix filter.
+    for rel in _SHIPPING_ROOT_FILES:
+        path = _REPO_ROOT / rel
+        if path.is_file():
             yield path
 
 
