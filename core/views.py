@@ -337,7 +337,9 @@ def _foundational_edit_post(request, slug, policy):
     bundle = {"classifications": classifications, "retention_schedule": retention_schedule}
 
     # build_data_yaml validates required fields + drops blank optionals (DRY
-    # with the APP-15 bootstrap emitter). A malformed bundle re-renders.
+    # with the APP-15 bootstrap emitter). Belt-and-suspenders: the formsets
+    # already enforce the required fields, so this rarely raises; it guards
+    # against a future emitter constraint the form layer doesn't mirror.
     try:
         data_yaml_text = build_data_yaml(bundle)
     except RetentionExtractionError as exc:
@@ -383,6 +385,9 @@ def _foundational_edit_post(request, slug, policy):
         )
     except (RuntimeError, ValueError) as exc:
         logger.error("APP-25 provider failure on slug=%s: %s", slug, exc)
+        # Surface the failure inline (not via messages.error like policy_edit):
+        # foundational_edit.html has no messages block, and inline keeps the
+        # admin's unsaved table edits on screen instead of a bare redirect.
         return _render(
             error="Couldn't open the pull request. The change is saved locally; "
                   "ask your administrator to retry from the server logs."
