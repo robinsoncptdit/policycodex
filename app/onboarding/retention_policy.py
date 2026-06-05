@@ -44,7 +44,7 @@ _NARRATIVE_STUB = (
 
 def _paths():
     config = load_working_copy_config()
-    policies_dir = config.working_dir
+    policies_dir = config.working_dir / "policies"
     staging = config.working_dir / ".policycodex-staging" / STEP_SLUG
     return policies_dir, staging
 
