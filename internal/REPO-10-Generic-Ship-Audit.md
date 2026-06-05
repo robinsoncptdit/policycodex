@@ -52,9 +52,11 @@ Result: PASS - no PT/Pensacola/Tallahassee/internal leakage observed in any user
 
 Scope note: a fresh clone has no policy repo synced, so the catalog is empty and the
 `/policies/<slug>/` detail view + edit affordance have no live data to render (`/policies/`
-and a bogus slug both 404 cleanly). Those templates are covered by the static guard test
-(they live under `app/`) and were browser-verified during APP-23 development. The live walk
-here confirms the install path and the onboarding/catalog/health surfaces render generically.
+and a bogus slug both 404 cleanly). The detail view (`core/views.py:policy_detail`,
+`core/templates/policy_detail.html`) and its templates are covered by the static guard test
+(`core` is one of the six scanned shipping roots) and were browser-verified during APP-23
+development. The live walk here confirms the install path and the onboarding/catalog/health
+surfaces render generically.
 
 Deferred to REPO-05: the `docker compose up` install path. The Python version pin
 exercised here (3.14.5) folds into REPO-11.
