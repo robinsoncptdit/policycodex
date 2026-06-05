@@ -54,3 +54,20 @@ def build_config_yaml(all_data: dict) -> str:
             onboarding[step.slug] = _scrub_secrets(all_data[step.slug])
     doc = {"schema_version": CONFIG_SCHEMA_VERSION, "onboarding": onboarding}
     return yaml.safe_dump(doc, sort_keys=False, allow_unicode=True)
+
+
+def write_config_file(working_dir: Path, config_yaml_text: str) -> Path:
+    """Write `.policycodex/config.yaml` under the working copy. Returns its path."""
+    config_dir = Path(working_dir) / CONFIG_DIR_NAME
+    config_dir.mkdir(parents=True, exist_ok=True)
+    config_path = config_dir / CONFIG_FILE_NAME
+    text = config_yaml_text if config_yaml_text.endswith("\n") else config_yaml_text + "\n"
+    config_path.write_text(text, encoding="utf-8")
+    return config_path
+
+
+def make_onboarding_branch_name() -> str:
+    """policycodex/onboarding-<short-uuid>. Distinct from edit branches so the
+    catalog's slug-mapped gate lookup ignores it (this PR is repo init, not a
+    single-policy edit)."""
+    return f"policycodex/onboarding-{uuid.uuid4().hex[:8]}"
