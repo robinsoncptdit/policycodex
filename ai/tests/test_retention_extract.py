@@ -2,9 +2,12 @@
 import json
 
 import pytest
+import yaml
 
 from ai.retention_extract import (
+    EXTRACTION_MAX_TOKENS,
     RetentionExtractionError,
+    build_data_yaml,
     extract_retention_bundle,
     parse_bundle_response,
 )
@@ -63,4 +66,32 @@ def test_extract_calls_provider_and_parses():
     result = extract_retention_bundle(provider, "PDF TEXT HERE")
     assert result == VALID_BUNDLE
     assert "PDF TEXT HERE" in provider.last_prompt
-    assert provider.last_max_tokens >= 8192
+    assert provider.last_max_tokens == EXTRACTION_MAX_TOKENS
+
+
+def test_build_data_yaml_round_trips():
+    text = build_data_yaml(VALID_BUNDLE)
+    loaded = yaml.safe_load(text)
+    assert [c["id"] for c in loaded["classifications"]] == ["administrative", "financial"]
+    assert loaded["retention_schedule"][0]["group"] == "Administrative Records"
+    assert loaded["retention_schedule"][1]["retention"] == "Permanent"
+
+
+def test_build_data_yaml_omits_blank_optional_keys():
+    text = build_data_yaml(VALID_BUNDLE)
+    loaded = yaml.safe_load(text)
+    # Row 2 had no medium/retained_at/sub_group -> those keys are absent.
+    assert set(loaded["retention_schedule"][1]) == {"group", "type", "retention"}
+
+
+def test_build_data_yaml_rejects_row_missing_required_field():
+    bad = {"classifications": [{"id": "x", "name": "X"}],
+           "retention_schedule": [{"group": "G", "type": "T"}]}  # no retention
+    with pytest.raises(RetentionExtractionError, match="retention"):
+        build_data_yaml(bad)
+
+
+def test_build_data_yaml_rejects_classification_missing_id():
+    bad = {"classifications": [{"name": "X"}], "retention_schedule": []}
+    with pytest.raises(RetentionExtractionError, match="id"):
+        build_data_yaml(bad)

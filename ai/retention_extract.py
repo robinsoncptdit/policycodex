@@ -19,6 +19,11 @@ from ai.provider import LLMProvider
 # A single completion may still truncate; that is a known v0.1 limitation.
 EXTRACTION_MAX_TOKENS = 8192
 
+# Cap injected document text so the prompt stays within budget. A very long
+# retention policy is truncated here (input-side counterpart to the
+# EXTRACTION_MAX_TOKENS output cap); chunked extraction is a post-DISC item.
+MAX_DOCUMENT_CHARS = 50000
+
 RETENTION_BUNDLE_PROMPT = """\
 You are a records-management archivist for a Catholic diocese. You are given
 the full text of the diocese's Document Retention Policy. Extract two
@@ -79,6 +84,47 @@ def parse_bundle_response(raw: str) -> dict[str, Any]:
 
 def extract_retention_bundle(provider: LLMProvider, document_text: str) -> dict[str, Any]:
     """Run the extraction prompt against the retention document text."""
-    prompt = RETENTION_BUNDLE_PROMPT + document_text[:50000]
+    prompt = RETENTION_BUNDLE_PROMPT + document_text[:MAX_DOCUMENT_CHARS]
     raw = provider.complete(prompt, EXTRACTION_MAX_TOKENS)
     return parse_bundle_response(raw)
+
+
+_CLASSIFICATION_KEYS = ("id", "name")
+_RETENTION_REQUIRED = ("group", "type", "retention")
+_RETENTION_OPTIONAL = ("sub_group", "medium", "retained_at")
+
+
+def _clean_classification(entry: dict[str, Any]) -> dict[str, Any]:
+    for key in _CLASSIFICATION_KEYS:
+        if not entry.get(key):
+            raise RetentionExtractionError(f"classification missing '{key}': {entry!r}")
+    return {"id": str(entry["id"]), "name": str(entry["name"])}
+
+
+def _clean_retention_row(row: dict[str, Any]) -> dict[str, Any]:
+    for key in _RETENTION_REQUIRED:
+        if not row.get(key):
+            raise RetentionExtractionError(f"retention row missing '{key}': {row!r}")
+    # group, then optional sub_group, then type/retention, then remaining optionals.
+    cleaned: dict[str, Any] = {"group": str(row["group"])}
+    if row.get("sub_group"):
+        cleaned["sub_group"] = str(row["sub_group"])
+    cleaned["type"] = str(row["type"])
+    cleaned["retention"] = str(row["retention"])
+    for key in ("medium", "retained_at"):
+        if row.get(key):
+            cleaned[key] = str(row[key])
+    return cleaned
+
+
+def build_data_yaml(bundle: dict[str, Any]) -> str:
+    """Render an extracted bundle into the canonical data.yaml text.
+
+    Validates that every classification has id+name and every retention row
+    has group+type+retention; blank optional keys are omitted. Raises
+    RetentionExtractionError on a malformed row so the caller can re-prompt.
+    """
+    classifications = [_clean_classification(c) for c in bundle.get("classifications", [])]
+    schedule = [_clean_retention_row(r) for r in bundle.get("retention_schedule", [])]
+    doc = {"classifications": classifications, "retention_schedule": schedule}
+    return yaml.safe_dump(doc, sort_keys=False, default_flow_style=False, allow_unicode=True)
