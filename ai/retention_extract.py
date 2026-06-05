@@ -91,7 +91,6 @@ def extract_retention_bundle(provider: LLMProvider, document_text: str) -> dict[
 
 _CLASSIFICATION_KEYS = ("id", "name")
 _RETENTION_REQUIRED = ("group", "type", "retention")
-_RETENTION_OPTIONAL = ("sub_group", "medium", "retained_at")
 
 
 def _clean_classification(entry: dict[str, Any]) -> dict[str, Any]:
