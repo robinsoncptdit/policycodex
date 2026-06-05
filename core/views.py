@@ -304,7 +304,91 @@ def foundational_edit(request, slug):
 
 
 def _foundational_edit_post(request, slug, policy):
-    raise NotImplementedError  # implemented in APP-25 Task 3
+    cforms = ClassificationFormSet(request.POST, prefix="cls")
+    rforms = RetentionRowFormSet(request.POST, prefix="ret")
+    meta = FoundationalEditMetaForm(request.POST)
+
+    def _render(error=None):
+        return render(request, "foundational_edit.html", {
+            "policy": policy, "cforms": cforms, "rforms": rforms,
+            "meta": meta, "error": error,
+        })
+
+    if not (cforms.is_valid() and rforms.is_valid() and meta.is_valid()):
+        return _render()
+
+    classifications = [
+        {"id": f.cleaned_data["id"], "name": f.cleaned_data["name"]}
+        for f in cforms
+        if f.cleaned_data and not f.cleaned_data.get("DELETE")
+    ]
+    retention_schedule = [
+        {
+            "group": f.cleaned_data["group"],
+            "sub_group": f.cleaned_data.get("sub_group", ""),
+            "type": f.cleaned_data["type"],
+            "retention": f.cleaned_data["retention"],
+            "medium": f.cleaned_data.get("medium", ""),
+            "retained_at": f.cleaned_data.get("retained_at", ""),
+        }
+        for f in rforms
+        if f.cleaned_data and not f.cleaned_data.get("DELETE")
+    ]
+    bundle = {"classifications": classifications, "retention_schedule": retention_schedule}
+
+    # build_data_yaml validates required fields + drops blank optionals (DRY
+    # with the APP-15 bootstrap emitter). A malformed bundle re-renders.
+    try:
+        data_yaml_text = build_data_yaml(bundle)
+    except RetentionExtractionError as exc:
+        return _render(error=f"Could not save: {exc}")
+
+    # Write the edited data.yaml in the working copy.
+    policy.data_path.write_text(data_yaml_text, encoding="utf-8")
+
+    # Same four-operation gate sequence as policy_edit, committing data.yaml.
+    config = load_working_copy_config()
+    working_dir = config.working_dir
+    provider = GitHubProvider()
+    author_name, author_email = get_git_author(request.user)
+    branch_name = _make_branch_name(slug)
+    summary = (meta.cleaned_data.get("summary") or "").strip()
+    commit_message = summary or f"Update {slug} classifications and retention schedule"
+
+    try:
+        provider.branch(branch_name, working_dir)
+        provider.commit(
+            message=commit_message,
+            files=[policy.data_path],
+            author_name=author_name,
+            author_email=author_email,
+            working_dir=working_dir,
+        )
+        provider.push(branch_name, working_dir)
+        pr_title = f"Edit policies/{slug}: {commit_message}"
+        pr_body = (
+            f"Opened by PolicyCodex on behalf of {request.user.username}.\n"
+            f"\n"
+            f"Foundational policy: policies/{slug} (data.yaml)\n"
+            f"Author: {author_name} <{author_email}>\n"
+        )
+        if summary:
+            pr_body += f"\n{summary}\n"
+        pr = provider.open_pr(
+            title=pr_title,
+            body=pr_body,
+            head_branch=branch_name,
+            base_branch=config.branch,
+            working_dir=working_dir,
+        )
+    except (RuntimeError, ValueError) as exc:
+        logger.error("APP-25 provider failure on slug=%s: %s", slug, exc)
+        return _render(
+            error="Couldn't open the pull request. The change is saved locally; "
+                  "ask your administrator to retry from the server logs."
+        )
+
+    return render(request, "policy_edit_success.html", {"policy": policy, "pr": pr})
 
 
 @login_required
