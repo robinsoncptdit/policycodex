@@ -9,6 +9,7 @@
   <form method="post"{% if multipart %} enctype="multipart/form-data"{% endif %}>
     {% csrf_token %}
     {% block step_content %}{% endblock %}
+    {% block wizard_nav %}
     <div class="wizard-nav">
       {% if prev_step %}
         <button type="submit" name="action" value="back">Back</button>
@@ -20,5 +21,6 @@
       {% endif %}
       <button type="submit" name="action" value="save_exit">Save and exit</button>
     </div>
+    {% endblock %}
   </form>
 {% endblock %}
