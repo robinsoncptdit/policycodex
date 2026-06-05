@@ -69,6 +69,19 @@ class GitHubRepoForm(forms.Form):
         return cleaned
 
 
+class RetentionPolicyUploadForm(forms.Form):
+    pdf_file = forms.FileField(
+        label="Retention policy PDF",
+        help_text="Upload your diocese's Document Retention Policy as a PDF.",
+    )
+
+    def clean_pdf_file(self):
+        upload = self.cleaned_data["pdf_file"]
+        if not upload.name.lower().endswith(".pdf"):
+            raise forms.ValidationError("Upload a PDF file (.pdf).")
+        return upload
+
+
 _FORMS = {
     "github-repo": GitHubRepoForm,
 }
