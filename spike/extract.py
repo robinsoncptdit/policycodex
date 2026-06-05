@@ -46,7 +46,7 @@ MODEL = os.getenv("POLICYWONK_MODEL", "claude-opus-4-8")
 # working copy's policies/ dir to enable it. When unset or no matching bundle
 # exists, fall back to the seed taxonomy below (the dev default). The bundle
 # is found by capability (`provides:`), not by a hardcoded slug.
-SEED_TAXONOMY_PATH = Path(__file__).resolve().parent.parent / "ai" / "taxonomies" / "pt_classification.yaml"
+SEED_TAXONOMY_PATH = Path(__file__).resolve().parent.parent / "ai" / "taxonomies" / "seed_classification.example.yaml"
 REQUIRED_CAPABILITIES = ("classifications", "retention-schedule")
 
 

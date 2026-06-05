@@ -82,8 +82,8 @@ def foundational_policy_check(app_configs, **kwargs) -> Sequence:
                 f"No foundational policy provides the `{capability}` capability.",
                 hint=(
                     f"Add a policy bundle whose policy.md declares `foundational: true` "
-                    f"and `provides: [{capability}, ...]`. See "
-                    "internal/PolicyWonk-Foundational-Policy-Design.md."
+                    f"and `provides: [{capability}, ...]`. See the foundational-policy "
+                    "design doc in the PolicyCodex project repository."
                 ),
                 id="policycodex.E002",
             ))
