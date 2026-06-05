@@ -25,7 +25,7 @@ jobs:
     permissions:
       # `pages: read` is required for `gh api repos/$REPO/pages`; without it
       # the call returns 403 and the gate silently flips to skip-deploy.
-      # Verified on the first live install (pt-policy run 26451196165).
+      # Verified against a live GitHub Pages install.
       contents: read
       pages: read
     outputs:
