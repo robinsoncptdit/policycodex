@@ -2,6 +2,7 @@ import logging
 import uuid
 from pathlib import Path
 
+import yaml
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, JsonResponse
@@ -13,7 +14,13 @@ from app.git_provider.github_provider import GitHubProvider
 from app.git_provider.states import branch_to_slug
 from app.working_copy.config import load_working_copy_config
 from ai.gap_detection import is_gap, known_types
+from ai.retention_extract import RetentionExtractionError, build_data_yaml
 from ai.taxonomy_loader import load_foundational_taxonomy
+from core.forms import (
+    ClassificationFormSet,
+    FoundationalEditMetaForm,
+    RetentionRowFormSet,
+)
 from core.forms import PolicyEditForm
 from core.git_identity import get_git_author
 from core.policy_writer import _render_policy_md
@@ -241,6 +248,63 @@ def policy_edit(request, slug):
         "summary": "",
     })
     return render(request, "policy_edit.html", {"policy": policy, "form": form})
+
+
+def _classification_initial(data: dict) -> list[dict]:
+    return [
+        {"id": c.get("id", ""), "name": c.get("name", "")}
+        for c in (data.get("classifications") or [])
+    ]
+
+
+def _retention_initial(data: dict) -> list[dict]:
+    rows = []
+    for r in (data.get("retention_schedule") or []):
+        rows.append({
+            "group": r.get("group", ""),
+            "sub_group": r.get("sub_group", ""),
+            "type": r.get("type", ""),
+            "retention": r.get("retention", ""),
+            "medium": r.get("medium", ""),
+            "retained_at": r.get("retained_at", ""),
+        })
+    return rows
+
+
+@login_required
+def foundational_edit(request, slug):
+    """Typed-table editor for a foundational bundle's data.yaml (APP-25).
+
+    GET renders editable classification + retention-row tables prefilled
+    from data.yaml. POST writes an edited data.yaml and opens a PR through
+    the same gate flow as policy_edit. Non-foundational policies are sent to
+    the flat editor; this view edits only foundational bundles.
+    """
+    policy = _find_policy(slug)
+    if policy is None:
+        raise Http404(f"Policy not found: {slug}")
+    if not policy.foundational:
+        return redirect("policy_edit", slug=slug)
+
+    data = yaml.safe_load(policy.data_path.read_text(encoding="utf-8")) or {}
+
+    if request.method == "POST":
+        return _foundational_edit_post(request, slug, policy)
+
+    cforms = ClassificationFormSet(
+        initial=_classification_initial(data), prefix="cls"
+    )
+    rforms = RetentionRowFormSet(
+        initial=_retention_initial(data), prefix="ret"
+    )
+    meta = FoundationalEditMetaForm()
+    return render(request, "foundational_edit.html", {
+        "policy": policy, "cforms": cforms, "rforms": rforms, "meta": meta,
+    })
+
+
+def _foundational_edit_post(request, slug, policy):
+    raise NotImplementedError  # implemented in APP-25 Task 3
 
 
 @login_required

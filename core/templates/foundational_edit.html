@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Edit {{ policy.frontmatter.title|default:policy.slug }} | PolicyCodex{% endblock %}
+
+{% block content %}
+  <h2>Edit {{ policy.frontmatter.title|default:policy.slug }}</h2>
+  <p>This is a foundational policy. Editing here opens a pull request that
+     flows through Drafted &rarr; Reviewed &rarr; Published, just like every
+     other policy change.</p>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <h3>Classifications</h3>
+    {{ cforms.management_form }}
+    <table class="typed-table classifications">
+      <thead><tr><th>id</th><th>name</th><th>delete</th></tr></thead>
+      <tbody>
+        {% for f in cforms %}
+          <tr>
+            <td>{{ f.id }}{{ f.id.errors }}</td>
+            <td>{{ f.name }}{{ f.name.errors }}</td>
+            <td>{% if f.DELETE %}{{ f.DELETE }}{% endif %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h3>Retention schedule</h3>
+    {{ rforms.management_form }}
+    <table class="typed-table retention">
+      <thead><tr>
+        <th>group</th><th>sub_group</th><th>type</th>
+        <th>retention</th><th>medium</th><th>retained_at</th><th>delete</th>
+      </tr></thead>
+      <tbody>
+        {% for f in rforms %}
+          <tr>
+            <td>{{ f.group }}{{ f.group.errors }}</td>
+            <td>{{ f.sub_group }}</td>
+            <td>{{ f.type }}{{ f.type.errors }}</td>
+            <td>{{ f.retention }}{{ f.retention.errors }}</td>
+            <td>{{ f.medium }}</td>
+            <td>{{ f.retained_at }}</td>
+            <td>{% if f.DELETE %}{{ f.DELETE }}{% endif %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <p>{{ meta.summary.label_tag }} {{ meta.summary }}</p>
+    {% if error %}<p class="form-error">{{ error }}</p>{% endif %}
+
+    <button type="submit">Open PR</button>
+    <a href="{% url 'catalog' %}">Cancel</a>
+  </form>
+{% endblock %}

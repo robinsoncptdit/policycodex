@@ -10,5 +10,10 @@ urlpatterns = [
     path("catalog/", views.catalog, name="catalog"),
     path("policies/approve/", views.approve_pr, name="approve_pr"),
     path("policies/<slug:slug>/edit/", views.policy_edit, name="policy_edit"),
+    path(
+        "policies/<slug:slug>/foundational-edit/",
+        views.foundational_edit,
+        name="foundational_edit",
+    ),
     path("policies/<slug:slug>/publish/", views.publish_policy, name="publish_policy"),
 ]
