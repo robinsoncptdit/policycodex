@@ -1,0 +1,13 @@
+{% extends "onboarding/base_wizard.html" %}
+
+{% block step_content %}
+  <p>Upload your diocese's Document Retention Policy. We extract its
+     classifications and retention schedule for you to review.</p>
+  {{ form.as_p }}
+  {% if error %}<p class="wizard-error">{{ error }}</p>{% endif %}
+  <div class="wizard-nav">
+    <button type="submit" name="action" value="back">Back</button>
+    <button type="submit" name="action" value="extract">Upload and extract</button>
+    <button type="submit" name="action" value="save_exit">Save and exit</button>
+  </div>
+{% endblock %}
