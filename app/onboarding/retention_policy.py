@@ -31,6 +31,9 @@ from app.onboarding.forms import RetentionPolicyUploadForm
 from app.onboarding.scaffold import scaffold_retention_bundle
 from app.working_copy.config import load_working_copy_config
 from ingest.extractors import extract as extract_text
+from app.git_provider.github_provider import GitHubProvider
+from app.onboarding.finalize import build_config_yaml, finalize_onboarding
+from core.git_identity import get_git_author
 
 logger = logging.getLogger(__name__)
 
@@ -157,7 +160,7 @@ def handle(request, target, state):
         draft = _load_draft(staging)
         if draft is None:
             return _render_upload(request, target, state)
-        scaffold_retention_bundle(
+        bundle_dir = scaffold_retention_bundle(
             policies_dir,
             title=draft["title"],
             owner=draft["owner"],
@@ -165,9 +168,34 @@ def handle(request, target, state):
             data_yaml_text=draft["data_yaml"],
             source_pdf=staging / "source.pdf" if (staging / "source.pdf").is_file() else None,
         )
-        shutil.rmtree(staging, ignore_errors=True)
+        config = load_working_copy_config()
+        author_name, author_email = get_git_author(request.user)
+        config_yaml_text = build_config_yaml(state.all_data())
+        try:
+            pr = finalize_onboarding(
+                working_dir=config.working_dir,
+                config_yaml_text=config_yaml_text,
+                bundle_dir=bundle_dir,
+                provider=GitHubProvider(),
+                author_name=author_name,
+                author_email=author_email,
+                base_branch=config.branch,
+                username=request.user.get_username(),
+            )
+        except (RuntimeError, ValueError) as exc:
+            logger.error("APP-16 onboarding finalize failed: %s", exc)
+            messages.error(
+                request,
+                "Couldn't publish your configuration to the policy repository. "
+                "Your choices are saved locally; ask your administrator to retry.",
+            )
+            return _render_review(request, target, state, draft)
+        shutil.rmtree(staging.parent, ignore_errors=True)
         state.mark_complete(STEP_SLUG)
-        messages.success(request, "Onboarding complete. Your retention policy is scaffolded.")
+        messages.success(
+            request,
+            f"Onboarding complete. Configuration pull request opened: {pr.get('url', '')}",
+        )
         return redirect("catalog")
 
     # Unknown action: re-render current state defensively.

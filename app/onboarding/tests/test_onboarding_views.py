@@ -102,7 +102,7 @@ def test_can_revisit_completed_step_without_trapping(client, user):
     assert client.get("/onboarding/address-scheme/").status_code == 200
 
 
-def test_last_step_continue_completes_and_redirects_to_catalog(client, user, working_copy, stub_extraction):
+def test_last_step_continue_completes_and_redirects_to_catalog(client, user, working_copy, stub_extraction, stub_git_provider):
     client.force_login(user)
     _advance_to_retention_policy(client)
     upload = SimpleUploadedFile("retention.pdf", b"%PDF-1.4", content_type="application/pdf")
@@ -193,6 +193,41 @@ def stub_extraction(monkeypatch):
     monkeypatch.setattr(rp, "ClaudeProvider", lambda *a, **k: object())
 
 
+@pytest.fixture
+def stub_git_provider(monkeypatch):
+    """Replace GitHubProvider in the screen-7 handler with a recorder that does
+    no real git/network work and returns a canned PR."""
+    from app.onboarding import retention_policy as rp
+
+    class _RecorderProvider:
+        instances = []
+
+        def __init__(self):
+            self.calls = []
+            _RecorderProvider.instances.append(self)
+
+        def branch(self, name, working_dir):
+            self.calls.append(("branch", name))
+
+        def commit(self, *, message, files, author_name, author_email, working_dir):
+            self.calls.append(("commit", list(files)))
+            return "deadbeef"
+
+        def push(self, branch, working_dir):
+            self.calls.append(("push", branch))
+
+        def open_pr(self, *, title, body, head_branch, base_branch, working_dir):
+            self.calls.append(("open_pr", head_branch))
+            return {
+                "pr_number": 1,
+                "url": "https://github.com/acme/policies/pull/1",
+                "state": "drafted",
+            }
+
+    monkeypatch.setattr(rp, "GitHubProvider", _RecorderProvider)
+    return _RecorderProvider
+
+
 def test_screen7_get_shows_upload_form(client, user, working_copy):
     client.force_login(user)
     _advance_to_retention_policy(client)
@@ -240,7 +275,7 @@ def test_screen7_extract_failure_rerenders_upload_with_error(client, user, worki
     assert "process that document" in body.lower()
 
 
-def test_screen7_accept_scaffolds_bundle_and_finishes(client, user, working_copy, stub_extraction):
+def test_screen7_accept_scaffolds_bundle_and_finishes(client, user, working_copy, stub_extraction, stub_git_provider):
     client.force_login(user)
     _advance_to_retention_policy(client)
     upload = SimpleUploadedFile("retention.pdf", b"%PDF-1.4", content_type="application/pdf")
@@ -264,3 +299,50 @@ def test_screen7_reupload_clears_draft(client, user, working_copy, stub_extracti
     resp = client.post("/onboarding/retention-policy/", {"action": "reupload"})
     assert resp.status_code == 200
     assert 'name="pdf_file"' in resp.content.decode()  # back to upload form
+
+
+def test_screen7_accept_commits_config_and_opens_pr(client, user, working_copy, stub_extraction, stub_git_provider):
+    import yaml
+
+    client.force_login(user)
+    _advance_to_retention_policy(client)
+    upload = SimpleUploadedFile("retention.pdf", b"%PDF-1.4", content_type="application/pdf")
+    client.post("/onboarding/retention-policy/", {"action": "extract", "pdf_file": upload})
+    resp = client.post("/onboarding/retention-policy/", {"action": "accept"})
+
+    assert resp.status_code == 302
+    assert resp.url == "/catalog/"
+
+    working_dir = working_copy.parent
+    config_path = working_dir / ".policycodex" / "config.yaml"
+    assert config_path.is_file()
+    doc = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    assert doc["onboarding"]["github-repo"]["repo_url"] == "https://github.com/acme/policies"
+
+    provider = stub_git_provider.instances[-1]
+    assert [c[0] for c in provider.calls] == ["branch", "commit", "push", "open_pr"]
+    commit_files = [c for c in provider.calls if c[0] == "commit"][0][1]
+    assert config_path in commit_files
+    assert all(".policycodex-staging" not in str(f) for f in commit_files)
+
+    assert not (working_dir / ".policycodex-staging").exists()
+
+
+def test_screen7_accept_provider_failure_rerenders_review_and_keeps_local(client, user, working_copy, stub_extraction, monkeypatch):
+    from app.onboarding import retention_policy as rp
+
+    class _BoomProvider:
+        def branch(self, name, working_dir):
+            raise RuntimeError("push rejected by branch protection")
+
+    monkeypatch.setattr(rp, "GitHubProvider", _BoomProvider)
+
+    client.force_login(user)
+    _advance_to_retention_policy(client)
+    upload = SimpleUploadedFile("retention.pdf", b"%PDF-1.4", content_type="application/pdf")
+    client.post("/onboarding/retention-policy/", {"action": "extract", "pdf_file": upload})
+    resp = client.post("/onboarding/retention-policy/", {"action": "accept"})
+
+    assert resp.status_code == 200
+    assert "Administrative" in resp.content.decode()
+    assert (working_copy / "document-retention" / "data.yaml").is_file()
