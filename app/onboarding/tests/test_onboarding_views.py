@@ -218,6 +218,27 @@ def test_screen7_extract_shows_readonly_review(client, user, working_copy, stub_
     assert 'value="reupload"' in body
 
 
+def test_screen7_extract_failure_rerenders_upload_with_error(client, user, working_copy, monkeypatch):
+    """A corrupt PDF / provider outage must degrade to a friendly re-prompt, not 500."""
+    from app.onboarding import retention_policy as rp
+
+    monkeypatch.setattr(rp, "ClaudeProvider", lambda *a, **k: object())
+
+    def _boom(path):
+        raise ValueError("corrupt pdf bytes")
+
+    monkeypatch.setattr(rp, "extract_text", _boom)
+
+    client.force_login(user)
+    _advance_to_retention_policy(client)
+    upload = SimpleUploadedFile("retention.pdf", b"not really a pdf", content_type="application/pdf")
+    resp = client.post("/onboarding/retention-policy/", {"action": "extract", "pdf_file": upload})
+    assert resp.status_code == 200
+    body = resp.content.decode()
+    assert 'name="pdf_file"' in body  # back on the upload form
+    assert "couldn't process" in body.lower()
+
+
 def test_screen7_accept_scaffolds_bundle_and_finishes(client, user, working_copy, stub_extraction):
     client.force_login(user)
     _advance_to_retention_policy(client)
