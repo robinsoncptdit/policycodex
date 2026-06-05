@@ -39,6 +39,8 @@ def _is_secret_key(key: str) -> bool:
 
 
 def _scrub_secrets(step_data: dict) -> dict:
+    # Assumes flat per-step data (every wizard form is flat today). A future
+    # screen that nests a credential under a sub-dict would need recursion here.
     return {k: v for k, v in step_data.items() if not _is_secret_key(k)}
 
 
