@@ -176,9 +176,12 @@ FAKE_BUNDLE = {
 def working_copy(settings, tmp_path):
     settings.POLICYCODEX_POLICY_REPO_URL = "https://github.com/acme/policies.git"
     settings.POLICYCODEX_WORKING_COPY_ROOT = str(tmp_path)
-    # working_dir = tmp_path / "policies"
-    (tmp_path / "policies").mkdir()
-    return tmp_path / "policies"
+    # repo name "policies" -> working_dir = tmp_path/policies; the diocese repo
+    # holds policies under a top-level policies/ dir (matches core/views.py),
+    # so the policies root is working_dir/policies = tmp_path/policies/policies.
+    policies_dir = tmp_path / "policies" / "policies"
+    policies_dir.mkdir(parents=True)
+    return policies_dir
 
 
 @pytest.fixture
