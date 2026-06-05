@@ -81,3 +81,75 @@ def test_policy_detail_renders_title(client, user):
     response = _get_detail(client, "onboarding", policies)
     assert response.status_code == 200
     assert "New Employee Onboarding" in response.content.decode()
+
+
+def test_policy_detail_renders_body(client, user):
+    client.force_login(user)
+    body = "## Purpose\n\nThis policy governs onboarding."
+    policies = [_stub_policy(slug="onboarding", kind="flat", body=body)]
+    response = _get_detail(client, "onboarding", policies)
+    content = response.content.decode()
+    assert "This policy governs onboarding." in content
+
+
+def test_policy_detail_renders_frontmatter_metadata(client, user):
+    client.force_login(user)
+    policies = [_stub_policy(
+        slug="onboarding",
+        kind="flat",
+        title="Onboarding",
+        frontmatter={"owner": "HR Director", "effective_date": "2026-01-01"},
+    )]
+    response = _get_detail(client, "onboarding", policies)
+    content = response.content.decode()
+    assert "owner" in content
+    assert "HR Director" in content
+    assert "effective_date" in content
+    assert "2026-01-01" in content
+
+
+def test_policy_detail_shows_provides_for_foundational(client, user):
+    client.force_login(user)
+    policies = [_stub_policy(
+        slug="document-retention",
+        kind="bundle",
+        title="Document Retention",
+        foundational=True,
+        provides=("classifications", "retention-schedule"),
+    )]
+    response = _get_detail(client, "document-retention", policies)
+    content = response.content.decode()
+    assert "classifications" in content
+    assert "retention-schedule" in content
+
+
+def test_policy_detail_omits_provides_for_non_foundational(client, user):
+    client.force_login(user)
+    policies = [_stub_policy(slug="onboarding", kind="flat")]
+    response = _get_detail(client, "onboarding", policies)
+    content = response.content.decode()
+    assert "Provides" not in content
+
+
+def test_policy_detail_shows_gate_badge(client, user):
+    client.force_login(user)
+    policies = [_stub_policy(slug="onboarding", kind="flat")]
+    open_prs = [{
+        "pr_number": 3,
+        "head_branch": "policycodex/draft-onboarding",
+        "gate": "drafted",
+        "url": "https://example.com/p/3",
+    }]
+    response = _get_detail(client, "onboarding", policies, open_prs=open_prs)
+    content = response.content.decode()
+    assert "gate-drafted" in content
+    assert "Drafted" in content
+
+
+def test_policy_detail_defaults_to_published_gate(client, user):
+    client.force_login(user)
+    policies = [_stub_policy(slug="onboarding", kind="flat")]
+    response = _get_detail(client, "onboarding", policies, open_prs=[])
+    content = response.content.decode()
+    assert "gate-published" in content
+    assert "Published" in content

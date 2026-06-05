@@ -6,5 +6,40 @@
   <h2>{{ policy.frontmatter.title|default:policy.slug }}</h2>
   <p class="policy-slug"><code>policies/{{ policy.slug }}</code></p>
 
+  <p class="badges">
+    <span class="kind-badge kind-{{ policy.kind }}">{{ policy.kind }}</span>
+    {% if policy.foundational %}
+      <span class="foundational-badge">(foundational)</span>
+    {% endif %}
+    <span class="gate-badge gate-{{ gate }}">{{ gate|title }}</span>
+  </p>
+
+  {% if policy.foundational and policy.provides %}
+    <section class="provides">
+      <h3>Provides</h3>
+      <ul>
+        {% for item in policy.provides %}
+          <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+
+  <section class="frontmatter">
+    <h3>Metadata</h3>
+    <table>
+      <tbody>
+        {% for key, value in policy.frontmatter.items %}
+          <tr><th>{{ key }}</th><td>{{ value }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="policy-body">
+    <h3>Document</h3>
+    <pre>{{ policy.body }}</pre>
+  </section>
+
   <p><a href="{% url 'catalog' %}">Back to catalog</a></p>
 {% endblock %}
