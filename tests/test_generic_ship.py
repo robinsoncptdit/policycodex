@@ -22,9 +22,12 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 # Dirs whose contents are part of the shipping artifact and must stay generic.
 _SHIPPING_ROOTS = ("app", "core", "ai", "ingest", "policycodex_site", "repo-template")
 
+# Text file types present in the shipping roots. This is an allowlist: a new
+# shipping file type (e.g. .toml, a Dockerfile) is NOT scanned until added here.
 _SCANNED_SUFFIXES = {
     ".py", ".yaml", ".yml", ".html", ".md", ".txt",
     ".cfg", ".ini", ".astro", ".mjs", ".js", ".json",
+    ".sh", ".ts", ".css",  # vendored verbatim into diocese repos via repo-template/
 }
 
 # A path containing any of these parts is skipped.
