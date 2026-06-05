@@ -36,6 +36,7 @@ def test_retention_row_optional_fields_not_required():
     assert form.is_valid(), form.errors
     assert form.cleaned_data["sub_group"] == ""
     assert form.cleaned_data["medium"] == ""
+    assert form.cleaned_data["retained_at"] == ""
 
 
 def test_classification_formset_extra_blank_row_is_ignored():
