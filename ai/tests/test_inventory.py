@@ -1,12 +1,18 @@
 """Unit tests for the AI-10 inventory-pass orchestrator."""
+import json
 import re
+from pathlib import Path
+
+import pytest
 
 from ai.inventory import (
     InventoryResult,
     REQUIRED_CAPABILITIES,
     _slugify,
     make_inventory_branch_name,
+    run_inventory_pass,
 )
+from ingest.manifest import ManifestEntry
 
 
 def test_required_capabilities():
@@ -44,15 +50,6 @@ def test_inventory_result_defaults_empty():
     assert result.skipped_unsupported == []
     assert result.errors == {}
     assert result.pr is None
-
-
-import json
-from pathlib import Path
-
-import pytest
-
-from ai.inventory import run_inventory_pass
-from ingest.manifest import ManifestEntry
 
 
 class FakeLLM:
@@ -157,3 +154,101 @@ def test_happy_path_writes_drafts_and_opens_one_bulk_pr(tmp_path):
     assert len(provider.open_pr_calls) == 1
     assert provider.open_pr_calls[0]["base_branch"] == "main"
     assert result.pr == {"pr_number": 42, "url": "https://example/pr/42", "state": "open"}
+
+
+class BadLLM:
+    """Always returns unparseable output."""
+    def complete(self, prompt, max_tokens):
+        return "not json at all"
+
+
+def test_skips_existing_md_and_bundle_without_clobbering(tmp_path):
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+    work = tmp_path / "work"
+    policies = work / "policies"
+    policies.mkdir(parents=True)
+
+    # Pre-existing flat policy and a foundational bundle dir.
+    (policies / "by-laws.md").write_text("ORIGINAL HUMAN EDIT", encoding="utf-8")
+    (policies / "document-retention").mkdir()
+    (policies / "document-retention" / "policy.md").write_text("x", encoding="utf-8")
+
+    manifest = _manifest(
+        _src(src_dir, "by-laws.txt"),             # collides with existing .md
+        _src(src_dir, "document-retention.pdf"),  # collides with bundle dir
+        _src(src_dir, "fresh.txt"),               # new -> written
+    )
+    provider = FakeGitProvider()
+    result = run_inventory_pass(
+        manifest=manifest, working_dir=work, provider=provider,
+        llm_provider=FakeLLM(), taxonomy=None,
+        author_name="PolicyCodex", author_email="bot@policycodex.local",
+        base_branch="main",
+    )
+
+    assert result.written == ["fresh"]
+    assert set(result.skipped_existing) == {"by-laws", "document-retention"}
+    # The human edit is untouched.
+    assert (policies / "by-laws.md").read_text() == "ORIGINAL HUMAN EDIT"
+    # Only the new policy's files are committed.
+    committed = {p.name for p in provider.commit_calls[0]["files"]}
+    assert committed == {"fresh.md", "fresh.audit.yaml"}
+
+
+def test_skips_empty_text_and_unsupported_format(tmp_path):
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+    work = tmp_path / "work"
+    (work / "policies").mkdir(parents=True)
+
+    blank = _src(src_dir, "blank.txt", body="   \n  ")
+    unsupported = _src(src_dir, "weird.xyz", body="content")
+    good = _src(src_dir, "good.txt")
+
+    provider = FakeGitProvider()
+    result = run_inventory_pass(
+        manifest=_manifest(blank, unsupported, good),
+        working_dir=work, provider=provider, llm_provider=FakeLLM(),
+        taxonomy=None, author_name="PolicyCodex",
+        author_email="bot@policycodex.local", base_branch="main",
+    )
+
+    assert result.written == ["good"]
+    assert result.skipped_empty == ["blank.txt"]
+    assert result.skipped_unsupported == ["weird.xyz"]
+
+
+def test_extraction_error_is_captured_not_fatal(tmp_path):
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+    work = tmp_path / "work"
+    (work / "policies").mkdir(parents=True)
+
+    provider = FakeGitProvider()
+    result = run_inventory_pass(
+        manifest=_manifest(_src(src_dir, "broken.txt")),
+        working_dir=work, provider=provider, llm_provider=BadLLM(),
+        taxonomy=None, author_name="PolicyCodex",
+        author_email="bot@policycodex.local", base_branch="main",
+    )
+
+    assert result.written == []
+    assert "broken" in result.errors
+    # Nothing written -> no branch/commit/PR.
+    assert provider.branch_calls == []
+    assert result.pr is None
+
+
+def test_empty_manifest_opens_no_pr(tmp_path):
+    work = tmp_path / "work"
+    (work / "policies").mkdir(parents=True)
+    provider = FakeGitProvider()
+    result = run_inventory_pass(
+        manifest=[], working_dir=work, provider=provider, llm_provider=FakeLLM(),
+        taxonomy=None, author_name="PolicyCodex",
+        author_email="bot@policycodex.local", base_branch="main",
+    )
+    assert result.written == []
+    assert provider.open_pr_calls == []
+    assert result.pr is None
