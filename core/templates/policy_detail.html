@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block title %}{{ policy.frontmatter.title|default:policy.slug }} | PolicyCodex{% endblock %}
+
+{% block content %}
+  <h2>{{ policy.frontmatter.title|default:policy.slug }}</h2>
+  <p class="policy-slug"><code>policies/{{ policy.slug }}</code></p>
+
+  <p><a href="{% url 'catalog' %}">Back to catalog</a></p>
+{% endblock %}
