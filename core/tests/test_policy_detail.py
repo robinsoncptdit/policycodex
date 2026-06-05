@@ -153,3 +153,31 @@ def test_policy_detail_defaults_to_published_gate(client, user):
     content = response.content.decode()
     assert "gate-published" in content
     assert "Published" in content
+
+
+def test_policy_detail_non_foundational_shows_edit_link(client, user):
+    client.force_login(user)
+    policies = [_stub_policy(slug="onboarding", kind="flat", title="Onboarding")]
+    response = _get_detail(client, "onboarding", policies)
+    content = response.content.decode()
+    assert 'href="/policies/onboarding/edit/"' in content
+    assert "action-edit-foundational" not in content
+
+
+def test_policy_detail_foundational_hides_flat_edit_shows_typed_table(client, user):
+    client.force_login(user)
+    policies = [_stub_policy(
+        slug="document-retention",
+        kind="bundle",
+        title="Document Retention",
+        foundational=True,
+        provides=("classifications",),
+    )]
+    response = _get_detail(client, "document-retention", policies)
+    content = response.content.decode()
+    # Flat-edit link is hidden for foundational policies.
+    assert 'href="/policies/document-retention/edit/"' not in content
+    # The typed-table editor link + banner are present instead.
+    assert "action-edit-foundational" in content
+    assert 'href="/policies/document-retention/foundational-edit/"' in content
+    assert "typed-table" in content
