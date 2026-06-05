@@ -1,0 +1,18 @@
+# Profile B: pull a pre-built published image (boxed ship for non-developer
+# dioceses). The image below is NOT published yet; registry publishing is a
+# post-DISC follow-up. This file is validated by `docker compose config`;
+# it will run once the image is pushed. Until then, use docker-compose.yml.
+services:
+  app:
+    image: ghcr.io/policycodex/policycodex:latest
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - policycodex-data:/data
+      - ${HOME}/.config/policycodex:/secrets:ro
+    restart: unless-stopped
+
+volumes:
+  policycodex-data:
