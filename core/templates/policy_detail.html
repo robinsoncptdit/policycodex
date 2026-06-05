@@ -41,5 +41,19 @@
     <pre>{{ policy.body }}</pre>
   </section>
 
+  {# L1 foundational gate (APP-20/APP-23): foundational policies edit only #}
+  {# through the typed-table UI; flat policies show the ordinary edit link. #}
+  {# This view never mutates; the server-side 403 lives in policy_edit. #}
+  <p class="actions">
+    {% if policy.foundational %}
+      <span class="foundational-banner">
+        This policy is foundational; edit through the typed-table UI.
+      </span>
+      <a class="action-edit-foundational" href="{% url 'foundational_edit' slug=policy.slug %}">Edit (typed table)</a>
+    {% else %}
+      <a class="action-edit" href="{% url 'policy_edit' slug=policy.slug %}">Edit</a>
+    {% endif %}
+  </p>
+
   <p><a href="{% url 'catalog' %}">Back to catalog</a></p>
 {% endblock %}
