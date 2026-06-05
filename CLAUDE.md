@@ -37,6 +37,7 @@ For sprint-by-sprint detail and per-wave narrative, see `internal/PolicyWonk-Dai
 - `manage.py` plus `policycodex_site/` is the Django 5+ project skeleton (SQLite default; `SECRET_KEY` hardening deferred per REPO-05).
 - `pytest.ini` wires pytest-django for the whole repo.
 - `spike/` is the riskiest-assumption extraction spike: `extract.py` loading PT taxonomy, per-policy JSON outputs (gitignored), and the `spike/eval/` regression harness.
+- `.github/workflows/` holds two dev-time GitHub Actions (installed via `/install-github-app`, 2026-06-05): `claude.yml` (the `@claude` assistant, on issue/PR mentions) and `claude-code-review.yml` (auto code-review on every PR via `claude-code-action` + the marketplace `code-review` plugin). These are development tooling, not shipped product, and no-op without the `CLAUDE_CODE_OAUTH_TOKEN` secret; REPO-10 (generic-ship audit) decides whether they stay in the diocese-facing clone. Editing the review workflow has two non-obvious constraints: any change must live on `main` AND be byte-identical on the PR branch, or `claude-code-action`'s app-token exchange 401s ("Workflow validation failed"); and the review only posts when the prompt passes the PR as a full `https://github.com/...` URL plus a `--comment` flag. Full debug history in the Daily Log (2026-06-05 16:30 PT).
 
 **`internal/` (tracked, sprint workspace):**
 
