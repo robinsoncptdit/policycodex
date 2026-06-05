@@ -236,7 +236,8 @@ def test_screen7_extract_failure_rerenders_upload_with_error(client, user, worki
     assert resp.status_code == 200
     body = resp.content.decode()
     assert 'name="pdf_file"' in body  # back on the upload form
-    assert "couldn't process" in body.lower()
+    # Apostrophe in "couldn't" is HTML-escaped, so match an apostrophe-free span.
+    assert "process that document" in body.lower()
 
 
 def test_screen7_accept_scaffolds_bundle_and_finishes(client, user, working_copy, stub_extraction):
