@@ -6,7 +6,7 @@
   <h2>Onboarding</h2>
   <p class="wizard-progress">Step {{ index }} of {{ total }}: {{ step.title }}</p>
 
-  <form method="post">
+  <form method="post"{% if multipart %} enctype="multipart/form-data"{% endif %}>
     {% csrf_token %}
     {% block step_content %}{% endblock %}
     <div class="wizard-nav">

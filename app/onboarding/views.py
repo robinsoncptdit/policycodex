@@ -5,6 +5,7 @@ from django.http import Http404
 from django.shortcuts import redirect, render
 
 from app.onboarding import forms as onboarding_forms
+from app.onboarding import retention_policy
 from app.onboarding import wizard
 from app.onboarding.state import WizardState
 
@@ -42,6 +43,9 @@ def onboarding_step(request, step):
         raise Http404(f"Unknown onboarding step: {step}")
 
     state = WizardState(request.session)
+
+    if step == retention_policy.STEP_SLUG:
+        return retention_policy.handle(request, target, state)
 
     if request.method == "POST":
         # Per-step form validation/processing lands in APP-09..16; the

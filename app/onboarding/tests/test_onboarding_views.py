@@ -1,6 +1,7 @@
 """Tests for the onboarding wizard views (APP-08)."""
 import pytest
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
 User = get_user_model()
@@ -101,17 +102,12 @@ def test_can_revisit_completed_step_without_trapping(client, user):
     assert client.get("/onboarding/address-scheme/").status_code == 200
 
 
-def test_last_step_continue_completes_and_redirects_to_catalog(client, user):
+def test_last_step_continue_completes_and_redirects_to_catalog(client, user, working_copy, stub_extraction):
     client.force_login(user)
-    slugs = [
-        "github-repo", "address-scheme", "versioning", "reviewer-roles",
-        "retention", "llm-provider", "retention-policy",
-    ]
-    for slug in slugs[:-1]:
-        # github-repo now has a real form; the rest are still no-op steps.
-        payload = GITHUB_REPO_CONTINUE if slug == "github-repo" else {"action": "continue"}
-        client.post(f"/onboarding/{slug}/", payload)
-    resp = client.post("/onboarding/retention-policy/", {"action": "continue"})
+    _advance_to_retention_policy(client)
+    upload = SimpleUploadedFile("retention.pdf", b"%PDF-1.4", content_type="application/pdf")
+    client.post("/onboarding/retention-policy/", {"action": "extract", "pdf_file": upload})
+    resp = client.post("/onboarding/retention-policy/", {"action": "accept"})
     assert resp.status_code == 302
     assert resp.url == "/catalog/"
 
@@ -154,3 +150,92 @@ def test_no_form_step_still_advances_on_bare_continue(client, user):
     resp = client.post("/onboarding/address-scheme/", {"action": "continue"})
     assert resp.status_code == 302
     assert resp.url == "/onboarding/versioning/"
+
+
+# Steps 1-6 payloads to reach screen 7. Only github-repo has a real form.
+def _advance_to_retention_policy(client):
+    client.post("/onboarding/github-repo/", GITHUB_REPO_CONTINUE)
+    for slug in ["address-scheme", "versioning", "reviewer-roles", "retention", "llm-provider"]:
+        client.post(f"/onboarding/{slug}/", {"action": "continue"})
+
+
+FAKE_BUNDLE = {
+    "classifications": [
+        {"id": "administrative", "name": "Administrative"},
+        {"id": "financial", "name": "Financial"},
+    ],
+    "classifications_confidence": "high",
+    "retention_schedule": [
+        {"group": "Administrative Records", "type": "Correspondence", "retention": "3 years"},
+    ],
+    "retention_schedule_confidence": "medium",
+}
+
+
+@pytest.fixture
+def working_copy(settings, tmp_path):
+    settings.POLICYCODEX_POLICY_REPO_URL = "https://github.com/acme/policies.git"
+    settings.POLICYCODEX_WORKING_COPY_ROOT = str(tmp_path)
+    # working_dir = tmp_path / "policies"
+    (tmp_path / "policies").mkdir()
+    return tmp_path / "policies"
+
+
+@pytest.fixture
+def stub_extraction(monkeypatch):
+    """Avoid network + Anthropic() init; return a canned bundle and PDF text."""
+    from app.onboarding import retention_policy as rp
+    monkeypatch.setattr(rp, "extract_text", lambda path: "FAKE PDF TEXT")
+    monkeypatch.setattr(rp, "extract_retention_bundle", lambda provider, text: FAKE_BUNDLE)
+    monkeypatch.setattr(rp, "ClaudeProvider", lambda *a, **k: object())
+
+
+def test_screen7_get_shows_upload_form(client, user, working_copy):
+    client.force_login(user)
+    _advance_to_retention_policy(client)
+    resp = client.get("/onboarding/retention-policy/")
+    assert resp.status_code == 200
+    body = resp.content.decode()
+    assert 'enctype="multipart/form-data"' in body
+    assert 'name="pdf_file"' in body
+    assert "Step 7 of 7" in body
+
+
+def test_screen7_extract_shows_readonly_review(client, user, working_copy, stub_extraction):
+    client.force_login(user)
+    _advance_to_retention_policy(client)
+    upload = SimpleUploadedFile("retention.pdf", b"%PDF-1.4", content_type="application/pdf")
+    resp = client.post("/onboarding/retention-policy/", {"action": "extract", "pdf_file": upload})
+    assert resp.status_code == 200
+    body = resp.content.decode()
+    assert "Administrative" in body
+    assert "2 classifications" in body       # count surfaced (truncation visibility)
+    assert "1 retention" in body
+    assert 'value="accept"' in body
+    assert 'value="reupload"' in body
+
+
+def test_screen7_accept_scaffolds_bundle_and_finishes(client, user, working_copy, stub_extraction):
+    client.force_login(user)
+    _advance_to_retention_policy(client)
+    upload = SimpleUploadedFile("retention.pdf", b"%PDF-1.4", content_type="application/pdf")
+    client.post("/onboarding/retention-policy/", {"action": "extract", "pdf_file": upload})
+    resp = client.post("/onboarding/retention-policy/", {"action": "accept"})
+    assert resp.status_code == 302
+    assert resp.url == "/catalog/"
+    # Bundle now exists in the working copy and reads back as foundational.
+    from ingest.policy_reader import BundleAwarePolicyReader
+    policies = list(BundleAwarePolicyReader(working_copy).read())
+    assert [p.slug for p in policies] == ["document-retention"]
+    assert policies[0].foundational is True
+    assert (working_copy / "document-retention" / "source.pdf").is_file()
+
+
+def test_screen7_reupload_clears_draft(client, user, working_copy, stub_extraction):
+    client.force_login(user)
+    _advance_to_retention_policy(client)
+    upload = SimpleUploadedFile("retention.pdf", b"%PDF-1.4", content_type="application/pdf")
+    client.post("/onboarding/retention-policy/", {"action": "extract", "pdf_file": upload})
+    resp = client.post("/onboarding/retention-policy/", {"action": "reupload"})
+    assert resp.status_code == 200
+    assert 'name="pdf_file"' in resp.content.decode()  # back to upload form
