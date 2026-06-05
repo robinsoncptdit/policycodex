@@ -44,7 +44,7 @@
     <ul class="policy-list">
       {% for row in rows %}
         <li class="policy">
-          <a href="#{{ row.policy.slug }}">{{ row.policy.frontmatter.title|default:row.policy.slug }}</a>
+          <a href="{% url 'policy_detail' slug=row.policy.slug %}">{{ row.policy.frontmatter.title|default:row.policy.slug }}</a>
           <span class="kind-badge kind-{{ row.policy.kind }}">{{ row.policy.kind }}</span>
           {% if row.policy.foundational %}
             <span class="foundational-badge">(foundational)</span>

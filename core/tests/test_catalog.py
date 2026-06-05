@@ -691,3 +691,22 @@ def test_catalog_degrades_when_taxonomy_load_raises(client, user, stub_gh_provid
     body = response.content.decode()
     assert "gap-banner" not in body
     assert "gap-badge" not in body
+
+
+def test_catalog_row_links_to_detail_view(client, user, stub_gh_provider):
+    """The policy-title anchor points at the real detail URL, not a dead #slug."""
+    client.force_login(user)
+    policies = [_stub_policy(slug="onboarding", kind="flat", title="Onboarding")]
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+        POLICYCODEX_WORKING_COPY_ROOT="/tmp",
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter(policies)
+                response = client.get("/catalog/")
+
+    body = response.content.decode()
+    assert 'href="/policies/onboarding/"' in body
+    # The dead in-page anchor must be gone.
+    assert 'href="#onboarding"' not in body
