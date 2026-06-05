@@ -518,13 +518,14 @@ def test_catalog_hides_edit_link_for_foundational_policy(client, user, stub_gh_p
 
     body = response.content.decode()
     assert 'href="/policies/document-retention/edit/"' not in body
-    # Positive companion assertion: the foundational branch rendered (banner present),
-    # so this test fails if the whole foundational {% if %} block is accidentally removed.
-    assert "foundational-gate" in body
+    # Positive companion assertion: the foundational branch rendered (typed-table
+    # editor link present), so this test fails if the whole foundational {% if %}
+    # block is accidentally removed.
+    assert "action-edit-foundational" in body
 
 
 def test_catalog_shows_foundational_gate_banner_for_foundational_policy(client, user, stub_gh_provider):
-    """The foundational row shows the typed-table-editor banner."""
+    """The foundational row shows the typed-table editor link."""
     client.force_login(user)
     policies = [_stub_policy(
         slug="document-retention",
@@ -543,8 +544,8 @@ def test_catalog_shows_foundational_gate_banner_for_foundational_policy(client, 
                 response = client.get("/catalog/")
 
     body = response.content.decode()
-    assert "foundational-gate" in body
-    assert "typed-table editor" in body
+    assert "action-edit-foundational" in body
+    assert "Edit (typed table)" in body
 
 
 def test_catalog_does_not_show_gate_banner_for_non_foundational_policy(client, user, stub_gh_provider):
@@ -561,8 +562,8 @@ def test_catalog_does_not_show_gate_banner_for_non_foundational_policy(client, u
                 response = client.get("/catalog/")
 
     body = response.content.decode()
-    assert "foundational-gate" not in body
-    assert "typed-table editor" not in body
+    assert "action-edit-foundational" not in body
+    assert "Edit (typed table)" not in body
 
 
 def test_catalog_foundational_policy_still_publishable_when_reviewed(client, user):
@@ -598,9 +599,9 @@ def test_catalog_foundational_policy_still_publishable_when_reviewed(client, use
     # Publish affordance present despite foundational status.
     assert 'action="/policies/document-retention/publish/"' in body
     assert "Publish" in body
-    # The ordinary edit-form link is still hidden, and the banner still shows.
+    # The ordinary edit-form link is still hidden, and the typed-table link still shows.
     assert 'href="/policies/document-retention/edit/"' not in body
-    assert "foundational-gate" in body
+    assert "action-edit-foundational" in body
 
 
 _TAXONOMY = {"classifications": [{"id": "financial", "name": "Financial"}]}

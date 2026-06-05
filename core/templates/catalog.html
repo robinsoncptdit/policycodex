@@ -61,7 +61,7 @@
           {# Gate transitions (Publish, below) are intentionally NOT gated here: #}
           {# a foundational edit still flows drafted, reviewed, published via its PR. #}
           {% if row.policy.foundational %}
-            <span class="foundational-gate">Foundational policy. Edit through the typed-table editor.</span>
+            <a class="action-edit-foundational" href="{% url 'foundational_edit' slug=row.policy.slug %}">Edit (typed table)</a>
           {% else %}
             <a class="action-edit" href="{% url 'policy_edit' slug=row.policy.slug %}">Edit</a>
           {% endif %}
