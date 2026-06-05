@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 
+from policycodex_site import env as _env
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -31,18 +33,19 @@ _onboarding_raw = os.environ.get("POLICYCODEX_ONBOARDING_COMPLETE", "")
 POLICYCODEX_ONBOARDING_COMPLETE = _onboarding_raw.lower() in ("1", "true", "yes")
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+# Deploy-time knobs (REPO-05). Driven by the environment so the same image
+# runs safely in production. Locally, `manage.py runserver` with no env set
+# gets DEBUG on and the historical dev key (see policycodex_site/env.py).
+DEBUG = _env.get_debug(os.environ)
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# TODO: rotate via env var before any non-local deploy (deployment
-# hardening, not APP-02; tracked under REPO-05/PUBLISH-07).
-SECRET_KEY = 'django-insecure-77@z8v71u2tc7%7qp)rpg7!cctxh32l5+_**y%4uw9+j(9f(&w'
+# SECURITY: when DEBUG is off, DJANGO_SECRET_KEY is required.
+SECRET_KEY = _env.get_secret_key(os.environ, debug=DEBUG)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+ALLOWED_HOSTS = _env.get_allowed_hosts(os.environ)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+# AGPL "View Source" footer target (REPO-05). Placeholder org until the
+# public GitHub org slug is finalized; override via POLICYCODEX_SOURCE_URL.
+POLICYCODEX_SOURCE_URL = _env.get_source_url(os.environ)
 
 
 # Application definition
@@ -95,7 +98,7 @@ WSGI_APPLICATION = 'policycodex_site.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': _env.get_db_path(os.environ, BASE_DIR),
     }
 }
 
