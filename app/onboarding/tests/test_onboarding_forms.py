@@ -98,3 +98,9 @@ def test_retention_upload_accepts_pdf():
     upload = SimpleUploadedFile("policy.pdf", b"%PDF-1.4 ...", content_type="application/pdf")
     form = RetentionPolicyUploadForm(data={}, files={"pdf_file": upload})
     assert form.is_valid(), form.errors
+
+
+def test_retention_upload_accepts_uppercase_extension():
+    upload = SimpleUploadedFile("POLICY.PDF", b"%PDF-1.4 ...", content_type="application/pdf")
+    form = RetentionPolicyUploadForm(data={}, files={"pdf_file": upload})
+    assert form.is_valid(), form.errors
