@@ -16,9 +16,38 @@ This means version control, audit, branch-protected approvals, backups, and CI/C
 
 GitHub.com is the v0.1 default. The Git provider is abstracted so GitHub Enterprise, GitLab, and self-hosted Gitea can be added later.
 
+## Frontend Portability Constraints
+
+The v0.1 admin web app ships server-rendered Django templates plus HTMX, with Tailwind CSS and DaisyUI for styling (resolved 2026-06-05 in OQ-13; rationale in `internal/PolicyWonk-UI-Framework-Decision.md`). Three constraints keep options open for a future move to a richer client (Alpine.js or Stimulus on top of HTMX, a heavier Tailwind-based component library like shadcn/ui or Headless UI, or a full SPA on top of a Django JSON API):
+
+1. **Views and HTMX fragments stay thin.** Business logic lives in Django models, managers, and service functions. Page views and HTMX fragment views call into those. A future SPA replaces the views; the models and services carry over.
+2. **HTMX endpoints are URL-segregated.** Any URL serving an HTML fragment for HTMX lives under `/htmx/`. When a JSON API gets added, it lives at `/api/v1/` without colliding with the fragment endpoints. The fragment endpoints retire cleanly when a SPA arrives.
+3. **Authentication and authorization sit in middleware and view decorators, not in template logic.** A future JSON API gets the same protection without rework.
+
+These constraints cost nothing in v0.1. They preserve the option to swap the frontend stack without rewriting the backend.
+
 ## Licensing
 
 PolicyCodex is released under the **GNU Affero General Public License v3 (AGPL-3.0)**, resolved on 2026-05-11. AGPL preserves the maintainer-mode services-revenue model: anyone forking PolicyCodex and offering a hosted version to other dioceses must release their modifications under the same terms. Dioceses self-hosting unmodified PolicyCodex on their own VM operate freely and have no release obligations. The `LICENSE` file lands at the repo root before the first public push.
+
+### Frontend Dependencies and AGPL Compatibility
+
+AGPL-3.0 §13 requires that any user interacting with PolicyCodex over a network gets the corresponding source on request, and that source must be redistributable under AGPL. Permissive licenses flow into AGPL cleanly. Restrictive licenses do not. This creates a one-way membrane that binds every contributor, every maintainer-mode customization engagement, and every diocese modifying their own install.
+
+**Allowed for any PolicyCodex dependency (frontend or backend):** MIT, BSD-2-Clause, BSD-3-Clause, Apache 2.0, MPL 2.0 (with file-level care), SIL Open Font License 1.1, 0BSD, Unlicense, CC0.
+
+**Disallowed:** any commercial component library that restricts redistribution. Including but not limited to:
+
+- **Tailwind UI** (the paid component library from Tailwind Labs)
+- **MUI Pro** and **MUI Premium**
+- **Ant Design Pro** components
+- **DevExpress**
+- **Telerik**
+- **Kendo UI**
+
+Their license terms forbid redistribution as components. AGPL-3.0 requires downstream recipients receive the corresponding source with the same redistribution rights. The two cannot coexist in the same codebase. A diocese that modifies their PolicyCodex install and serves it to staff cannot drop in restricted components without breaking either the component license or the AGPL terms they have inherited. The maintainer-mode services business inherits the same constraint.
+
+The v0.1 frontend stack (Tailwind CSS, DaisyUI, HTMX, Inter typeface) is entirely on the permissive side. If a future strategy conversation moves PolicyCodex to dual-licensing or a permissive license, this constraint relaxes. Until then, contributors and maintainers stay on the permissive side.
 
 ## Goals
 
@@ -203,6 +232,7 @@ Acceptance:
 - **Static-site generator inside CI**: Astro, Hugo, or Eleventy? Recommend Astro for component flexibility, Hugo for build speed. **Resolved 2026-05-11 (OQ-09): Astro (PUBLISH-01).**
 - **AI extraction prompt architecture: monolithic vs split**. The spike validated a single monolithic prompt that extracts all eight metadata fields per call at 70.9% acceptance (excluding always-null fields). Tickets AI-04, AI-05, AI-06 currently split extraction into per-field-family prompts. **PM recommendation:** keep the monolithic prompt as the v0.1 baseline, treat AI-04/05/06 as eval-set work against that prompt rather than separate prompt files, and add AI-11 (taxonomy injection) and AI-12 (retention reference) as additional injected context on the existing prompt. Splitting a working 70.9% prompt risks regressing before improving, which is poor calendar economics six weeks from DISC. **Resolved 2026-05: kept the monolithic prompt; AI-04/05/06 are eval-set work against it, AI-11/AI-12 inject taxonomy + retention-bundle context. See `internal/PolicyWonk-Prompt-Architecture-Decision.md`.**
 - **Category taxonomy is provisional.** The 12 categories used in the spike prompt (Finance, HR, IT, Safe Environment, Schools, Worship, Parish Operations, Stewardship, By-Laws, Communications, Risk, Other) are working defaults from the spike. The final v0.1 list should be confirmed against the LA handbook chapter structure and the PT corpus during Week 2. Non-blocking.
+- **UI framework for the admin app**: CSS framework, JS sprinkle, and component vocabulary for the Django admin app and the seven-screen wizard. **Resolved 2026-06-05 (OQ-13): Tailwind CSS + DaisyUI + HTMX**, Inter typeface, brand color set via DaisyUI CSS variables. Production build via Tailwind standalone CLI (single static binary, no Node). Three guard rails landed alongside: the new **Frontend Portability Constraints** section above, the **Frontend Dependencies and AGPL Compatibility** subsection under Licensing, and the views-stay-thin / portability note added to `CLAUDE.md` (Tech subsection). Architecture-hygiene follow-through is ticket **APP-27** (`/htmx/` URL prefix convention). Bigger UI-adoption work (vendor Tailwind CLI, retemplate the 8 existing Django templates, update REPO-10's clean-VM verification) is ticket **APP-28**. Mockup comparison preserved in `internal/mockups/disc-demo-{pico,bootstrap,tailwind}.html`. Rationale: clears the modern-SaaS visual bar CFOs benchmark against (Linear, Notion, Stripe Dashboard), all four runtime dependencies are MIT or equivalent so AGPL-compatible, Tailwind ecosystem is the on-ramp for any future component library swap. See `internal/PolicyWonk-UI-Framework-Decision.md`.
 
 ### Design
 
