@@ -1,5 +1,7 @@
 """Tests for onboarding forms (APP-09)."""
-from app.onboarding.forms import GitHubRepoForm, form_class_for
+from django.core.files.uploadedfile import SimpleUploadedFile
+
+from app.onboarding.forms import GitHubRepoForm, RetentionPolicyUploadForm, form_class_for
 
 
 def test_registry_maps_github_repo():
@@ -77,3 +79,22 @@ def test_connect_accepts_dot_git_and_trailing_slash():
     ):
         form = GitHubRepoForm(data={"mode": "connect", "repo_url": url, "branch": "main"})
         assert form.is_valid(), (url, form.errors)
+
+
+def test_retention_upload_requires_a_file():
+    form = RetentionPolicyUploadForm(data={}, files={})
+    assert not form.is_valid()
+    assert "pdf_file" in form.errors
+
+
+def test_retention_upload_rejects_non_pdf():
+    upload = SimpleUploadedFile("policy.txt", b"hello", content_type="text/plain")
+    form = RetentionPolicyUploadForm(data={}, files={"pdf_file": upload})
+    assert not form.is_valid()
+    assert "pdf_file" in form.errors
+
+
+def test_retention_upload_accepts_pdf():
+    upload = SimpleUploadedFile("policy.pdf", b"%PDF-1.4 ...", content_type="application/pdf")
+    form = RetentionPolicyUploadForm(data={}, files={"pdf_file": upload})
+    assert form.is_valid(), form.errors
