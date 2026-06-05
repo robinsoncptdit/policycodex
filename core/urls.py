@@ -16,4 +16,5 @@ urlpatterns = [
         name="foundational_edit",
     ),
     path("policies/<slug:slug>/publish/", views.publish_policy, name="publish_policy"),
+    path("policies/<slug:slug>/", views.policy_detail, name="policy_detail"),
 ]

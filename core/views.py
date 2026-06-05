@@ -140,6 +140,30 @@ def _find_policy(slug: str):
     return None
 
 
+@login_required
+def policy_detail(request, slug):
+    """Read-only detail view for a single policy (APP-23).
+
+    Renders the title, frontmatter, provides:, body, and gate state. Applies
+    the same L1 foundational gate as the catalog: foundational policies show
+    the typed-table-editor banner and no flat-edit affordance; non-foundational
+    policies show an Edit link. This view never mutates.
+    """
+    policy = _find_policy(slug)
+    if policy is None:
+        raise Http404(f"Policy not found: {slug}")
+
+    # Reuse the catalog's gate lookup so the detail badge matches the list
+    # badge exactly. Degrades to "published" on any provider/config failure.
+    try:
+        config = load_working_copy_config()
+        gate = _build_gate_lookup(config.working_dir).get(slug, "published")
+    except RuntimeError:
+        gate = "published"
+
+    return render(request, "policy_detail.html", {"policy": policy, "gate": gate})
+
+
 def _make_branch_name(slug: str) -> str:
     """policycodex/edit-<slug>-<short-uuid>. See plan rationale."""
     return f"policycodex/edit-{slug}-{uuid.uuid4().hex[:8]}"
