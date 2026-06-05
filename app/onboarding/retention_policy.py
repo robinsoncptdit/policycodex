@@ -12,6 +12,7 @@ large schedule cannot bloat the session.
 """
 from __future__ import annotations
 
+import logging
 import shutil
 from pathlib import Path
 
@@ -30,6 +31,8 @@ from app.onboarding.forms import RetentionPolicyUploadForm
 from app.onboarding.scaffold import scaffold_retention_bundle
 from app.working_copy.config import load_working_copy_config
 from ingest.extractors import extract as extract_text
+
+logger = logging.getLogger(__name__)
 
 STEP_SLUG = "retention-policy"
 DEFAULT_TITLE = "Document Retention Policy"
@@ -121,6 +124,17 @@ def handle(request, target, state):
                 request, target, state,
                 error=f"Could not read that document automatically: {exc}. "
                       "Try a different PDF.",
+            )
+        except Exception as exc:  # noqa: BLE001 - onboarding must not 500 on a
+            # bad upload (corrupt/non-PDF bytes reaching the parser) or an AI
+            # provider outage (missing key, network). Degrade to a friendly
+            # re-prompt, mirroring core/views.py's "view must always render".
+            logger.warning("APP-15 retention extraction failed: %s", exc)
+            return _render_upload(
+                request, target, state,
+                error="We couldn't process that document. Check that it is a "
+                      "valid PDF and try again. If the problem persists, the AI "
+                      "service may be unavailable; contact your administrator.",
             )
         draft = {
             "title": DEFAULT_TITLE,
