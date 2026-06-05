@@ -101,20 +101,23 @@ Run PolicyCodex on a small VM. Connect it to your private GitHub repo. Point it 
 
 ## Quick Start
 
+PolicyCodex runs on Python 3.12+ (the floor set by Django 6.0).
+
 ```bash
 # Clone the repo
 git clone https://github.com/<org>/policycodex.git
 cd policycodex
 
-# Configure
-cp .env.example .env
-# edit .env with your filesystem credentials and chosen LLM provider
+# Install into a virtual environment
+python3 -m venv .venv
+.venv/bin/pip install -r ai/requirements.txt -r app/requirements.txt
 
-# Run
-docker compose up -d
+# Initialize the database and run
+.venv/bin/python manage.py migrate
+.venv/bin/python manage.py runserver
 ```
 
-Open `http://localhost:8080` and complete the seven-screen onboarding wizard:
+Open `http://localhost:8000` and complete the seven-screen onboarding wizard:
 
 1. Connect or create a private GitHub repo for your policies (PolicyCodex uses a GitHub App)
 2. Pick an address scheme (LA chapter-section-item or Catholic healthcare department code)
@@ -124,7 +127,7 @@ Open `http://localhost:8080` and complete the seven-screen onboarding wizard:
 6. Pick an LLM provider (Claude default)
 7. Point PolicyCodex at any source-of-truth reference documents you already have (Document Retention Policy, by-laws, etc.). The AI extractor uses them as ground truth rather than guessing.
 
-Full installation guide: [docs/install.md](docs/install.md).
+A packaged `docker compose` install is planned for v0.1.
 
 ## Roadmap
 
@@ -138,7 +141,7 @@ Full installation guide: [docs/install.md](docs/install.md).
 
 PolicyCodex is being built by a small group of coders with deep ties to the diocesan IT community. We welcome contributions, especially from people who actually run policy programs at dioceses, nonprofits, or healthcare systems.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution flow and a clear statement of the configurable-vs-opinionated split. Read it before proposing changes that conflict with the core philosophy.
+Before proposing changes that conflict with the core philosophy, read the Design Principles above for the configurable-vs-opinionated split. A full `CONTRIBUTING.md` with the contribution flow is on the way.
 
 ## Acknowledgments
 
