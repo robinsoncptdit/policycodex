@@ -20,6 +20,13 @@ if [ ! -f .env ]; then
     exit 0
 fi
 
+if grep -q '^DJANGO_SECRET_KEY=$' .env; then
+    echo "Error: DJANGO_SECRET_KEY is still empty in .env. Set it (and your other" >&2
+    echo "values) before starting, or the container will fail to boot. Generate one:" >&2
+    echo "  python3 -c \"from django.core.management.utils import get_random_secret_key as g; print(g())\"" >&2
+    exit 1
+fi
+
 echo "Building and starting PolicyCodex (this may take a few minutes the first time)..."
 docker compose up --build -d
 
