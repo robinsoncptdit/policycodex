@@ -36,6 +36,66 @@ class ManifestEntry:
     source_label: str
 
 
+@dataclass(frozen=True)
+class ManifestDiff:
+    """Classification of a current manifest against a previous one, keyed by path.
+
+    ``added``/``changed``/``unchanged`` hold CURRENT entries; ``removed`` holds
+    PRIOR entries (they no longer exist in the current folder).
+    """
+
+    added: list[ManifestEntry]
+    changed: list[ManifestEntry]
+    unchanged: list[ManifestEntry]
+    removed: list[ManifestEntry]
+
+    @property
+    def to_process(self) -> list[ManifestEntry]:
+        """Entries downstream extraction must re-run: new + content-changed."""
+        return sorted(self.added + self.changed, key=lambda e: str(e.path))
+
+    @property
+    def current(self) -> list[ManifestEntry]:
+        """The full current manifest (added + changed + unchanged), to persist after a run."""
+        return sorted(
+            self.added + self.changed + self.unchanged, key=lambda e: str(e.path)
+        )
+
+
+def diff_manifests(
+    previous: Iterable[ManifestEntry], current: Iterable[ManifestEntry]
+) -> ManifestDiff:
+    """Compare two manifests by path; classify each current/prior file.
+
+    A file is *changed* when its path exists in both but the content hash
+    differs; *added* when only in current; *removed* when only in previous;
+    *unchanged* otherwise. Pure data: no I/O.
+    """
+    prev_by_path = {str(e.path): e for e in previous}
+    curr_by_path = {str(e.path): e for e in current}
+
+    added: list[ManifestEntry] = []
+    changed: list[ManifestEntry] = []
+    unchanged: list[ManifestEntry] = []
+    for key, entry in curr_by_path.items():
+        prior = prev_by_path.get(key)
+        if prior is None:
+            added.append(entry)
+        elif prior.content_hash != entry.content_hash:
+            changed.append(entry)
+        else:
+            unchanged.append(entry)
+    removed = [e for key, e in prev_by_path.items() if key not in curr_by_path]
+
+    keyfn = lambda e: str(e.path)  # noqa: E731
+    return ManifestDiff(
+        added=sorted(added, key=keyfn),
+        changed=sorted(changed, key=keyfn),
+        unchanged=sorted(unchanged, key=keyfn),
+        removed=sorted(removed, key=keyfn),
+    )
+
+
 def _hash_file(path: Path) -> str:
     """Return the SHA-256 hex digest of a file, read in chunks."""
     digest = hashlib.sha256()

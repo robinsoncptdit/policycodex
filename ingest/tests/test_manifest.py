@@ -82,3 +82,53 @@ def test_from_dict_coerces_path_string(tmp_path):
     entry = from_dict(d)
     assert isinstance(entry.path, Path)
     assert entry.path == Path(d["path"])
+
+
+from ingest.manifest import ManifestDiff, diff_manifests
+
+
+def _entry(name, h, mtime=1.0, source="local-folder"):
+    return ManifestEntry(
+        path=Path(name), content_hash=h, last_modified=mtime, source_label=source
+    )
+
+
+def test_diff_classifies_added_changed_unchanged_removed():
+    previous = [_entry("a.txt", "h_a"), _entry("b.txt", "h_b"), _entry("c.txt", "h_c")]
+    current = [
+        _entry("a.txt", "h_a"),       # unchanged
+        _entry("b.txt", "h_b_new"),   # changed
+        _entry("d.txt", "h_d"),       # added
+        # c.txt removed
+    ]
+
+    diff = diff_manifests(previous, current)
+
+    assert [e.path.name for e in diff.unchanged] == ["a.txt"]
+    assert [e.path.name for e in diff.changed] == ["b.txt"]
+    assert [e.path.name for e in diff.added] == ["d.txt"]
+    assert [e.path.name for e in diff.removed] == ["c.txt"]
+    # changed entry carries the NEW hash, not the prior one
+    assert diff.changed[0].content_hash == "h_b_new"
+
+
+def test_diff_first_run_all_added():
+    current = [_entry("a.txt", "h_a"), _entry("b.txt", "h_b")]
+    diff = diff_manifests([], current)
+    assert [e.path.name for e in diff.added] == ["a.txt", "b.txt"]
+    assert diff.changed == [] and diff.unchanged == [] and diff.removed == []
+
+
+def test_diff_to_process_is_added_plus_changed_sorted():
+    previous = [_entry("keep.txt", "h"), _entry("edit.txt", "old")]
+    current = [_entry("keep.txt", "h"), _entry("edit.txt", "new"), _entry("brand.txt", "n")]
+    diff = diff_manifests(previous, current)
+    # added (brand) + changed (edit), sorted by path; unchanged (keep) excluded
+    assert [e.path.name for e in diff.to_process] == ["brand.txt", "edit.txt"]
+
+
+def test_diff_current_excludes_removed():
+    previous = [_entry("gone.txt", "h")]
+    current = [_entry("here.txt", "h")]
+    diff = diff_manifests(previous, current)
+    assert [e.path.name for e in diff.current] == ["here.txt"]
