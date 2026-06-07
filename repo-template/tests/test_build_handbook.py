@@ -140,3 +140,14 @@ def test_vendored_astro_config_reads_site_url_env_var():
     assert "process.env.ASTRO_SITE_URL" in text
     # Placeholder fallback for local builds without Pages.
     assert "'https://handbook.example.org'" in text
+
+
+def test_workflow_allows_manual_dispatch():
+    # REPO-12: `.github/`-only changes do not match the push path filter, so a
+    # workflow-only fix-forward cannot re-fire the build via a commit. The
+    # manual trigger lets a maintainer run `gh workflow run build-handbook.yml
+    # --ref main` instead of a throwaway path-touching commit.
+    wf = yaml.safe_load(WORKFLOW.read_text())
+    # PyYAML parses the bare `on:` key as boolean True.
+    on = wf.get("on", wf.get(True))
+    assert "workflow_dispatch" in on

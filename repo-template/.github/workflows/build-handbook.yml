@@ -6,6 +6,11 @@ on:
     paths:
       - 'policies/**'
       - 'handbook/**'
+  # REPO-12: `.github/`-only changes (e.g. a fix-forward to this workflow) do
+  # not match the path filter above, so they cannot re-fire the build via a
+  # commit. This lets a maintainer re-run manually:
+  #   gh workflow run build-handbook.yml --ref main
+  workflow_dispatch:
 
 permissions:
   contents: read
