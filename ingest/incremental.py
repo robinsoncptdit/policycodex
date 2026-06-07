@@ -41,3 +41,22 @@ def load_manifest(path: Path) -> list[ManifestEntry]:
         return []
     data = json.loads(path.read_text(encoding="utf-8"))
     return [from_dict(d) for d in data]
+
+
+def plan_incremental_run(
+    root: Path,
+    manifest_path: Path,
+    source_label: str = "local-folder",
+) -> ManifestDiff:
+    """Walk ``root``, build the current manifest, and diff it against the
+    manifest stored at ``manifest_path``.
+
+    Returns the diff; ``diff.to_process`` is the entry list to hand to
+    downstream extraction. The caller is responsible for persisting
+    ``diff.current`` via ``save_manifest`` AFTER processing succeeds, so a
+    crash mid-run does not record unprocessed files as already-seen.
+    """
+    connector = LocalFolderConnector(Path(root))
+    current = build_manifest(connector.walk(), source_label=source_label)
+    previous = load_manifest(manifest_path)
+    return diff_manifests(previous, current)
