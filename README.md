@@ -6,7 +6,7 @@
 
 *A policy lifecycle tool for Catholic dioceses (and other mission-driven institutions with too many governance documents and not enough hours).*
 
-PolicyCodex takes the pile of policies, procedures, and by-laws scattered across your SharePoint and Google Drive, helps you inventory and clean them up with AI assist, runs every change through a pull-request-backed approval workflow, and publishes a versioned, searchable handbook on a subdomain you control.
+PolicyCodex takes the pile of policies, procedures, and by-laws scattered across your SharePoint and Google Drive, helps you inventory and clean them up with AI assist, runs every change through a pull-request-backed approval workflow, and publishes a versioned handbook on a subdomain you control.
 
 ## Status
 
@@ -33,7 +33,7 @@ PolicyCodex is the tool you would have built yourself if you had three more hour
 2. **Inventories** them with AI: proposes a category, owner, effective date, review cadence, retention period, and a chapter-section-item address for each policy.
 3. **Stores** every policy as a markdown file in a private GitHub repo your diocese owns. Every change is a commit. Every approval is a pull request review.
 4. **Routes** each entry through a simple human approval workflow with three default gates (Drafted, Reviewed, Published) that map to PR states.
-5. **Publishes** approved policies as a static handbook site, built by GitHub Actions on every merge, with stable URLs, a changelog from `git log`, and an RSS feed.
+5. **Publishes** approved policies as a static handbook site, built and deployed by GitHub Actions on every merge to a subdomain you control, with stable per-policy URLs. A `git log`-driven changelog and an RSS feed are planned for v0.1.
 6. **Stays out of the way** of your existing platforms. PolicyCodex does not replace SharePoint, Google Workspace, GitHub, or your CMS. It reads from your filesystems, helps you organize, commits to your repo, and emits a handbook.
 
 ## Who It Is For
