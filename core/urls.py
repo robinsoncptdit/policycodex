@@ -1,5 +1,5 @@
 """URL routes for the core app."""
-from django.urls import path
+from django.urls import include, path
 
 from . import views
 
@@ -7,6 +7,9 @@ from . import views
 urlpatterns = [
     path("", views.root_redirect, name="root"),
     path("health/", views.health, name="health"),
+    # APP-27: HTMX fragment endpoints are segregated under /htmx/ (namespace
+    # `htmx`). Empty for now; APP-28c adds the first fragment views.
+    path("htmx/", include("core.htmx_urls")),
     path("catalog/", views.catalog, name="catalog"),
     path("policies/approve/", views.approve_pr, name="approve_pr"),
     path("policies/<slug:slug>/edit/", views.policy_edit, name="policy_edit"),
