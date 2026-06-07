@@ -1,6 +1,6 @@
 # PolicyCodex application image (REPO-05). Generic and diocese-agnostic:
 # per-diocese config enters at runtime via env + mounted volumes, never baked in.
-FROM python:3.12-slim-bookworm
+FROM python:3.14-slim-bookworm
 
 # git is required: the app shells out to git clone/push/pull for the
 # diocese policy repo. The rest are slim-image build basics.
