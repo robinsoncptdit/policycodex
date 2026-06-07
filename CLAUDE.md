@@ -30,10 +30,10 @@ For sprint-by-sprint detail and per-wave narrative, see `internal/PolicyWonk-Dai
 - `LICENSE` is the AGPL-3.0 text.
 - `HOWTO-GitHub-Team-Setup.md` is a generic, diocese-agnostic guide for upgrading a GitHub org to Team tier, enabling branch protection, optionally requiring the foundational-policy guard, and publishing the handbook at a custom subdomain.
 - `repo-template/` holds generic, vendorable files copied into a diocese's policy repo during onboarding: the L2 foundational-policy CI guard (REPO-09), the handbook build-and-deploy workflow + vendored Astro `handbook/` + `sync-handbook.sh` re-vendor script (PUBLISH-06 + PUBLISH-07), and a README. Its `tests/` run in the main suite but are not copied on install. Canonical home for installable diocese-repo automation.
-- `ai/` is the LLM provider abstraction + Claude implementation, markdown/YAML emit, confidence-audit sidecar, Django-free foundational-bundle loader, gap detection, per-diocese taxonomy seeds, and tests.
+- `ai/` is the LLM provider abstraction + Claude implementation, markdown/YAML emit, confidence-audit sidecar, Django-free foundational-bundle loader, gap detection, generic per-policy extraction + the Django-free inventory-pass orchestrator (`inventory_extract.py` + `inventory.py`, AI-10), per-diocese taxonomy seeds, and tests.
 - `app/` is App-lane Django code: git provider (clone/branch/commit/push/PR), local working-copy manager + L3 startup self-check, onboarding wizard (skeleton + screen 1 + per-screen form registry), and tests.
 - `ingest/` is Ingest-lane code: `LocalFolderConnector` CLI, extractors (PDF/DOCX/MD/TXT), `BundleAwarePolicyReader` (reads flat policies + foundational bundles as one inventory), source manifest model, and tests.
-- `core/` is the project-wide Django app: `/health/`, `/login/`, `/logout/`, git-author mapper, and tests.
+- `core/` is the project-wide Django app: `/health/`, `/login/`, `/logout/`, policy catalog + read-only detail view, git-author mapper, the `run_inventory_pass` management command (AI-10 Django wiring), and tests.
 - `manage.py` plus `policycodex_site/` is the Django 5+ project skeleton (SQLite default; `SECRET_KEY` hardening deferred per REPO-05).
 - `pytest.ini` wires pytest-django for the whole repo.
 - `spike/` is the riskiest-assumption extraction spike: `extract.py` loading PT taxonomy, per-policy JSON outputs (gitignored), and the `spike/eval/` regression harness.
