@@ -8,8 +8,13 @@ import importlib.util
 import subprocess
 from pathlib import Path
 
+import yaml
+
 _SCRIPT = (
     Path(__file__).resolve().parents[1] / ".github" / "scripts" / "foundational_guard.py"
+)
+_WORKFLOW = (
+    Path(__file__).resolve().parents[1] / ".github" / "workflows" / "foundational-guard.yml"
 )
 
 
@@ -196,3 +201,16 @@ def test_integration_missing_env_returns_2(monkeypatch):
     monkeypatch.delenv("BASE_SHA", raising=False)
     monkeypatch.delenv("HEAD_SHA", raising=False)
     assert guard.main() == 2
+
+
+def test_workflow_triggers_on_pull_request_and_manual_dispatch():
+    # The guard still fires on PRs touching policies/**, and REPO-12 adds a
+    # manual trigger so a maintainer can re-run it after a workflow-only
+    # fix-forward that the path filter would otherwise miss:
+    #   gh workflow run foundational-guard.yml --ref main
+    wf = yaml.safe_load(_WORKFLOW.read_text())
+    # PyYAML parses the bare `on:` key as boolean True.
+    on = wf.get("on", wf.get(True))
+    assert on["pull_request"]["branches"] == ["main"]
+    assert "policies/**" in on["pull_request"]["paths"]
+    assert "workflow_dispatch" in on

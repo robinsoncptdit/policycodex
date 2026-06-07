@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths:
       - 'policies/**'
+  # REPO-12: lets a maintainer re-run the guard manually after a
+  # workflow-only fix-forward that the path filter above would miss:
+  #   gh workflow run foundational-guard.yml --ref main
+  workflow_dispatch:
 
 jobs:
   foundational-guard:
