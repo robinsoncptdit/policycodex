@@ -3,24 +3,28 @@
 {% block title %}Onboarding | PolicyCodex{% endblock %}
 
 {% block content %}
-  <h2>Onboarding</h2>
-  <p class="wizard-progress">Step {{ index }} of {{ total }}: {{ step.title }}</p>
-
-  <form method="post"{% if multipart %} enctype="multipart/form-data"{% endif %}>
-    {% csrf_token %}
-    {% block step_content %}{% endblock %}
-    {% block wizard_nav %}
-    <div class="wizard-nav">
-      {% if prev_step %}
-        <button type="submit" name="action" value="back">Back</button>
-      {% endif %}
-      {% if is_last %}
-        <button type="submit" name="action" value="continue">Finish</button>
-      {% else %}
-        <button type="submit" name="action" value="continue">Continue</button>
-      {% endif %}
-      <button type="submit" name="action" value="save_exit">Save and exit</button>
+  <div class="max-w-2xl mx-auto">
+    <div class="flex items-center gap-1.5 mb-2">
+      {% for n in ""|center:total %}
+        <div class="h-1.5 flex-1 rounded-full {% if forloop.counter <= index %}bg-primary{% else %}bg-base-300{% endif %}"></div>
+      {% endfor %}
     </div>
-    {% endblock %}
-  </form>
+    <p class="text-xs text-slate-500 mb-6">Step {{ index }} of {{ total }} &middot; {{ step.title }}</p>
+
+    <form method="post"{% if multipart %} enctype="multipart/form-data"{% endif %} class="card bg-base-100 border border-base-300">
+      <div class="card-body space-y-4">
+        {% csrf_token %}
+        {% block step_content %}{% endblock %}
+        {% block wizard_nav %}
+        <div class="flex justify-between pt-4 border-t border-base-300">
+          <div>{% if prev_step %}<button type="submit" name="action" value="back" class="btn btn-ghost btn-sm">&larr; Back</button>{% endif %}</div>
+          <div class="flex gap-2">
+            <button type="submit" name="action" value="continue" class="btn btn-primary btn-sm">{% if is_last %}Finish{% else %}Continue{% endif %}</button>
+            <button type="submit" name="action" value="save_exit" class="btn btn-ghost btn-sm">Save and exit</button>
+          </div>
+        </div>
+        {% endblock %}
+      </div>
+    </form>
+  </div>
 {% endblock %}
