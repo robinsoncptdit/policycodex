@@ -12,7 +12,10 @@ from ai.inventory import (
     make_inventory_branch_name,
     run_inventory_pass,
 )
+from ai.provider import CompletionResult, Usage
 from ingest.manifest import ManifestEntry
+
+_FAKE_USAGE = Usage("fake", "m", 1, 2, "2026-06-08T00:00:00+00:00")
 
 
 def test_required_capabilities():
@@ -60,7 +63,7 @@ class FakeLLM:
 
     def complete(self, prompt, max_tokens):
         self.calls += 1
-        return json.dumps({
+        text = json.dumps({
             "title": f"Policy {self.calls}",
             "summary": "A summary.",
             "category": "IT",
@@ -68,6 +71,7 @@ class FakeLLM:
             "retention_period_years": 7,
             "version_stamp": "1.0",
         })
+        return CompletionResult(text=text, usage=_FAKE_USAGE)
 
 
 class FakeGitProvider:
@@ -160,7 +164,7 @@ def test_happy_path_writes_drafts_and_opens_one_bulk_pr(tmp_path):
 class BadLLM:
     """Always returns unparseable output."""
     def complete(self, prompt, max_tokens):
-        return "not json at all"
+        return CompletionResult(text="not json at all", usage=_FAKE_USAGE)
 
 
 def test_skips_existing_md_and_bundle_without_clobbering(tmp_path):
