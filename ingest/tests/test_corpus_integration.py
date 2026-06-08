@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from ingest.extractors import extract
+from ingest.extractors import extract, pdf_has_embedded_images
 from ingest.incremental import plan_incremental_run, save_manifest
 from ingest.local_folder import LocalFolderConnector
 from ingest.manifest import build_manifest
@@ -38,26 +38,6 @@ def test_walk_yields_all_corpus_files():
         assert p.is_file(), f"walk yielded a non-file: {p}"
 
 
-def _empty_extraction_is_explained(path: Path) -> bool:
-    """An empty extraction is only acceptable for a genuinely image-only PDF
-    (a scan with no text layer). Anything else -- an empty text file, a blank
-    or corrupt PDF, or a regression in a text-bearing extractor -- is a real
-    failure this test must catch. The text extractor (pypdf) cannot read a
-    scan; OCR is out of scope for v0.1.
-    """
-    if path.suffix.lower() != ".pdf":
-        return False
-    import pypdf
-
-    try:
-        reader = pypdf.PdfReader(str(path))
-    except Exception:
-        return False
-    if not reader.pages:
-        return False
-    return any(len(getattr(page, "images", [])) for page in reader.pages)
-
-
 @corpus_required
 def test_every_corpus_file_extracts_text_or_is_image_only():
     walked = list(LocalFolderConnector(CORPUS_DIR).walk())
@@ -65,7 +45,7 @@ def test_every_corpus_file_extracts_text_or_is_image_only():
     for p in walked:
         if extract(p).strip():
             continue
-        if not _empty_extraction_is_explained(p):
+        if not pdf_has_embedded_images(p):
             unexplained_empties.append(str(p))
     assert not unexplained_empties, (
         "files extracted empty text without being image-only PDFs: "
