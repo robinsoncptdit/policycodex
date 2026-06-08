@@ -439,3 +439,26 @@ def test_llm_provider_invalid_continue_does_not_advance(client, user):
     resp = client.post("/onboarding/llm-provider/", {"action": "continue"})
     assert resp.status_code == 200  # re-rendered, not redirected
     assert client.get("/onboarding/").url == "/onboarding/llm-provider/"
+
+
+def test_llm_provider_screen_shows_api_key_prose(client, user):
+    client.force_login(user)
+    _advance_to_llm_provider(client)
+    body = client.get("/onboarding/llm-provider/").content.decode()
+    # The core consumer-subscription distinction is spelled out.
+    assert "not Claude Pro" in body
+    assert "ChatGPT Plus" in body
+    # Each provider's API-key documentation link is present.
+    assert "https://docs.anthropic.com/en/api/overview" in body
+    assert "https://platform.openai.com/docs/api-reference/authentication" in body
+    assert "https://ai.google.dev/gemini-api/docs/api-key" in body
+    assert "https://learn.microsoft.com/azure/ai-services/openai/" in body
+
+
+def test_llm_provider_screen_shows_cost_table_with_caveat(client, user):
+    client.force_login(user)
+    _advance_to_llm_provider(client)
+    body = client.get("/onboarding/llm-provider/").content.decode()
+    assert "Illustrative example" in body          # placeholder caveat
+    assert "mid-tier model" in body                 # assumption note
+    assert "Mid (~200 policies)" in body            # a table row renders
