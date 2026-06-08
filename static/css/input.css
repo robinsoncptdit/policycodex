@@ -46,6 +46,8 @@
    Note: @apply input-bordered is unavailable in DaisyUI v5 (no standalone utility);
    using @apply input w-full with an explicit border-color override instead. */
 .card-body input[type="text"],
+.card-body input[type="password"],
+.card-body input[type="email"],
 .card-body input[type="number"],
 .card-body textarea {
   @apply input w-full;
