@@ -99,9 +99,35 @@ The v0.1 frontend stack (Tailwind core, DaisyUI, HTMX, Inter) is entirely on the
 
 The bigger UI-adoption work (vendor the Tailwind standalone binary into the repo or scripted-download it, wire it into `manage.py collectstatic` or a pre-commit hook to emit `policycodex.css`, retemplate the existing eight Django templates to the Tailwind + DaisyUI vocabulary, update REPO-10's clean-VM verification harness to cover the new build step) is real work that follows from this decision. It belongs as one or more polish-week tickets after APP-27 sets the foundation. Open as APP-28 or a sibling depending on how the lane wants to slice it.
 
-## Snippets for Scarlet (handoff for the OQ tracker and ticket board)
+## What actually landed (updated 2026-06-07)
 
-The OQ tracker and the ticket board belong to Scarlet per the standing role boundary. The snippets below are drafted in the existing file formats. Paste them into the corresponding files in a single commit, or hand them to Scarlet to land.
+This section previously held draft snippets for Scarlet to apply. All the drafts have now been landed in the canonical files. For the record:
+
+**`internal/PolicyWonk-Open-Questions.md`** carries the OQ-13 resolved entry (Scarlet, 2026-06-05).
+
+**`PolicyWonk-v0.1-Spec.md`** carries:
+- Frontend Portability Constraints section (PM, 2026-06-05).
+- Frontend Dependencies and AGPL Compatibility subsection under Licensing (PM, 2026-06-05).
+- OQ-13 resolution line under Engineering (PM, 2026-06-05).
+- P0.5 deferral note updated to reference the APP-29 completion screen and the P2.7 v0.2 work (PM, 2026-06-07).
+- P0.6 Behavior block expanded to describe the completion screen (PM, 2026-06-07).
+- P0.6 acceptance gained the completion-screen criterion (PM, 2026-06-07).
+- P2.7 added to Future Considerations for the v0.2 wizard-managed handbook publishing (PM, 2026-06-07).
+
+**`CLAUDE.md`** carries the UI framework bullet under the Tech subsection plus the new Frontend portability constraints subsection (PM, 2026-06-05).
+
+**`PolicyWonk-v0.1-Tickets.md`** carries three new App Lane tickets:
+- **APP-27** (Scarlet, 2026-06-05): UI framework architecture hygiene. `/htmx/` URL prefix convention. The CLAUDE.md note half landed during the OQ-13 pass, so APP-27 scope is just the URL convention.
+- **APP-28** (Scarlet, 2026-06-05, sized L): Tailwind + DaisyUI build-chain enablement. Scarlet expanded scope from the original "build chain + retemplate the 8 Django templates + REPO-10 update" to also cover the two live HTMX interactions (PDF upload extraction + typed-table row-add) after Chuck chose "look + live HTMX" for DISC. Template count moved from 8 to 12 (8 in `core/templates/`, 4 in `app/onboarding/templates/onboarding/`). Typed-table row-add was pulled out of APP-26 item 2 into APP-28(c).
+- **APP-29** (PM, 2026-06-07): Wizard completion screen. Closes the v0.1 gap between "wizard finished" and "handbook online" by guiding the IT director through the manual DNS + GitHub Pages steps. Depends on APP-16 (the onboarding PR merge needs to happen first) and APP-28 (the template ships in the Tailwind + DaisyUI vocabulary so APP-28(b)'s retemplate pass does not have to revisit it).
+
+The v0.2 follow-on (full wizard-managed handbook publishing) is captured in PRD P2.7 and does not need a ticket-board entry until v0.2 work starts.
+
+The original draft snippets are preserved below for traceability.
+
+## Original draft snippets (preserved for traceability)
+
+The OQ tracker and the ticket board belong to Scarlet per the standing role boundary, which is why these were drafted as handoff snippets first. Chuck later authorized direct PM write access to the tickets file (2026-06-07).
 
 ### For `internal/PolicyWonk-Open-Questions.md`
 
@@ -113,8 +139,11 @@ Add to the **Resolved** table:
 
 ### For `PolicyWonk-v0.1-Tickets.md` (App Lane table)
 
-Add after APP-26 (and before the lane-acceptance paragraph):
+Add after APP-26 (and before the lane-acceptance paragraph). Two tickets, in order:
 
 ```
 | APP-27 | UI framework architecture hygiene. (1) Add an `/htmx/` URL prefix to `core/urls.py` (or wherever HTMX fragment endpoints will live) so a future JSON API at `/api/v1/` does not collide. No HTMX endpoints exist yet; this ticket lays the convention before they land. (2) Add a 1-paragraph "Frontend portability constraints" note to `CLAUDE.md` under the existing **Tech** subsection of "What Has Already Been Reconsidered and Locked" capturing the three guard rails (views stay thin, HTMX URL-segregated, auth in middleware). Resolves OQ-13's architecture-hygiene piece. Build-chain enablement (vendor Tailwind standalone CLI, retemplate the 8 existing Django templates, REPO-10 update) is intentionally NOT in scope here; that follows as a sibling ticket. See `internal/PolicyWonk-UI-Framework-Decision.md` for rationale. | S | 5 | None |
+| APP-28 | Wizard completion screen ("next steps to publish your handbook"). New Django view + template rendered after the APP-16 onboarding PR merges. Shows: the policy repo URL with a copy button, the exact DNS CNAME target the diocese must set at their registrar (`<diocese-org>.github.io`), a deep link into the diocese's GitHub Pages settings page (`https://github.com/<org>/<repo>/settings/pages`), and a link into `HOWTO-GitHub-Team-Setup.md` for the full sequence. Presentation only: no API calls, no commits. Closes the disconnect between "wizard finished" and "handbook online" that today requires alt-tabbing to docs. Bigger wizard-managed handbook publishing (subdomain collected inside the wizard, `CNAME` committed automatically) is intentionally NOT in scope here; that ships in v0.2 per PRD P2.7. See PRD P0.6 + P0.5 deferral note. Filed 2026-06-07 from the OQ-13 wizard-handbook-gap conversation. | S | 5 | APP-16 |
 ```
+
+The v0.2 follow-on (full wizard-managed handbook publishing) is captured in PRD P2.7 and does not need a ticket-board entry until v0.2 work starts.
