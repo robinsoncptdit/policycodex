@@ -1,37 +1,46 @@
+{% load static %}
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="policycodex">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}PolicyCodex{% endblock %}</title>
+    <link rel="icon" href="{% static 'favicon.svg' %}" type="image/svg+xml">
+    <link rel="stylesheet" href="{% static 'css/policycodex.css' %}">
+    <script src="{% static 'js/htmx.min.js' %}" defer></script>
   </head>
-  <body>
-    <header>
-      <h1><a href="{% url 'catalog' %}">PolicyCodex</a></h1>
+  <body class="min-h-screen bg-base-200 text-base-content flex flex-col">
+    <header class="navbar bg-base-100 border-b border-base-300 px-6">
+      <div class="flex-1 flex items-center gap-2">
+        <span class="w-7 h-7 rounded bg-primary text-primary-content flex items-center justify-center text-xs font-semibold">PC</span>
+        <a href="{% url 'catalog' %}" class="font-semibold text-base-content">PolicyCodex</a>
+      </div>
       {% if user.is_authenticated %}
-        <nav>
-          <span>Signed in as {{ user.username }}.</span>
-          <form method="post" action="{% url 'logout' %}" style="display:inline">
+        <div class="flex items-center gap-4">
+          <span class="text-xs text-slate-500">Signed in as {{ user.username }}</span>
+          <form method="post" action="{% url 'logout' %}">
             {% csrf_token %}
-            <button type="submit">Sign out</button>
+            <button type="submit" class="btn btn-ghost btn-sm">Sign out</button>
           </form>
-        </nav>
+        </div>
       {% endif %}
     </header>
-    <main>
+
+    <main class="flex-1 w-full max-w-5xl mx-auto px-6 py-8">
       {% if messages %}
-        <ul class="messages">
+        <div class="space-y-2 mb-6">
           {% for message in messages %}
-            <li class="message message-{{ message.tags }}">{{ message }}</li>
+            <div class="alert alert-{{ message.tags|default:'info' }} text-sm py-2">{{ message }}</div>
           {% endfor %}
-        </ul>
+        </div>
       {% endif %}
       {% block content %}{% endblock %}
     </main>
-    <footer>
-      <small>
+
+    <footer class="border-t border-base-300 px-6 py-4 text-center">
+      <small class="text-xs text-slate-500">
         PolicyCodex v0.1 &middot;
-        <a href="{{ source_url }}">View Source</a> (AGPL-3.0)
+        <a href="{{ source_url }}" class="link link-hover text-primary">View Source</a> (AGPL-3.0)
       </small>
     </footer>
   </body>

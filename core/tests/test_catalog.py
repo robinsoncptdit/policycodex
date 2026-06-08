@@ -154,9 +154,9 @@ def test_catalog_marks_foundational_bundles(client, user, stub_gh_provider):
     body = response.content.decode()
     # The bundle policy's section in the body should contain the marker;
     # the flat policy's should not.
-    assert "(foundational)" in body
+    assert ">foundational<" in body
     # Crude check: the marker appears exactly once, attached to "Retention Bundle".
-    assert body.count("(foundational)") == 1
+    assert body.count(">foundational<") == 1
 
 
 def test_catalog_empty_state_when_policies_dir_missing(client, user):
@@ -521,7 +521,7 @@ def test_catalog_hides_edit_link_for_foundational_policy(client, user, stub_gh_p
     # Positive companion assertion: the foundational branch rendered (typed-table
     # editor link present), so this test fails if the whole foundational {% if %}
     # block is accidentally removed.
-    assert "action-edit-foundational" in body
+    assert 'href="/policies/document-retention/foundational-edit/"' in body
 
 
 def test_catalog_shows_foundational_gate_banner_for_foundational_policy(client, user, stub_gh_provider):
@@ -544,7 +544,7 @@ def test_catalog_shows_foundational_gate_banner_for_foundational_policy(client, 
                 response = client.get("/catalog/")
 
     body = response.content.decode()
-    assert "action-edit-foundational" in body
+    assert 'href="/policies/document-retention/foundational-edit/"' in body
     assert "Edit (typed table)" in body
 
 
@@ -562,7 +562,7 @@ def test_catalog_does_not_show_gate_banner_for_non_foundational_policy(client, u
                 response = client.get("/catalog/")
 
     body = response.content.decode()
-    assert "action-edit-foundational" not in body
+    assert "foundational-edit" not in body
     assert "Edit (typed table)" not in body
 
 
@@ -601,7 +601,7 @@ def test_catalog_foundational_policy_still_publishable_when_reviewed(client, use
     assert "Publish" in body
     # The ordinary edit-form link is still hidden, and the typed-table link still shows.
     assert 'href="/policies/document-retention/edit/"' not in body
-    assert "action-edit-foundational" in body
+    assert 'href="/policies/document-retention/foundational-edit/"' in body
 
 
 _TAXONOMY = {"classifications": [{"id": "financial", "name": "Financial"}]}
@@ -627,7 +627,7 @@ def test_catalog_flags_policy_with_unknown_category(client, user, stub_gh_provid
 
     body = response.content.decode()
     assert response.status_code == 200
-    assert "gap-banner" in body
+    assert "alert-warning" in body
     assert "1 policy flagged" in body
     # Exactly one row badge.
     assert body.count("gap-badge") == 1

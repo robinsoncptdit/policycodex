@@ -3,79 +3,88 @@
 {% block title %}Catalog | PolicyCodex{% endblock %}
 
 {% block content %}
-  <h2>Policy catalog</h2>
-
-  {% if messages %}
-    <ul class="messages">
-      {% for message in messages %}
-        <li class="message message-{{ message.tags }}">{{ message }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
+  <div class="flex items-end justify-between mb-6">
+    <h2 class="text-xl font-semibold text-slate-900 tracking-tight">Policy catalog</h2>
+  </div>
 
   {% if is_empty_onboarding %}
-    <section class="empty-state">
-      <p>No policies yet.</p>
-      <p>
-        Run the onboarding wizard, or sync the diocese's policy repo by running
-        <code>python manage.py pull_working_copy</code> on the server.
-      </p>
-    </section>
+    <div class="card bg-base-100 border border-base-300">
+      <div class="card-body items-center text-center py-12">
+        <h3 class="text-lg font-medium text-slate-900">No policies yet</h3>
+        <p class="text-sm text-slate-500 max-w-md">
+          Run the onboarding wizard, or sync the diocese's policy repo by running
+          <code class="text-xs">python manage.py pull_working_copy</code> on the server.
+        </p>
+      </div>
+    </div>
   {% else %}
     {% if gap_count %}
-      <p class="gap-banner">
+      <div class="alert alert-warning text-sm mb-4">
         {{ gap_count }} polic{{ gap_count|pluralize:"y,ies" }} flagged: type not in the retention taxonomy. Review and re-classify.
-      </p>
+      </div>
     {% endif %}
-    <section class="approve-pr">
-      <h3>Approve a PR</h3>
-      <p>
-        Enter the GitHub PR number to approve. (APP-17 will wire this to
-        per-policy rows once PR tracking is persisted.)
-      </p>
-      <form method="post" action="{% url 'approve_pr' %}">
-        {% csrf_token %}
-        <label for="pr_number">PR number</label>
-        <input type="number" name="pr_number" id="pr_number" min="1" required>
-        <button type="submit">Approve PR</button>
-      </form>
-    </section>
 
-    <ul class="policy-list">
-      {% for row in rows %}
-        <li class="policy">
-          <a href="{% url 'policy_detail' slug=row.policy.slug %}">{{ row.policy.frontmatter.title|default:row.policy.slug }}</a>
-          <span class="kind-badge kind-{{ row.policy.kind }}">{{ row.policy.kind }}</span>
-          {% if row.policy.foundational %}
-            <span class="foundational-badge">(foundational)</span>
-          {% endif %}
-          <span class="gate-badge gate-{{ row.gate }}">{{ row.gate|title }}</span>
-          {% if row.is_gap %}
-            <span class="gap-badge">no retention match</span>
-          {% endif %}
+    <div class="card bg-base-100 border border-base-300 mb-6">
+      <div class="card-body">
+        <h3 class="card-title text-sm font-semibold uppercase tracking-wider text-slate-500">Approve a PR</h3>
+        <p class="text-sm text-slate-500">Enter the GitHub PR number to approve.</p>
+        <form method="post" action="{% url 'approve_pr' %}" class="flex items-end gap-2">
+          {% csrf_token %}
+          <div>
+            <label for="pr_number" class="block text-xs text-slate-500 mb-1">PR number</label>
+            <input type="number" name="pr_number" id="pr_number" min="1" required
+                   class="input input-bordered input-sm w-32">
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm">Approve PR</button>
+        </form>
+      </div>
+    </div>
 
-          {# L1 foundational gate (APP-20). Edit/Delete affordances are hidden #}
-          {# for foundational policies, which edit only through the typed-table #}
-          {# UI. Any future per-row Delete affordance MUST live inside this #}
-          {# not-foundational branch so it inherits the gate by construction. #}
-          {# Gate transitions (Publish, below) are intentionally NOT gated here: #}
-          {# a foundational edit still flows drafted, reviewed, published via its PR. #}
-          {% if row.policy.foundational %}
-            <a class="action-edit-foundational" href="{% url 'foundational_edit' slug=row.policy.slug %}">Edit (typed table)</a>
-          {% else %}
-            <a class="action-edit" href="{% url 'policy_edit' slug=row.policy.slug %}">Edit</a>
-          {% endif %}
-
-          {% if row.gate == "reviewed" %}
-            <form method="post" action="{% url 'publish_policy' slug=row.policy.slug %}" style="display:inline">
-              {% csrf_token %}
-              <button type="submit">Publish</button>
-            </form>
-          {% endif %}
-        </li>
-      {% empty %}
-        <li class="no-results">No policies in the working copy.</li>
-      {% endfor %}
-    </ul>
+    <div class="card bg-base-100 border border-base-300">
+      <table class="table">
+        <thead>
+          <tr class="text-xs uppercase tracking-wider text-slate-500">
+            <th>Title</th><th>Kind</th><th>Gate</th><th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr class="hover:bg-slate-50">
+              <td>
+                <a href="{% url 'policy_detail' slug=row.policy.slug %}" class="font-medium text-slate-900 hover:text-primary">
+                  {{ row.policy.frontmatter.title|default:row.policy.slug }}
+                </a>
+                {% if row.policy.foundational %}
+                  <span class="text-xs text-slate-400 ml-1">foundational</span>
+                {% endif %}
+                {% if row.is_gap %}
+                  <span class="gap-badge inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ml-1">no retention match</span>
+                {% endif %}
+              </td>
+              <td><span class="badge badge-ghost badge-sm">{{ row.policy.kind }}</span></td>
+              <td><span class="gate-{{ row.gate }} inline-flex items-center px-2 py-0.5 rounded text-xs font-medium">{{ row.gate|title }}</span></td>
+              <td class="text-right space-x-2">
+                {# L1 foundational gate (APP-20): foundational policies edit only through #}
+                {# the typed-table UI. Any future Delete affordance MUST live inside the #}
+                {# not-foundational branch so it inherits the gate by construction. #}
+                {% if row.policy.foundational %}
+                  <a href="{% url 'foundational_edit' slug=row.policy.slug %}" class="link link-primary text-sm">Edit (typed table)</a>
+                {% else %}
+                  <a href="{% url 'policy_edit' slug=row.policy.slug %}" class="link link-primary text-sm">Edit</a>
+                {% endif %}
+                {% if row.gate == "reviewed" %}
+                  <form method="post" action="{% url 'publish_policy' slug=row.policy.slug %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary btn-xs">Publish</button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4" class="text-center text-slate-500 py-6">No policies in the working copy.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   {% endif %}
 {% endblock %}
