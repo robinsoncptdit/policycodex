@@ -184,3 +184,82 @@ def test_extractors_implement_extractor_abc():
         assert isinstance(instance, Extractor)
         assert isinstance(cls.extensions, tuple)
         assert all(ext.startswith(".") and ext == ext.lower() for ext in cls.extensions)
+
+
+# ---------- pdf_has_embedded_images (APP-30) ----------------------------------
+
+
+def test_pdf_has_embedded_images_false_for_non_pdf(tmp_path: Path):
+    p = tmp_path / "notes.txt"
+    p.write_text("plain text", encoding="utf-8")
+    from ingest.extractors import pdf_has_embedded_images
+
+    assert pdf_has_embedded_images(p) is False
+
+
+def test_pdf_has_embedded_images_false_for_unreadable_bytes(tmp_path: Path):
+    """Garbage that pypdf cannot parse is not a scan; the helper returns False
+    rather than raising, so the caller can fall through to its generic error."""
+    p = tmp_path / "garbage.pdf"
+    p.write_bytes(b"this is not a pdf at all")
+    from ingest.extractors import pdf_has_embedded_images
+
+    assert pdf_has_embedded_images(p) is False
+
+
+def test_pdf_has_embedded_images_false_for_text_only_pdf(tiny_pdf: Path):
+    """A real, parseable, text-only PDF has pages but no embedded images."""
+    from ingest.extractors import pdf_has_embedded_images
+
+    assert pdf_has_embedded_images(tiny_pdf) is False
+
+
+def test_pdf_has_embedded_images_true_when_a_page_has_images(tmp_path: Path, monkeypatch):
+    """A scan presents as one-or-more pages each carrying image XObjects.
+    Faking the reader keeps this deterministic without a binary image fixture;
+    the real image-only PDF path is exercised by the corpus integration test."""
+    import pypdf
+    from ingest.extractors import pdf_has_embedded_images
+
+    p = tmp_path / "scan.pdf"
+    p.write_bytes(b"%PDF-1.4 placeholder")
+
+    class _FakePage:
+        images = [object()]
+
+    class _FakeReader:
+        pages = [_FakePage()]
+
+    monkeypatch.setattr(pypdf, "PdfReader", lambda *a, **k: _FakeReader())
+    assert pdf_has_embedded_images(p) is True
+
+
+def test_pdf_has_embedded_images_false_when_pages_have_no_images(tmp_path: Path, monkeypatch):
+    import pypdf
+    from ingest.extractors import pdf_has_embedded_images
+
+    p = tmp_path / "scan.pdf"
+    p.write_bytes(b"%PDF-1.4 placeholder")
+
+    class _FakePage:
+        images = []
+
+    class _FakeReader:
+        pages = [_FakePage()]
+
+    monkeypatch.setattr(pypdf, "PdfReader", lambda *a, **k: _FakeReader())
+    assert pdf_has_embedded_images(p) is False
+
+
+def test_pdf_has_embedded_images_false_for_pdf_with_no_pages(tmp_path: Path, monkeypatch):
+    import pypdf
+    from ingest.extractors import pdf_has_embedded_images
+
+    p = tmp_path / "empty.pdf"
+    p.write_bytes(b"%PDF-1.4 placeholder")
+
+    class _FakeReader:
+        pages = []
+
+    monkeypatch.setattr(pypdf, "PdfReader", lambda *a, **k: _FakeReader())
+    assert pdf_has_embedded_images(p) is False

@@ -16,7 +16,7 @@ from pathlib import Path
 
 from .base import Extractor, UnsupportedFormatError
 from .docx import DocxExtractor
-from .pdf import PdfExtractor
+from .pdf import PdfExtractor, pdf_has_embedded_images
 from .text import TextExtractor
 
 __all__ = [
@@ -24,6 +24,7 @@ __all__ = [
     "Extractor",
     "UnsupportedFormatError",
     "PdfExtractor",
+    "pdf_has_embedded_images",
     "DocxExtractor",
     "TextExtractor",
 ]
