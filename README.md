@@ -101,6 +101,18 @@ Run PolicyCodex on a small VM. Connect it to your private GitHub repo. Point it 
 
 ## Quick Start
 
+### Before you begin
+
+PolicyCodex needs **API access to a language model, not a consumer chat subscription.** The consumer plans (Claude Pro / Pro Max / Teams, ChatGPT Plus, Google One) have no programmatic access and will not work. Provision an API key before you reach wizard step 6:
+
+- **Anthropic Claude** (default) — an Anthropic API key, not Claude Pro / Pro Max / Teams. The API is pre-paid and billed per token via console.anthropic.com, so you arrive at the wizard already provisioned.
+- **OpenAI** — an OpenAI API key, not ChatGPT Plus.
+- **Google Gemini** — a Gemini API key or Vertex AI credentials, not Google One.
+- **Azure OpenAI** — Azure OpenAI deployment credentials (an Azure subscription with the OpenAI service deployed).
+- **Local Llama** — no third-party key; runs on your own VM.
+
+The wizard's LLM-provider screen links each provider's API-key docs and shows rough monthly cost ranges.
+
 PolicyCodex runs on Python 3.12+ (the floor set by Django 6.0).
 
 ```bash
@@ -124,7 +136,7 @@ Open `http://localhost:8000` and complete the seven-screen onboarding wizard:
 3. Pick a versioning convention (semver default)
 4. Set reviewer roles and required approvers (writes branch protection rules)
 5. Set retention defaults
-6. Pick an LLM provider (Claude default)
+6. Pick an LLM provider (Claude default; the screen links API-key docs and shows rough cost ranges)
 7. Point PolicyCodex at any source-of-truth reference documents you already have (Document Retention Policy, by-laws, etc.). The AI extractor uses them as ground truth rather than guessing.
 
 ### Docker (recommended for non-developers)
