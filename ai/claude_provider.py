@@ -2,14 +2,16 @@
 from __future__ import annotations
 
 import os
+from datetime import datetime, timezone
 from typing import Optional
 
 from anthropic import Anthropic
 
-from ai.provider import LLMProvider
+from ai.provider import CompletionResult, LLMProvider, Usage
 
 DEFAULT_MODEL = "claude-opus-4-8"
 DEFAULT_MAX_TOKENS = 1024
+PROVIDER_NAME = "claude"
 
 
 class ClaudeProvider(LLMProvider):
@@ -30,7 +32,7 @@ class ClaudeProvider(LLMProvider):
         self.default_max_tokens = default_max_tokens
         self._client = client or Anthropic()
 
-    def complete(self, prompt: str, max_tokens: int) -> str:
+    def complete(self, prompt: str, max_tokens: int) -> CompletionResult:
         response = self._client.messages.create(
             model=self.model,
             max_tokens=max_tokens,
@@ -40,4 +42,11 @@ class ClaudeProvider(LLMProvider):
         for block in response.content:
             if getattr(block, "type", None) == "text":
                 parts.append(block.text)
-        return "".join(parts)
+        usage = Usage(
+            provider=PROVIDER_NAME,
+            model=self.model,
+            input_tokens=response.usage.input_tokens,
+            output_tokens=response.usage.output_tokens,
+            timestamp=datetime.now(timezone.utc).isoformat(),
+        )
+        return CompletionResult(text="".join(parts), usage=usage)
