@@ -15,7 +15,9 @@ from pathlib import Path
 import pytest
 
 from ingest.extractors import extract
+from ingest.incremental import plan_incremental_run, save_manifest
 from ingest.local_folder import LocalFolderConnector
+from ingest.manifest import build_manifest
 
 _CORPUS_ENV = "POLICYCODEX_CORPUS_DIR"
 _raw = os.environ.get(_CORPUS_ENV)
@@ -69,3 +71,37 @@ def test_every_corpus_file_extracts_text_or_is_image_only():
         "files extracted empty text without being image-only PDFs: "
         f"{unexplained_empties}"
     )
+
+
+@corpus_required
+def test_manifest_has_one_hashed_entry_per_corpus_file():
+    walked = list(LocalFolderConnector(CORPUS_DIR).walk())
+    entries = build_manifest(walked, source_label="corpus-test")
+    assert len(entries) == len(walked)
+    paths = [e.path for e in entries]
+    assert len(set(paths)) == len(paths), "manifest has duplicate paths"
+    for e in entries:
+        assert len(e.content_hash) == 64, f"not a sha256 hex digest: {e.content_hash}"
+        assert all(c in "0123456789abcdef" for c in e.content_hash)
+        assert e.source_label == "corpus-test"
+
+
+@corpus_required
+def test_incremental_first_run_all_added_then_second_run_all_unchanged(tmp_path):
+    walked = list(LocalFolderConnector(CORPUS_DIR).walk())
+    manifest_path = tmp_path / "manifest.json"
+
+    first = plan_incremental_run(CORPUS_DIR, manifest_path, source_label="corpus-test")
+    assert len(first.added) == len(walked)
+    assert first.changed == []
+    assert first.removed == []
+    assert len(first.to_process) == len(walked)
+
+    save_manifest(first.current, manifest_path)
+
+    second = plan_incremental_run(CORPUS_DIR, manifest_path, source_label="corpus-test")
+    assert second.added == []
+    assert second.changed == []
+    assert second.removed == []
+    assert len(second.unchanged) == len(walked)
+    assert second.to_process == []
