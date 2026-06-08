@@ -1,10 +1,10 @@
-"""Confidence audit-sidecar emitter for AI-extracted policy metadata.
+"""Confidence and usage audit-sidecar emitter for AI-extracted policy metadata.
 
 The inverse of ``ai/emit.py``: where ``emit.py`` strips every confidence
 field out of the policy markdown, this module keeps only the confidence
-scores (plus ``title`` and ``source_file`` for traceability) and emits the
-YAML body of a ``<slug>.audit.yaml`` sidecar. The caller decides where to
-write the result and how to derive the slug (see AI-10).
+scores and per-call usage telemetry (plus ``title`` and ``source_file`` for
+traceability) and emits the YAML body of a ``<slug>.audit.yaml`` sidecar. The
+caller decides where to write the result and how to derive the slug (see AI-10).
 
 Per the v0.1 spec (line 99), confidence scores are recorded in a separate
 audit file, never in the human-readable policy markdown.
@@ -16,6 +16,9 @@ Design notes:
   them, so audit diffs stay stable across runs.
 - Any extra ``*_confidence`` keys not in the canonical set are appended
   alphabetized, so a new scored field is never silently dropped.
+- Canonical usage fields (``USAGE_FIELD_ORDER``) always appear in the
+  ``usage:`` map, read from the private ``_usage`` key, with value ``null``
+  when absent, mirroring the confidence convention (AI-16).
 - ``title`` and ``source_file`` are emitted as top-level identifying
   metadata (``source_file`` is read from the spike-internal ``_source_file``
   key); both are ``null`` when absent.
@@ -83,9 +86,10 @@ def to_audit_yaml(extraction: dict[str, Any]) -> str:
     """Convert an AI-extraction dict to the YAML body of an audit sidecar.
 
     The output is a block-style YAML document with top-level ``title`` and
-    ``source_file`` keys followed by a ``confidence:`` map. Confidence scores
-    are the only per-field data carried over from the extraction; all policy
-    content lives in the markdown emitted by ``ai/emit.py``.
+    ``source_file`` keys followed by a ``confidence:`` map and a ``usage:``
+    map. Confidence scores and usage telemetry are the only per-field data
+    carried over from the extraction; all policy content lives in the markdown
+    emitted by ``ai/emit.py``.
     """
     doc: dict[str, Any] = {
         "title": extraction.get("title"),
