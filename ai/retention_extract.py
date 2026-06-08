@@ -83,10 +83,14 @@ def parse_bundle_response(raw: str) -> dict[str, Any]:
 
 
 def extract_retention_bundle(provider: LLMProvider, document_text: str) -> dict[str, Any]:
-    """Run the extraction prompt against the retention document text."""
+    """Run the extraction prompt against the retention document text.
+
+    Uses only the completion text; per AI-16 scope the retention-bundle call
+    stays unmetered in v0.1 (it has no audit sidecar to carry usage).
+    """
     prompt = RETENTION_BUNDLE_PROMPT + document_text[:MAX_DOCUMENT_CHARS]
-    raw = provider.complete(prompt, EXTRACTION_MAX_TOKENS)
-    return parse_bundle_response(raw)
+    result = provider.complete(prompt, EXTRACTION_MAX_TOKENS)
+    return parse_bundle_response(result.text)
 
 
 _CLASSIFICATION_KEYS = ("id", "name")

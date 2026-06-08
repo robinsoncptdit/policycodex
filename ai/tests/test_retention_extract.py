@@ -4,6 +4,7 @@ import json
 import pytest
 import yaml
 
+from ai.provider import CompletionResult, Usage
 from ai.retention_extract import (
     EXTRACTION_MAX_TOKENS,
     RetentionExtractionError,
@@ -29,7 +30,7 @@ VALID_BUNDLE = {
 
 
 class FakeProvider:
-    """Stands in for ai.provider.LLMProvider. Returns canned text."""
+    """Stands in for ai.provider.LLMProvider. Returns canned text + usage."""
     def __init__(self, text):
         self._text = text
         self.last_prompt = None
@@ -38,7 +39,10 @@ class FakeProvider:
     def complete(self, prompt, max_tokens):
         self.last_prompt = prompt
         self.last_max_tokens = max_tokens
-        return self._text
+        return CompletionResult(
+            text=self._text,
+            usage=Usage("fake", "m", 1, 2, "2026-06-08T00:00:00+00:00"),
+        )
 
 
 def test_parse_plain_json():
@@ -95,3 +99,10 @@ def test_build_data_yaml_rejects_classification_missing_id():
     bad = {"classifications": [{"name": "X"}], "retention_schedule": []}
     with pytest.raises(RetentionExtractionError, match="id"):
         build_data_yaml(bad)
+
+
+def test_extract_bundle_does_not_carry_usage():
+    provider = FakeProvider(json.dumps(VALID_BUNDLE))
+    result = extract_retention_bundle(provider, "PDF TEXT HERE")
+    assert "_usage" not in result
+    assert result == VALID_BUNDLE
