@@ -1,33 +1,3 @@
 {% extends "onboarding/base_wizard.html" %}
-
 {% block wizard_nav %}{% endblock %}
-
-{% block step_content %}
-  <p>Review the extracted data. Accept to scaffold your foundational
-     Document Retention Policy, or re-upload a corrected PDF.</p>
-
-  <h3>{{ classifications|length }} classifications</h3>
-  <table class="review-table">
-    <thead><tr><th>id</th><th>name</th></tr></thead>
-    <tbody>
-      {% for c in classifications %}
-        <tr><td>{{ c.id }}</td><td>{{ c.name }}</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <h3>{{ retention_schedule|length }} retention rows</h3>
-  <table class="review-table">
-    <thead><tr><th>group</th><th>type</th><th>retention</th></tr></thead>
-    <tbody>
-      {% for r in retention_schedule %}
-        <tr><td>{{ r.group }}</td><td>{{ r.type }}</td><td>{{ r.retention }}</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <div class="wizard-nav">
-    <button type="submit" name="action" value="reupload">Re-upload a different PDF</button>
-    <button type="submit" name="action" value="accept">Accept and scaffold</button>
-  </div>
-{% endblock %}
+{% block step_content %}{% include "onboarding/_screen7_body.html" with mode="review" %}{% endblock %}

@@ -11,8 +11,10 @@ def test_htmx_urls_module_is_namespaced():
 
 
 def test_foundational_row_route_is_registered():
-    # APP-28b reserves this route; APP-28c fills in the real body.
-    names = [p.name for p in htmx_urls.urlpatterns]
+    # APP-28b reserves this route; APP-28c fills in the real body. Some entries
+    # are now URLResolvers (the onboarding /htmx/onboarding/ include) with no
+    # .name, so read names defensively.
+    names = [getattr(p, "name", None) for p in htmx_urls.urlpatterns]
     assert "foundational_row" in names
 
 

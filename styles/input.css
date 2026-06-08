@@ -60,3 +60,7 @@
 .gate-reviewed  { background: #dbeafe; color: #1e40af; }
 .gate-published { background: #d1fae5; color: #065f46; }
 .gap-badge      { background: #fee2e2; color: #991b1b; }
+
+/* HTMX request-in-flight indicator: hidden until htmx adds .htmx-request. */
+.htmx-indicator { opacity: 0; transition: opacity 0.2s; }
+.htmx-request .htmx-indicator, .htmx-request.htmx-indicator { opacity: 1; }
