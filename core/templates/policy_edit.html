@@ -1,39 +1,33 @@
 {% extends "base.html" %}
 
-{% block title %}Edit {{ policy.slug }} | PolicyCodex{% endblock %}
+{% block title %}Edit {{ policy.frontmatter.title|default:policy.slug }} | PolicyCodex{% endblock %}
 
 {% block content %}
-  <h2>Edit policies/{{ policy.slug }}</h2>
+  <h2 class="text-xl font-semibold text-slate-900 tracking-tight mb-1">Edit {{ policy.frontmatter.title|default:policy.slug }}</h2>
+  <p class="text-sm text-slate-500 mb-6">Saving opens a pull request that flows Drafted &rarr; Reviewed &rarr; Published.</p>
 
-  {% if messages %}
-    <ul class="messages">
-      {% for message in messages %}
-        <li class="{{ message.tags }}">{{ message }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
-
-  <form method="post">
-    {% csrf_token %}
-    <p>
-      <label for="{{ form.title.id_for_label }}">Title</label>
-      {{ form.title }}
-      {% if form.title.errors %}<span class="error">{{ form.title.errors|join:", " }}</span>{% endif %}
-    </p>
-    <p>
-      <label for="{{ form.body.id_for_label }}">Body</label>
-      {{ form.body }}
-      {% if form.body.errors %}<span class="error">{{ form.body.errors|join:", " }}</span>{% endif %}
-    </p>
-    <p>
-      <label for="{{ form.summary.id_for_label }}">Summary (optional)</label>
-      {{ form.summary }}
-      <small>{{ form.summary.help_text }}</small>
-      {% if form.summary.errors %}<span class="error">{{ form.summary.errors|join:", " }}</span>{% endif %}
-    </p>
-    <p>
-      <button type="submit">Open PR</button>
-      <a href="{% url 'catalog' %}">Cancel</a>
-    </p>
+  <form method="post" class="card bg-base-100 border border-base-300">
+    <div class="card-body space-y-4">
+      {% csrf_token %}
+      <div>
+        <label for="{{ form.title.id_for_label }}" class="block text-xs text-slate-500 mb-1">Title</label>
+        {{ form.title }}
+        {{ form.title.errors }}
+      </div>
+      <div>
+        <label for="{{ form.body.id_for_label }}" class="block text-xs text-slate-500 mb-1">Body (markdown)</label>
+        {{ form.body }}
+        {{ form.body.errors }}
+      </div>
+      <div>
+        <label for="{{ form.summary.id_for_label }}" class="block text-xs text-slate-500 mb-1">Change summary (optional)</label>
+        {{ form.summary }}
+        <p class="text-xs text-slate-400 mt-1">{{ form.summary.help_text }}</p>
+      </div>
+      <div class="flex gap-2">
+        <button type="submit" class="btn btn-primary btn-sm">Open PR</button>
+        <a href="{% url 'catalog' %}" class="btn btn-ghost btn-sm">Cancel</a>
+      </div>
+    </div>
   </form>
 {% endblock %}

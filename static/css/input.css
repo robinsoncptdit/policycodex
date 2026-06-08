@@ -41,6 +41,18 @@
   font-family: "Inter", system-ui, sans-serif;
 }
 
+/* Form-widget base styling: bare {{ form.field }} widgets inside a .card-body
+   pick up the DaisyUI input look without editing forms.py.
+   Note: @apply input-bordered is unavailable in DaisyUI v5 (no standalone utility);
+   using @apply input w-full with an explicit border-color override instead. */
+.card-body input[type="text"],
+.card-body input[type="number"],
+.card-body textarea {
+  @apply input w-full;
+  border-color: var(--color-base-300, #e2e8f0);
+}
+.card-body textarea { @apply h-auto leading-relaxed; }
+
 /* Gate badges: the three workflow states, named to match {{ gate }}. */
 .gate-drafted   { background: #fef3c7; color: #92400e; }
 .gate-reviewed  { background: #dbeafe; color: #1e40af; }

@@ -3,14 +3,13 @@
 {% block title %}PR opened | PolicyCodex{% endblock %}
 
 {% block content %}
-  <h2>Pull request opened</h2>
-  <p>
-    Your edit to <code>policies/{{ policy.slug }}</code> is now PR
-    <a href="{{ pr.url }}">#{{ pr.pr_number }}</a> on the diocese's policy
-    repo. A reviewer with merge permission will approve and publish from
-    there.
-  </p>
-  <p>
-    <a href="{% url 'catalog' %}">Back to catalog</a>
-  </p>
+  <div class="card bg-base-100 border border-base-300 max-w-xl mx-auto">
+    <div class="card-body items-center text-center py-10">
+      <div class="badge badge-success badge-lg mb-2">Pull request opened</div>
+      <h2 class="text-lg font-medium text-slate-900">Your change to {{ policy.frontmatter.title|default:policy.slug }} is in review</h2>
+      <p class="text-sm text-slate-500">A reviewer must approve before it can be published.</p>
+      {% if pr.url %}<a href="{{ pr.url }}" class="btn btn-primary btn-sm">View pull request</a>{% endif %}
+      <a href="{% url 'catalog' %}" class="btn btn-ghost btn-sm">Back to catalog</a>
+    </div>
+  </div>
 {% endblock %}
