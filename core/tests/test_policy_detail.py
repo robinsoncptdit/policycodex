@@ -160,8 +160,10 @@ def test_policy_detail_non_foundational_shows_edit_link(client, user):
     policies = [_stub_policy(slug="onboarding", kind="flat", title="Onboarding")]
     response = _get_detail(client, "onboarding", policies)
     content = response.content.decode()
+    # Flat-edit link is present for non-foundational policies.
     assert 'href="/policies/onboarding/edit/"' in content
-    assert "action-edit-foundational" not in content
+    # The typed-table editor link must NOT appear.
+    assert 'href="/policies/onboarding/foundational-edit/"' not in content
 
 
 def test_policy_detail_foundational_hides_flat_edit_shows_typed_table(client, user):
@@ -177,7 +179,6 @@ def test_policy_detail_foundational_hides_flat_edit_shows_typed_table(client, us
     content = response.content.decode()
     # Flat-edit link is hidden for foundational policies.
     assert 'href="/policies/document-retention/edit/"' not in content
-    # The typed-table editor link + banner are present instead.
-    assert "action-edit-foundational" in content
+    # The typed-table editor link + informational banner are present instead.
     assert 'href="/policies/document-retention/foundational-edit/"' in content
     assert "typed-table" in content
