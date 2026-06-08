@@ -1,5 +1,6 @@
 """Tests for ClaudeProvider."""
 import os
+from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -68,7 +69,6 @@ def test_complete_populates_usage():
     assert result.usage.model == "claude-opus-4-7"
     assert result.usage.input_tokens == 4123
     assert result.usage.output_tokens == 512
-    from datetime import datetime
     parsed = datetime.fromisoformat(result.usage.timestamp)
     assert parsed.tzinfo is not None
 
