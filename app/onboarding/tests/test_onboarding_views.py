@@ -152,11 +152,18 @@ def test_no_form_step_still_advances_on_bare_continue(client, user):
     assert resp.url == "/onboarding/versioning/"
 
 
-# Steps 1-6 payloads to reach screen 7. Only github-repo has a real form.
-def _advance_to_retention_policy(client):
+# Steps 1-5 payloads to land ON llm-provider (step 6). Only github-repo has a
+# real form before step 6.
+def _advance_to_llm_provider(client):
     client.post("/onboarding/github-repo/", GITHUB_REPO_CONTINUE)
-    for slug in ["address-scheme", "versioning", "reviewer-roles", "retention", "llm-provider"]:
+    for slug in ["address-scheme", "versioning", "reviewer-roles", "retention"]:
         client.post(f"/onboarding/{slug}/", {"action": "continue"})
+
+
+# Steps 1-6 payloads to reach screen 7. llm-provider now requires a provider.
+def _advance_to_retention_policy(client):
+    _advance_to_llm_provider(client)
+    client.post("/onboarding/llm-provider/", {"action": "continue", "provider": "claude"})
 
 
 FAKE_BUNDLE = {
@@ -399,3 +406,36 @@ def test_screen7_extract_blocks_empty_text_pdf(client, user, working_copy, monke
     assert 'name="pdf_file"' in body
     assert "readable text" in body.lower()
     assert ai_calls == []
+
+
+def test_llm_provider_get_renders_picker(client, user):
+    client.force_login(user)
+    _advance_to_llm_provider(client)
+    resp = client.get("/onboarding/llm-provider/")
+    assert resp.status_code == 200
+    body = resp.content.decode()
+    assert "Step 6 of 7" in body
+    assert 'name="provider"' in body
+
+
+def test_llm_provider_valid_continue_persists_and_advances(client, user):
+    client.force_login(user)
+    _advance_to_llm_provider(client)
+    resp = client.post(
+        "/onboarding/llm-provider/", {"action": "continue", "provider": "openai"}
+    )
+    assert resp.status_code == 302
+    assert resp.url == "/onboarding/retention-policy/"
+    # The choice persists: a return visit restores the selection (one radio checked).
+    back = client.get("/onboarding/llm-provider/")
+    back_body = back.content.decode()
+    assert 'value="openai"' in back_body
+    assert "checked" in back_body
+
+
+def test_llm_provider_invalid_continue_does_not_advance(client, user):
+    client.force_login(user)
+    _advance_to_llm_provider(client)
+    resp = client.post("/onboarding/llm-provider/", {"action": "continue"})
+    assert resp.status_code == 200  # re-rendered, not redirected
+    assert client.get("/onboarding/").url == "/onboarding/llm-provider/"

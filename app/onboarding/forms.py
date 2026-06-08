@@ -101,6 +101,7 @@ class RetentionPolicyUploadForm(forms.Form):
 
 _FORMS = {
     "github-repo": GitHubRepoForm,
+    "llm-provider": LLMProviderForm,
 }
 
 

@@ -15,6 +15,10 @@ def test_registry_maps_github_repo():
     assert form_class_for("address-scheme") is None
 
 
+def test_registry_maps_llm_provider():
+    assert form_class_for("llm-provider") is LLMProviderForm
+
+
 def test_valid_connect():
     form = GitHubRepoForm(data={
         "mode": "connect",
