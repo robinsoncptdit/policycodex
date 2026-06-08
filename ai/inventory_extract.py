@@ -12,6 +12,7 @@ ships generic per the project's "ship generic, never PT-flavored" rule.
 from __future__ import annotations
 
 import json
+from dataclasses import asdict
 from typing import Any
 
 from ai.provider import LLMProvider
@@ -147,7 +148,14 @@ def parse_inventory_response(raw: str) -> dict[str, Any]:
 def extract_policy_metadata(
     provider: LLMProvider, document_text: str, taxonomy: dict[str, Any] | None
 ) -> dict[str, Any]:
-    """Run the extraction prompt against a single document's text."""
+    """Run the extraction prompt against a single document's text.
+
+    Attaches the call's usage telemetry as the private ``_usage`` key (a plain
+    dict), mirroring the ``_source_file`` convention: stripped from the policy
+    markdown by ai/emit.py, surfaced in the audit sidecar by ai/audit.py.
+    """
     prompt = build_inventory_prompt(taxonomy) + document_text[:MAX_DOCUMENT_CHARS]
-    raw = provider.complete(prompt, EXTRACTION_MAX_TOKENS)
-    return parse_inventory_response(raw)
+    result = provider.complete(prompt, EXTRACTION_MAX_TOKENS)
+    metadata = parse_inventory_response(result.text)
+    metadata["_usage"] = asdict(result.usage)
+    return metadata

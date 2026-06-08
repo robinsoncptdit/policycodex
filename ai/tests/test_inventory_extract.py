@@ -1,5 +1,6 @@
 """Unit tests for the generic per-policy inventory extraction (AI-10)."""
 import json
+from dataclasses import asdict
 
 import pytest
 
@@ -12,6 +13,9 @@ from ai.inventory_extract import (
     extract_policy_metadata,
     parse_inventory_response,
 )
+from ai.provider import CompletionResult, Usage
+
+USAGE = Usage("fake", "m", 11, 22, "2026-06-08T00:00:00+00:00")
 
 VALID_EXTRACTION = {
     "title": "IT Acceptable Use Policy",
@@ -41,16 +45,17 @@ TAXONOMY = {
 
 
 class FakeProvider:
-    """Stands in for ai.provider.LLMProvider. Returns canned text."""
-    def __init__(self, text):
+    """Stands in for ai.provider.LLMProvider. Returns canned text + usage."""
+    def __init__(self, text, usage=USAGE):
         self._text = text
+        self._usage = usage
         self.last_prompt = None
         self.last_max_tokens = None
 
     def complete(self, prompt, max_tokens):
         self.last_prompt = prompt
         self.last_max_tokens = max_tokens
-        return self._text
+        return CompletionResult(text=self._text, usage=self._usage)
 
 
 def test_parse_plain_json():
@@ -132,10 +137,17 @@ def test_build_prompt_with_taxonomy_includes_section():
 def test_extract_policy_metadata_calls_provider_and_parses():
     provider = FakeProvider(json.dumps(VALID_EXTRACTION))
     result = extract_policy_metadata(provider, "document body text", TAXONOMY)
-    assert result == VALID_EXTRACTION
+    # All parsed fields survive; _usage is attached on top.
+    assert {k: v for k, v in result.items() if k != "_usage"} == VALID_EXTRACTION
     assert provider.last_max_tokens == EXTRACTION_MAX_TOKENS
     assert "document body text" in provider.last_prompt
     assert "taxonomy reference" in provider.last_prompt
+
+
+def test_extract_policy_metadata_attaches_usage():
+    provider = FakeProvider(json.dumps(VALID_EXTRACTION))
+    result = extract_policy_metadata(provider, "body", TAXONOMY)
+    assert result["_usage"] == asdict(USAGE)
 
 
 def test_extract_truncates_long_document():
