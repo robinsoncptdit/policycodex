@@ -20,7 +20,7 @@ from pathlib import Path
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 
 # Dirs whose contents are part of the shipping artifact and must stay generic.
-_SHIPPING_ROOTS = ("app", "core", "ai", "ingest", "policycodex_site", "repo-template", "static")
+_SHIPPING_ROOTS = ("app", "core", "ai", "ingest", "policycodex_site", "repo-template", "static", "styles")
 
 # Root-level files that ship in the public repo and must stay generic.
 _SHIPPING_ROOT_FILES = (

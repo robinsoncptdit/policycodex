@@ -193,6 +193,35 @@ def test_empty_non_image_pdf_guard_uses_generic_message_and_never_calls_ai(
     assert called["ai"] is False
 
 
+# --- 2b. AI provider outage -> reusable ai_outage.html fragment -----------
+
+def test_extraction_outage_renders_reusable_ai_outage_fragment(
+    client, user, working_copy, monkeypatch
+):
+    from app.onboarding import retention_policy as rp
+
+    def _outage(*a, **k):
+        raise RuntimeError("provider unreachable")
+
+    monkeypatch.setattr(rp, "extract_text", lambda path: "FAKE PDF TEXT")
+    monkeypatch.setattr(rp, "ClaudeProvider", lambda *a, **k: object())
+    monkeypatch.setattr(rp, "extract_retention_bundle", _outage)
+
+    client.force_login(user)
+    _advance_to_retention_policy(client)
+    resp = client.post(
+        reverse("htmx:onboarding_screen7"),
+        {"action": "extract", "pdf_file": _pdf_upload()},
+    )
+    assert resp.status_code == 200
+    body = resp.content.decode()
+    # The shared AI-outage partial is surfaced (spec: reusable outage fragment),
+    # the wizard falls back to the upload state, and no draft is staged.
+    assert "We couldn't reach the AI service" in body
+    assert 'name="pdf_file"' in body
+    assert not (working_copy.parent / ".policycodex-staging" / "retention-policy" / "draft.yaml").exists()
+
+
 # --- 3. accept success -> 204 + HX-Redirect to /catalog/ -----------------
 
 def test_accept_success_returns_204_and_hx_redirect_to_catalog(

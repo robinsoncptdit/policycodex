@@ -234,11 +234,12 @@ def handle(request, target, state):
 # business logic lives in the shared downstream services both paths call.
 
 
-def _render_body(request, *, mode, form=None, error=None, classifications=None, retention_schedule=None):
+def _render_body(request, *, mode, form=None, error=None, outage=False, classifications=None, retention_schedule=None):
     html = render_to_string("onboarding/_screen7_body.html", {
         "mode": mode,
         "form": form or RetentionPolicyUploadForm(),
         "error": error,
+        "outage": outage,
         "classifications": classifications or [],
         "retention_schedule": retention_schedule or [],
     }, request=request)
@@ -289,12 +290,7 @@ def _do_extract(request, staging):
         # provider outage (missing key, network). Degrade to a friendly
         # re-prompt, mirroring core/views.py's "view must always render".
         logger.warning("APP-15 retention extraction failed: %s", exc)
-        return _render_body(
-            request, mode="upload",
-            error="We couldn't process that document. Check that it is a "
-                  "valid PDF and try again. If the problem persists, the AI "
-                  "service may be unavailable; contact your administrator.",
-        )
+        return _render_body(request, mode="upload", outage=True)
     draft = {
         "title": DEFAULT_TITLE,
         "owner": DEFAULT_OWNER,

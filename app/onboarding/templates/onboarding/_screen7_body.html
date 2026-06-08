@@ -26,7 +26,7 @@
   {% else %}
     <p class="text-sm text-slate-600">Upload your diocese's Document Retention Policy. We extract its classifications and retention schedule for you to review.</p>
     {{ form.as_p }}
-    {% if error %}<div class="alert alert-error text-sm">{{ error }}</div>{% endif %}
+    {% if outage %}{% include "fragments/ai_outage.html" %}{% elif error %}<div class="alert alert-error text-sm">{{ error }}</div>{% endif %}
     <div class="flex justify-between pt-4 border-t border-base-300">
       <button type="submit" name="action" value="back" class="btn btn-ghost btn-sm"
               hx-post="{% url 'htmx:onboarding_screen7' %}" hx-target="#screen7-body" hx-swap="outerHTML">&larr; Back</button>
