@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from ai.audit import CONFIDENCE_FIELD_ORDER, to_audit_yaml
+from ai.audit import CONFIDENCE_FIELD_ORDER, USAGE_FIELD_ORDER, to_audit_yaml
 
 
 SPIKE_OUTPUTS = Path(__file__).resolve().parents[2] / "spike" / "outputs"
@@ -135,3 +135,42 @@ def test_non_string_confidence_value_passes_through():
     from low/medium/high strings to numbers)."""
     doc = _load(to_audit_yaml({"category_confidence": 0.95}))
     assert doc["confidence"]["category"] == 0.95
+
+
+# ---------------------------------------------------------------------------
+# AI-16: usage block tests
+# ---------------------------------------------------------------------------
+
+def test_usage_block_rendered_from_private_key():
+    extraction = {
+        "title": "T",
+        "category_confidence": "high",
+        "_usage": {
+            "provider": "claude",
+            "model": "claude-opus-4-8",
+            "input_tokens": 4123,
+            "output_tokens": 512,
+            "timestamp": "2026-06-08T18:03:00+00:00",
+        },
+    }
+    doc = _load(to_audit_yaml(extraction))
+    assert doc["usage"] == {
+        "provider": "claude",
+        "model": "claude-opus-4-8",
+        "input_tokens": 4123,
+        "output_tokens": 512,
+        "timestamp": "2026-06-08T18:03:00+00:00",
+    }
+
+
+def test_usage_block_all_null_when_absent():
+    doc = _load(to_audit_yaml({"title": "T", "category_confidence": "high"}))
+    assert list(doc["usage"].keys()) == list(USAGE_FIELD_ORDER)
+    assert all(v is None for v in doc["usage"].values())
+
+
+def test_usage_key_not_leaked_as_top_level_underscore():
+    doc = _load(to_audit_yaml({"_usage": {"provider": "claude"}}))
+    # The private key itself never appears; only the rendered usage block.
+    assert "_usage" not in doc
+    assert doc["usage"]["provider"] == "claude"

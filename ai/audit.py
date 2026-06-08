@@ -43,6 +43,18 @@ CONFIDENCE_FIELD_ORDER: tuple[str, ...] = (
 _CONFIDENCE_SUFFIX = "_confidence"
 
 
+# Canonical order of the per-call usage telemetry (AI-16). Always emitted as a
+# top-level `usage:` block; absent fields render null, mirroring the confidence
+# map, so audit diffs stay stable across runs.
+USAGE_FIELD_ORDER: tuple[str, ...] = (
+    "provider",
+    "model",
+    "input_tokens",
+    "output_tokens",
+    "timestamp",
+)
+
+
 def _confidence_map(extraction: dict[str, Any]) -> dict[str, Any]:
     """Return the confidence sub-map: canonical fields first, extras appended."""
     result: dict[str, Any] = {}
@@ -61,6 +73,12 @@ def _confidence_map(extraction: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+def _usage_map(extraction: dict[str, Any]) -> dict[str, Any]:
+    """Return the usage sub-map: canonical fields in order, null when absent."""
+    usage = extraction.get("_usage") or {}
+    return {field: usage.get(field) for field in USAGE_FIELD_ORDER}
+
+
 def to_audit_yaml(extraction: dict[str, Any]) -> str:
     """Convert an AI-extraction dict to the YAML body of an audit sidecar.
 
@@ -73,6 +91,7 @@ def to_audit_yaml(extraction: dict[str, Any]) -> str:
         "title": extraction.get("title"),
         "source_file": extraction.get("_source_file"),
         "confidence": _confidence_map(extraction),
+        "usage": _usage_map(extraction),
     }
     return yaml.safe_dump(
         doc,
