@@ -1,7 +1,13 @@
 """Tests for onboarding forms (APP-09)."""
+import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 
-from app.onboarding.forms import GitHubRepoForm, RetentionPolicyUploadForm, form_class_for
+from app.onboarding.forms import (
+    GitHubRepoForm,
+    LLMProviderForm,
+    RetentionPolicyUploadForm,
+    form_class_for,
+)
 
 
 def test_registry_maps_github_repo():
@@ -104,3 +110,29 @@ def test_retention_upload_accepts_uppercase_extension():
     upload = SimpleUploadedFile("POLICY.PDF", b"%PDF-1.4 ...", content_type="application/pdf")
     form = RetentionPolicyUploadForm(data={}, files={"pdf_file": upload})
     assert form.is_valid(), form.errors
+
+
+@pytest.mark.parametrize(
+    "value", ["claude", "openai", "gemini", "azure-openai", "local-llama"]
+)
+def test_llm_provider_accepts_each_choice(value):
+    form = LLMProviderForm(data={"provider": value})
+    assert form.is_valid(), form.errors
+    assert form.cleaned_data["provider"] == value
+
+
+def test_llm_provider_rejects_unknown_choice():
+    form = LLMProviderForm(data={"provider": "deepseek"})
+    assert not form.is_valid()
+    assert "provider" in form.errors
+
+
+def test_llm_provider_requires_a_choice():
+    form = LLMProviderForm(data={})
+    assert not form.is_valid()
+    assert "provider" in form.errors
+
+
+def test_llm_provider_defaults_to_claude():
+    form = LLMProviderForm()
+    assert form.fields["provider"].initial == "claude"
