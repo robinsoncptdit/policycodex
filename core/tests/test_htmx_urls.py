@@ -1,4 +1,4 @@
-"""APP-27/APP-28b: the /htmx/ prefix convention; foundational_row route reserved."""
+"""APP-28c: the /htmx/ tree now carries the first fragment endpoints."""
 from django.urls import reverse
 
 from core import htmx_urls
@@ -11,16 +11,10 @@ def test_htmx_urls_module_is_namespaced():
 
 
 def test_foundational_row_route_is_registered():
-    # APP-28b reserves this route; APP-28c fills in the real body. Some entries
-    # are now URLResolvers (the onboarding /htmx/onboarding/ include) with no
-    # .name, so read names defensively.
+    # Some entries are URLResolvers (the onboarding /htmx/onboarding/ include)
+    # with no .name, so read names defensively.
     names = [getattr(p, "name", None) for p in htmx_urls.urlpatterns]
     assert "foundational_row" in names
-
-
-def test_foundational_row_reverses():
-    url = reverse("htmx:foundational_row", kwargs={"slug": "document-retention"})
-    assert url == "/htmx/foundational/document-retention/row/"
 
 
 def test_core_urls_includes_the_htmx_prefix():
@@ -28,3 +22,11 @@ def test_core_urls_includes_the_htmx_prefix():
     # /api/v1/ cannot collide with the HTMX fragment surface.
     prefixes = [str(p.pattern) for p in core_urls.urlpatterns]
     assert "htmx/" in prefixes
+
+
+def test_htmx_endpoints_reverse_under_the_namespace():
+    assert (
+        reverse("htmx:foundational_row", kwargs={"slug": "x"})
+        == "/htmx/foundational/x/row/"
+    )
+    assert reverse("htmx:onboarding_screen7") == "/htmx/onboarding/screen7/"

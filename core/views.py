@@ -17,8 +17,10 @@ from ai.gap_detection import is_gap, known_types
 from ai.retention_extract import RetentionExtractionError, build_data_yaml
 from ai.taxonomy_loader import load_foundational_taxonomy
 from core.forms import (
+    ClassificationForm,
     ClassificationFormSet,
     FoundationalEditMetaForm,
+    RetentionRowForm,
     RetentionRowFormSet,
 )
 from core.forms import PolicyEditForm
@@ -423,13 +425,26 @@ def _foundational_edit_post(request, slug, policy):
 @login_required
 @require_POST
 def foundational_row(request, slug):
-    """Stub: return an HTMX fragment with a new empty row for the typed-table editor.
-
-    APP-28b reserves this route so `{% url 'htmx:foundational_row' %}` in
-    foundational_edit.html resolves at render time. The real body lands in
-    Task C3 (APP-28c); until then any POST raises Http404.
-    """
-    raise Http404("APP-28c not yet wired")  # replaced in Task C3
+    """APP-28c: return one fresh typed-table row plus an out-of-band bump of
+    the formset's TOTAL_FORMS, so HTMX can append a row without a reload and
+    the Django formset accepts it on POST. `slug` scopes the request to a
+    bundle but the row markup is bundle-independent."""
+    which = request.POST.get("formset")
+    try:
+        index = int(request.POST.get("index", "0"))
+    except (TypeError, ValueError):
+        index = 0
+    if which == "ret":
+        form = RetentionRowForm(prefix=f"ret-{index}")
+        template = "fragments/retention_row.html"
+        prefix = "ret"
+    else:
+        form = ClassificationForm(prefix=f"cls-{index}")
+        template = "fragments/classification_row.html"
+        prefix = "cls"
+    return render(request, template, {
+        "form": form, "prefix": prefix, "index": index, "next_total": index + 1,
+    })
 
 
 @login_required

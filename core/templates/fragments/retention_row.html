@@ -1,0 +1,10 @@
+<tr class="hover:bg-slate-50">
+  <td>{{ form.group }}</td>
+  <td>{{ form.sub_group }}</td>
+  <td>{{ form.type }}</td>
+  <td>{{ form.retention }}</td>
+  <td>{{ form.medium }}</td>
+  <td>{{ form.retained_at }}</td>
+  <td></td>
+</tr>
+<input type="hidden" id="id_{{ prefix }}-TOTAL_FORMS" name="{{ prefix }}-TOTAL_FORMS" value="{{ next_total }}" hx-swap-oob="true">
