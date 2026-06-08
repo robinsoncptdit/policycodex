@@ -254,3 +254,25 @@ def test_notes_section_when_present():
 
     assert "Extraction caveat: dates inferred from revision header." in body
     assert "Summary text." in body
+
+
+def test_usage_metadata_excluded_from_frontmatter():
+    """_usage is per-call telemetry and must not leak into policy markdown."""
+    extraction = {
+        "title": "T",
+        "summary": "S",
+        "_usage": {
+            "provider": "claude",
+            "model": "claude-opus-4-8",
+            "input_tokens": 4123,
+            "output_tokens": 512,
+            "timestamp": "2026-06-08T18:03:00+00:00",
+        },
+    }
+    md = to_markdown(extraction)
+    fm, _ = _split_frontmatter(md)
+
+    assert "_usage" not in fm
+    # No telemetry value leaks anywhere in the rendered markdown.
+    assert "claude-opus-4-8" not in md
+    assert "4123" not in md

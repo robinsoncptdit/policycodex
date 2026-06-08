@@ -45,7 +45,7 @@ FRONTMATTER_KEY_ORDER: tuple[str, ...] = (
 _BODY_FIELDS: frozenset[str] = frozenset({"summary", "notes"})
 
 # Spike-internal / private fields excluded from output entirely.
-_PRIVATE_FIELDS: frozenset[str] = frozenset({"_source_file"})
+_PRIVATE_FIELDS: frozenset[str] = frozenset({"_source_file", "_usage"})
 
 # Confidence fields whose names don't end in "_confidence" but still belong to
 # the audit file, not the policy markdown.
