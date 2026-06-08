@@ -30,7 +30,7 @@ PolicyCodex is the tool you would have built yourself if you had three more hour
 ## What It Does
 
 1. **Ingests** policy documents from a local folder (v0.1). SharePoint and Google Drive connectors are planned for v0.2.
-2. **Inventories** them with AI: proposes a category, owner, effective date, review cadence, retention period, and a chapter-section-item address for each policy.
+2. **Inventories** them with AI: proposes a category, owner, effective date, review cadence, retention period, and a chapter-section-item address for each policy. Each policy gets a companion audit file recording the AI's confidence per field plus the provider, model, token counts, and timestamp of the call, so you can attribute API spend.
 3. **Stores** every policy as a markdown file in a private GitHub repo your diocese owns. Every change is a commit. Every approval is a pull request review.
 4. **Routes** each entry through a simple human approval workflow with three default gates (Drafted, Reviewed, Published) that map to PR states.
 5. **Publishes** approved policies as a static handbook site, built and deployed by GitHub Actions on every merge to a subdomain you control, with stable per-policy URLs. A `git log`-driven changelog and an RSS feed are planned for v0.1.
