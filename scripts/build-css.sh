@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerate static/css/policycodex.css from static/css/input.css using the
+# Regenerate static/css/policycodex.css from styles/input.css using the
 # Tailwind standalone CLI + DaisyUI. The toolchain lives in a gitignored
 # .tools/ dir and is fetched on demand; only the compiled CSS is committed.
 # Run from the repo root: scripts/build-css.sh
@@ -36,7 +36,7 @@ done
 # 3. Compile (minified).
 echo "Compiling static/css/policycodex.css..."
 "$TOOLS/tailwindcss" \
-  -i "$ROOT/static/css/input.css" \
+  -i "$ROOT/styles/input.css" \
   -o "$ROOT/static/css/policycodex.css" \
   --minify
 echo "Done."

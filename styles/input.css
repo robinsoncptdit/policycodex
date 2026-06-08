@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 /* Do not scan the toolchain or compiled output. */
-@source not "../../.tools";
+@source not "../.tools";
 
 /* Scan the Django template trees so utility classes survive purge. */
-@source "../../core/templates";
-@source "../../app/onboarding/templates";
+@source "../core/templates";
+@source "../app/onboarding/templates";
 
-@plugin "../../.tools/daisyui.mjs";
-@plugin "../../.tools/daisyui-theme.mjs" {
+@plugin "../.tools/daisyui.mjs";
+@plugin "../.tools/daisyui-theme.mjs" {
   name: "policycodex";
   default: true;
   color-scheme: light;
