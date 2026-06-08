@@ -346,3 +346,56 @@ def test_screen7_accept_provider_failure_rerenders_review_and_keeps_local(client
     assert resp.status_code == 200
     assert "Administrative" in resp.content.decode()
     assert (working_copy / "document-retention" / "data.yaml").is_file()
+
+
+def test_screen7_extract_blocks_scanned_image_only_pdf(client, user, working_copy, monkeypatch):
+    """A scanned/image-only PDF extracts to empty text. The wizard must warn and
+    stay on the upload form, and must NOT call the AI (which would otherwise
+    produce empty classifications and let onboarding proceed)."""
+    from app.onboarding import retention_policy as rp
+
+    monkeypatch.setattr(rp, "ClaudeProvider", lambda *a, **k: object())
+    monkeypatch.setattr(rp, "extract_text", lambda path: "")
+    monkeypatch.setattr(rp, "pdf_has_embedded_images", lambda path: True)
+    ai_calls = []
+    monkeypatch.setattr(
+        rp, "extract_retention_bundle",
+        lambda provider, text: ai_calls.append(text) or FAKE_BUNDLE,
+    )
+
+    client.force_login(user)
+    _advance_to_retention_policy(client)
+    upload = SimpleUploadedFile("scan.pdf", b"%PDF-1.4", content_type="application/pdf")
+    resp = client.post("/onboarding/retention-policy/", {"action": "extract", "pdf_file": upload})
+
+    assert resp.status_code == 200
+    body = resp.content.decode()
+    assert 'name="pdf_file"' in body          # back on the upload form, not review
+    assert "scanned pdf" in body.lower()       # scan-specific guidance
+    assert ai_calls == []                       # the AI extraction was never called
+
+
+def test_screen7_extract_blocks_empty_text_pdf(client, user, working_copy, monkeypatch):
+    """An empty/blank PDF that is not image-only also blocks, with a generic
+    'no readable text' message rather than the scan-specific one."""
+    from app.onboarding import retention_policy as rp
+
+    monkeypatch.setattr(rp, "ClaudeProvider", lambda *a, **k: object())
+    monkeypatch.setattr(rp, "extract_text", lambda path: "   \n  ")
+    monkeypatch.setattr(rp, "pdf_has_embedded_images", lambda path: False)
+    ai_calls = []
+    monkeypatch.setattr(
+        rp, "extract_retention_bundle",
+        lambda provider, text: ai_calls.append(text) or FAKE_BUNDLE,
+    )
+
+    client.force_login(user)
+    _advance_to_retention_policy(client)
+    upload = SimpleUploadedFile("blank.pdf", b"%PDF-1.4", content_type="application/pdf")
+    resp = client.post("/onboarding/retention-policy/", {"action": "extract", "pdf_file": upload})
+
+    assert resp.status_code == 200
+    body = resp.content.decode()
+    assert 'name="pdf_file"' in body
+    assert "readable text" in body.lower()
+    assert ai_calls == []

@@ -31,6 +31,7 @@ from app.onboarding.forms import RetentionPolicyUploadForm
 from app.onboarding.scaffold import scaffold_retention_bundle
 from app.working_copy.config import load_working_copy_config
 from ingest.extractors import extract as extract_text
+from ingest.extractors import pdf_has_embedded_images
 from app.git_provider.github_provider import GitHubProvider
 from app.onboarding.finalize import build_config_yaml, finalize_onboarding
 from core.git_identity import get_git_author
@@ -120,6 +121,20 @@ def handle(request, target, state):
                 fh.write(chunk)
         try:
             text = extract_text(source_pdf)
+            if not text.strip():
+                if pdf_has_embedded_images(source_pdf):
+                    guard_error = (
+                        "This looks like a scanned PDF (an image with no text "
+                        "layer), so there is nothing to extract automatically. "
+                        "Upload a text-based PDF of the policy and try again."
+                    )
+                else:
+                    guard_error = (
+                        "We could not find any readable text in that document. "
+                        "Check that it is a text-based PDF and try again."
+                    )
+                shutil.rmtree(staging, ignore_errors=True)
+                return _render_upload(request, target, state, error=guard_error)
             bundle = extract_retention_bundle(ClaudeProvider(), text)
             data_yaml_text = build_data_yaml(bundle)
         except RetentionExtractionError as exc:
