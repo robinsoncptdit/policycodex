@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # PolicyCodex one-command install (REPO-05). Builds and starts the stack
 # from source (Profile A). Run from the repo root: ./install.sh
+#
+# CSS is pre-compiled and committed (static/css/policycodex.css). To regenerate
+# after editing templates or theme vars, run: scripts/build-css.sh
 set -euo pipefail
 
 if ! command -v docker >/dev/null 2>&1; then

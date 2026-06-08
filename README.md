@@ -142,6 +142,10 @@ Open `http://localhost:8000` and complete the onboarding wizard.
 - **Credentials** (the GitHub App private key and your LLM API key) stay on the host in `~/.config/policycodex/`, bind-mounted read-only into the container. They never enter the image or any committed file. Inside `~/.config/policycodex/config.env`, set `POLICYCODEX_GH_PRIVATE_KEY_PATH` to a `/secrets/...` path.
 - A pre-built published image (no local build) is coming post-DISC; `docker-compose.pull.yml` is the placeholder for that path.
 
+### Rebuilding the CSS
+
+The compiled stylesheet (`static/css/policycodex.css`) is pre-built and committed, so a plain install needs no toolchain. If you edit a template or a theme variable, regenerate it with `scripts/build-css.sh`. The script downloads the Tailwind standalone CLI and the DaisyUI plugins into the gitignored `.tools/` directory the first time you run it, so you need no Node install. Commit the regenerated `static/css/policycodex.css` alongside your template change.
+
 ## Roadmap
 
 **v0.1 (June 2026):** ingest, AI inventory grounded in the diocese's own reference documents, PR-backed approval UI, GitHub Actions handbook publication, seven-screen onboarding wizard, public PolicyCodex repo.
