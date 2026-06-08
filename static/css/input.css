@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+/* Do not scan the toolchain or compiled output. */
+@source not "../../.tools";
+
+/* Scan the Django template trees so utility classes survive purge. */
+@source "../../core/templates";
+@source "../../app/onboarding/templates";
+
+@plugin "../../.tools/daisyui.mjs";
+@plugin "../../.tools/daisyui-theme.mjs" {
+  name: "policycodex";
+  default: true;
+  color-scheme: light;
+  --color-primary: #4a5f8a;
+  --color-primary-content: #ffffff;
+  --color-base-100: #ffffff;
+  --color-base-200: #f1f5f9;
+  --color-base-300: #e2e8f0;
+  --color-base-content: #0f172a;
+  --radius-box: 0.5rem;
+  --radius-field: 0.375rem;
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../fonts/InterVariable.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../fonts/InterVariable-Italic.woff2") format("woff2");
+}
+
+:root {
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+/* Gate badges: the three workflow states, named to match {{ gate }}. */
+.gate-drafted   { background: #fef3c7; color: #92400e; }
+.gate-reviewed  { background: #dbeafe; color: #1e40af; }
+.gate-published { background: #d1fae5; color: #065f46; }
+.gap-badge      { background: #fee2e2; color: #991b1b; }

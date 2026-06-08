@@ -141,6 +141,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+# Project-level static sources (committed compiled CSS, HTMX, fonts). Without
+# this, collectstatic only sees per-app static dirs and would miss policycodex.css.
+STATICFILES_DIRS = [BASE_DIR / 'static']
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {
