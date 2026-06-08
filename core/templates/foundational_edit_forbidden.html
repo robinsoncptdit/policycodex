@@ -1,21 +1,15 @@
 {% extends "base.html" %}
 
-{% block title %}Cannot edit foundational policy | PolicyCodex{% endblock %}
+{% block title %}Foundational policy | PolicyCodex{% endblock %}
 
 {% block content %}
-  <h2>Cannot edit a foundational policy here</h2>
-  <p>
-    The policy <code>policies/{{ policy.slug }}</code> is marked
-    <strong>foundational</strong>: it supplies configuration values that
-    other policies and the app itself depend on (for example the document
-    classification list and retention schedule).
-  </p>
-  <p>
-    To change a foundational policy, use the typed-table editor in the
-    onboarding wizard or the foundational-policy admin screen. The edit
-    form on this page is only for ordinary policy documents.
-  </p>
-  <p>
-    <a href="{% url 'catalog' %}">Back to catalog</a>
-  </p>
+  <div class="card bg-base-100 border border-base-300 max-w-xl mx-auto">
+    <div class="card-body items-center text-center py-10">
+      <div class="badge badge-warning badge-lg mb-2">Edit blocked</div>
+      <h2 class="text-lg font-medium text-slate-900">{{ policy.frontmatter.title|default:policy.slug }} is a foundational policy</h2>
+      <p class="text-sm text-slate-500">Edit it through the typed-table editor, not the flat editor.</p>
+      <a href="{% url 'foundational_edit' slug=policy.slug %}" class="btn btn-primary btn-sm">Open typed-table editor</a>
+      <a href="{% url 'catalog' %}" class="btn btn-ghost btn-sm">Back to catalog</a>
+    </div>
+  </div>
 {% endblock %}

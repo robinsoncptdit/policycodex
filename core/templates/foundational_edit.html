@@ -3,55 +3,75 @@
 {% block title %}Edit {{ policy.frontmatter.title|default:policy.slug }} | PolicyCodex{% endblock %}
 
 {% block content %}
-  <h2>Edit {{ policy.frontmatter.title|default:policy.slug }}</h2>
-  <p>This is a foundational policy. Editing here opens a pull request that
-     flows through Drafted &rarr; Reviewed &rarr; Published, just like every
-     other policy change.</p>
+  <h2 class="text-xl font-semibold text-slate-900 tracking-tight mb-1">Edit {{ policy.frontmatter.title|default:policy.slug }}</h2>
+  <p class="text-sm text-slate-500 mb-6">This is a foundational policy. Saving opens a pull request that flows Drafted &rarr; Reviewed &rarr; Published.</p>
 
-  <form method="post">
+  {% if error %}<div class="alert alert-error text-sm mb-4">{{ error }}</div>{% endif %}
+
+  <form method="post" class="space-y-8">
     {% csrf_token %}
 
-    <h3>Classifications</h3>
-    {{ cforms.management_form }}
-    <table class="typed-table classifications">
-      <thead><tr><th>id</th><th>name</th><th>delete</th></tr></thead>
-      <tbody>
-        {% for f in cforms %}
-          <tr>
-            <td>{{ f.id }}{{ f.id.errors }}</td>
-            <td>{{ f.name }}{{ f.name.errors }}</td>
-            <td>{% if f.DELETE %}{{ f.DELETE }}{% endif %}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <section>
+      <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-3">Classifications</h3>
+      {{ cforms.management_form }}
+      <div class="card bg-base-100 border border-base-300 overflow-hidden">
+        <table class="table table-sm">
+          <thead><tr class="text-xs uppercase tracking-wider text-slate-500"><th>id</th><th>name</th><th class="w-16">delete</th></tr></thead>
+          <tbody id="cls-rows">
+            {% for f in cforms %}
+              <tr class="hover:bg-slate-50">
+                <td>{{ f.id }}{{ f.id.errors }}</td>
+                <td>{{ f.name }}{{ f.name.errors }}</td>
+                <td>{% if f.DELETE %}{{ f.DELETE }}{% endif %}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {# APP-28c wires this button to htmx:foundational_row #}
+      <button type="button" class="btn btn-ghost btn-xs mt-2"
+              hx-post="{% url 'htmx:foundational_row' slug=policy.slug %}"
+              hx-vals='js:{formset: "cls", index: document.getElementById("id_cls-TOTAL_FORMS").value}'
+              hx-target="#cls-rows" hx-swap="beforeend">+ Add classification</button>
+    </section>
 
-    <h3>Retention schedule</h3>
-    {{ rforms.management_form }}
-    <table class="typed-table retention">
-      <thead><tr>
-        <th>group</th><th>sub_group</th><th>type</th>
-        <th>retention</th><th>medium</th><th>retained_at</th><th>delete</th>
-      </tr></thead>
-      <tbody>
-        {% for f in rforms %}
-          <tr>
-            <td>{{ f.group }}{{ f.group.errors }}</td>
-            <td>{{ f.sub_group }}</td>
-            <td>{{ f.type }}{{ f.type.errors }}</td>
-            <td>{{ f.retention }}{{ f.retention.errors }}</td>
-            <td>{{ f.medium }}</td>
-            <td>{{ f.retained_at }}</td>
-            <td>{% if f.DELETE %}{{ f.DELETE }}{% endif %}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <section>
+      <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-3">Retention schedule</h3>
+      {{ rforms.management_form }}
+      <div class="card bg-base-100 border border-base-300 overflow-hidden">
+        <table class="table table-sm">
+          <thead><tr class="text-xs uppercase tracking-wider text-slate-500">
+            <th>group</th><th>sub_group</th><th>type</th><th>retention</th><th>medium</th><th>retained_at</th><th class="w-16">delete</th>
+          </tr></thead>
+          <tbody id="ret-rows">
+            {% for f in rforms %}
+              <tr class="hover:bg-slate-50">
+                <td>{{ f.group }}{{ f.group.errors }}</td>
+                <td>{{ f.sub_group }}</td>
+                <td>{{ f.type }}{{ f.type.errors }}</td>
+                <td>{{ f.retention }}{{ f.retention.errors }}</td>
+                <td>{{ f.medium }}</td>
+                <td>{{ f.retained_at }}</td>
+                <td>{% if f.DELETE %}{{ f.DELETE }}{% endif %}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <button type="button" class="btn btn-ghost btn-xs mt-2"
+              hx-post="{% url 'htmx:foundational_row' slug=policy.slug %}"
+              hx-vals='js:{formset: "ret", index: document.getElementById("id_ret-TOTAL_FORMS").value}'
+              hx-target="#ret-rows" hx-swap="beforeend">+ Add retention rule</button>
+    </section>
 
-    <p>{{ meta.summary.label_tag }} {{ meta.summary }}</p>
-    {% if error %}<p class="form-error">{{ error }}</p>{% endif %}
+    <div>
+      <label for="{{ meta.summary.id_for_label }}" class="block text-xs text-slate-500 mb-1">Change summary (optional)</label>
+      {{ meta.summary }}
+    </div>
 
-    <button type="submit">Open PR</button>
-    <a href="{% url 'catalog' %}">Cancel</a>
+    <div class="flex gap-2">
+      <button type="submit" class="btn btn-primary btn-sm">Open PR</button>
+      <a href="{% url 'catalog' %}" class="btn btn-ghost btn-sm">Cancel</a>
+    </div>
   </form>
 {% endblock %}

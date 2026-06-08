@@ -422,6 +422,18 @@ def _foundational_edit_post(request, slug, policy):
 
 @login_required
 @require_POST
+def foundational_row(request, slug):
+    """Stub: return an HTMX fragment with a new empty row for the typed-table editor.
+
+    APP-28b reserves this route so `{% url 'htmx:foundational_row' %}` in
+    foundational_edit.html resolves at render time. The real body lands in
+    Task C3 (APP-28c); until then any POST raises Http404.
+    """
+    raise Http404("APP-28c not yet wired")  # replaced in Task C3
+
+
+@login_required
+@require_POST
 def approve_pr(request):
     """Approve an open PR on behalf of the authenticated reviewer.
 
