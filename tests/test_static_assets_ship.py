@@ -17,3 +17,15 @@ def test_served_css_carries_brand_and_component_sentinels():
     # (`--color-primary:#4a5f8a`); Tailwind v4 leaves theme-var hex untouched.
     assert "4a5f8a" in text.lower() or "74 95 138" in text  # brand color survived
     assert ".btn" in text  # DaisyUI component survived (update if fallback taken)
+
+
+def test_served_css_covers_newest_template_classes():
+    # APP-35: the real drift guard (test_css_build.py) is env-gated and never
+    # runs in CI, so APP-29/31 landed templates against a stale compiled CSS.
+    # Pin one class per newest template as a toolchain-free canary; extend
+    # this list whenever a template introduces classes the CSS may not carry.
+    path = finders.find("css/policycodex.css")
+    text = open(path, encoding="utf-8").read()
+    assert ".badge-primary" in text  # onboarding/complete.html (APP-29)
+    assert ".space-y-6" in text  # onboarding/complete.html (APP-29)
+    assert "hover\\:bg-base-200" in text  # onboarding/_llm_provider_body.html (APP-31)
