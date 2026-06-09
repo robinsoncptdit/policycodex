@@ -28,5 +28,8 @@ RUN DJANGO_SECRET_KEY=build-time-only python manage.py collectstatic --noinput
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+COPY docker/load-secrets.sh /usr/local/bin/load-secrets.sh
+RUN chmod +x /usr/local/bin/load-secrets.sh
+
 EXPOSE 8000
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
