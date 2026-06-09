@@ -47,6 +47,14 @@ def test_pull_compose_references_registry_image():
     assert "build:" not in text  # Profile B pulls, does not build
 
 
+def test_dockerignore_excludes_env_files():
+    # install.sh seeds a populated .env BEFORE `compose up --build`; without
+    # this exclusion the diocese's SECRET_KEY bakes into the image layers.
+    lines = [line.strip() for line in _read(".dockerignore").splitlines()]
+    assert ".env" in lines, ".env must be excluded from the Docker build context"
+    assert ".env.*" in lines, ".env.* must be excluded from the Docker build context"
+
+
 def test_env_example_documents_required_keys():
     text = _read(".env.example")
     for key in (
