@@ -222,9 +222,9 @@ def test_extraction_outage_renders_reusable_ai_outage_fragment(
     assert not (working_copy.parent / ".policycodex-staging" / "retention-policy" / "draft.yaml").exists()
 
 
-# --- 3. accept success -> 204 + HX-Redirect to /catalog/ -----------------
+# --- 3. accept success -> 204 + HX-Redirect to the completion screen ------
 
-def test_accept_success_returns_204_and_hx_redirect_to_catalog(
+def test_accept_success_returns_204_and_hx_redirect_to_complete(
     client, user, working_copy, stub_extraction, stub_git_provider
 ):
     client.force_login(user)
@@ -236,7 +236,8 @@ def test_accept_success_returns_204_and_hx_redirect_to_catalog(
     )
     resp = client.post(reverse("htmx:onboarding_screen7"), {"action": "accept"})
     assert resp.status_code == 204
-    assert resp["HX-Redirect"] == reverse("catalog")
+    assert resp["HX-Redirect"] == reverse("onboarding-complete")
+    assert client.session["onboarding_pr_url"] == "https://github.com/acme/policies/pull/1"
     # The bundle got scaffolded into the working copy.
     from ingest.policy_reader import BundleAwarePolicyReader
     policies = list(BundleAwarePolicyReader(working_copy).read())

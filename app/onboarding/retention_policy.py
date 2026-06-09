@@ -213,11 +213,8 @@ def handle(request, target, state):
             return _render_review(request, target, state, draft)
         shutil.rmtree(staging.parent, ignore_errors=True)
         state.mark_complete(STEP_SLUG)
-        messages.success(
-            request,
-            f"Onboarding complete. Configuration pull request opened: {pr.get('url', '')}",
-        )
-        return redirect("catalog")
+        request.session["onboarding_pr_url"] = pr.get("url", "")
+        return redirect("onboarding-complete")
 
     # Unknown action: re-render current state defensively.
     draft = _load_draft(staging)
@@ -348,11 +345,8 @@ def _do_accept(request, state, policies_dir, staging):
         )
     shutil.rmtree(staging.parent, ignore_errors=True)
     state.mark_complete(STEP_SLUG)
-    messages.success(
-        request,
-        f"Onboarding complete. Configuration pull request opened: {pr.get('url', '')}",
-    )
-    return _hx_redirect(reverse("catalog"))
+    request.session["onboarding_pr_url"] = pr.get("url", "")
+    return _hx_redirect(reverse("onboarding-complete"))
 
 
 @login_required

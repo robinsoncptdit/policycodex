@@ -102,14 +102,15 @@ def test_can_revisit_completed_step_without_trapping(client, user):
     assert client.get("/onboarding/address-scheme/").status_code == 200
 
 
-def test_last_step_continue_completes_and_redirects_to_catalog(client, user, working_copy, stub_extraction, stub_git_provider):
+def test_last_step_continue_completes_and_redirects_to_complete(client, user, working_copy, stub_extraction, stub_git_provider):
     client.force_login(user)
     _advance_to_retention_policy(client)
     upload = SimpleUploadedFile("retention.pdf", b"%PDF-1.4", content_type="application/pdf")
     client.post("/onboarding/retention-policy/", {"action": "extract", "pdf_file": upload})
     resp = client.post("/onboarding/retention-policy/", {"action": "accept"})
     assert resp.status_code == 302
-    assert resp.url == "/catalog/"
+    assert resp.url == reverse("onboarding-complete")
+    assert client.session["onboarding_pr_url"] == "https://github.com/acme/policies/pull/1"
 
 
 def test_github_repo_get_renders_form(client, user):
@@ -289,7 +290,7 @@ def test_screen7_accept_scaffolds_bundle_and_finishes(client, user, working_copy
     client.post("/onboarding/retention-policy/", {"action": "extract", "pdf_file": upload})
     resp = client.post("/onboarding/retention-policy/", {"action": "accept"})
     assert resp.status_code == 302
-    assert resp.url == "/catalog/"
+    assert resp.url == reverse("onboarding-complete")
     # Bundle now exists in the working copy and reads back as foundational.
     from ingest.policy_reader import BundleAwarePolicyReader
     policies = list(BundleAwarePolicyReader(working_copy).read())
@@ -318,7 +319,7 @@ def test_screen7_accept_commits_config_and_opens_pr(client, user, working_copy, 
     resp = client.post("/onboarding/retention-policy/", {"action": "accept"})
 
     assert resp.status_code == 302
-    assert resp.url == "/catalog/"
+    assert resp.url == reverse("onboarding-complete")
 
     working_dir = working_copy.parent
     config_path = working_dir / ".policycodex" / "config.yaml"
