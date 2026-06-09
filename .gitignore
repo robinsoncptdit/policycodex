@@ -10,6 +10,9 @@ venv/
 archive/
 # Sprint workspace / project knowledge. Local-only, never distributed.
 internal/
+# Engineering sprint board + local dev MCP config. Not part of the product.
+PolicyWonk-v0.1-Tickets.md
+.mcp.json
 spike/.env
 # Spike extraction outputs contain real diocese policy content. Never commit them.
 spike/outputs/
