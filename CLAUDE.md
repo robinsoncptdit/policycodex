@@ -2,7 +2,7 @@
 
 Standing context for the PolicyCodex project. Read this first when working in this folder.
 
-*Renamed to PolicyCodex 2026-05-11 (primary domain `policycodex.org`); folder path stays `/Users/chuck/PolicyWonk/` and `PolicyWonk-*.md` filenames stay as-is. Public root carries public artifacts; `internal/` (tracked) holds sprint workspace; `archive/` (gitignored) holds 2024 history.*
+*Renamed to PolicyCodex 2026-05-11 (primary domain `policycodex.org`); folder path stays `/Users/chuck/PolicyWonk/` and `PolicyWonk-*.md` filenames stay as-is. Public root carries public artifacts; `internal/` (local sprint workspace, gitignored 2026-06-08, kept locally — history still in git) holds sprint/design docs; `archive/` (gitignored) holds 2024 history.*
 
 ## What This Project Is
 
@@ -40,7 +40,7 @@ For sprint-by-sprint detail and per-wave narrative, see `internal/PolicyWonk-Dai
 - `spike/` is the riskiest-assumption extraction spike: `extract.py` loading PT taxonomy, per-policy JSON outputs (gitignored), and the `spike/eval/` regression harness.
 - `.github/workflows/` holds two dev-time GitHub Actions (installed via `/install-github-app`, 2026-06-05): `claude.yml` (the `@claude` assistant, on issue/PR mentions) and `claude-code-review.yml` (auto code-review on every PR via `claude-code-action` + the marketplace `code-review` plugin). These are development tooling, not shipped product, and no-op without the `CLAUDE_CODE_OAUTH_TOKEN` secret; REPO-10 (generic-ship audit) decides whether they stay in the diocese-facing clone. Editing the review workflow has two non-obvious constraints: any change must live on `main` AND be byte-identical on the PR branch, or `claude-code-action`'s app-token exchange 401s ("Workflow validation failed"); and the review only posts when the prompt passes the PR as a full `https://github.com/...` URL plus a `--comment` flag. Full debug history in the Daily Log (2026-06-05 16:30 PT).
 
-**`internal/` (tracked, sprint workspace):**
+**`internal/` (local sprint workspace, gitignored 2026-06-08 — kept locally, never distributed; history retained in git):**
 
 - `internal/PolicyWonk-Daily-Log.md` is Scarlet's append-only event log.
 - `internal/PolicyWonk-Open-Questions.md` is the live OQ tracker.
