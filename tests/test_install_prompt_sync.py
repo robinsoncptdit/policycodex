@@ -32,6 +32,7 @@ _REFERENCED_FILES = (
     ".env.example",
     "docker-compose.yml",
     "docker/entrypoint.sh",
+    "docker/load-secrets.sh",
     "Dockerfile",
     "README.md",
     "HOWTO-GitHub-Team-Setup.md",
