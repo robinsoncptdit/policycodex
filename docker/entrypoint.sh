@@ -1,6 +1,14 @@
 #!/usr/bin/env sh
 set -e
 
+# Pull secrets from the /secrets/config.env bind mount (~/.config/policycodex/
+# on the host, REPO-05) into the process env BEFORE migrate/gunicorn so the
+# LLM SDKs and any env-driven Django config see them (REPO-17). `|| true`
+# keeps a malformed line in the user's config.env logged-but-non-fatal so
+# the container still boots; well-formed assignments up to the bad line do
+# get exported (POSIX `.` is line-by-line).
+. /usr/local/bin/load-secrets.sh || true
+
 # Apply migrations against the (volume-backed) database.
 python manage.py migrate --noinput
 

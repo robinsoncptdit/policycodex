@@ -102,3 +102,14 @@ def test_maintainer_discipline_survives():
     # AND in the auto-loaded standing context (CLAUDE.md), or the lockstep rots.
     assert "For maintainers" in _prompt()
     assert _PROMPT_NAME in _read("CLAUDE.md")
+
+
+def test_load_secrets_helper_sourced_by_entrypoint():
+    # REPO-17: the entrypoint must source /usr/local/bin/load-secrets.sh
+    # before `migrate`/`gunicorn` so the LLM API key (and any future
+    # env-driven config) from /secrets/config.env is in-process. The
+    # `|| true` guard keeps a malformed user-side line non-fatal to boot.
+    text = _read("docker/entrypoint.sh")
+    assert ". /usr/local/bin/load-secrets.sh || true" in text, (
+        "entrypoint no longer sources the REPO-17 load-secrets.sh helper"
+    )
