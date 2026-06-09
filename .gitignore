@@ -8,6 +8,8 @@ venv/
 !.env.example
 *.pem
 archive/
+# Sprint workspace / project knowledge. Local-only, never distributed.
+internal/
 spike/.env
 # Spike extraction outputs contain real diocese policy content. Never commit them.
 spike/outputs/
