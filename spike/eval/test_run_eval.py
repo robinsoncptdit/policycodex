@@ -4,9 +4,20 @@ from pathlib import Path
 
 import pytest
 
-from run_eval import EVAL_DIR, _eq, _int_eq, _iso_date_eq, run_eval
+from run_eval import EVAL_DIR, _eq, _int_eq, _iso_date_eq, _resolve_outputs_dir, run_eval
 
 CATEGORY_EVAL = EVAL_DIR / "category_eval.jsonl"
+
+# The offline eval reads cached per-policy extractions from the outputs dir.
+# Those caches hold real diocese policy content and are not committed, so the
+# offline-integration tests skip unless a developer has regenerated them locally
+# (mirrors the POLICYCODEX_CORPUS_DIR skip convention).
+_outputs_dir = _resolve_outputs_dir()
+_offline_cache_present = _outputs_dir.exists() and any(_outputs_dir.glob("*.json"))
+_needs_offline_cache = pytest.mark.skipif(
+    not _offline_cache_present,
+    reason="offline eval needs the uncommitted spike outputs cache (diocese-confidential)",
+)
 
 
 def _load_rows():
@@ -29,6 +40,7 @@ def test_verified_rows_have_ground_truth():
             assert row["ground_truth_category"] is None
 
 
+@_needs_offline_cache
 def test_offline_category_run_is_perfect():
     result = run_eval("category", "offline")
     # Verified rows are built from cached outputs, so offline run must score 1.0.
@@ -39,6 +51,7 @@ def test_offline_category_run_is_perfect():
     assert result["passed"] is True
 
 
+@_needs_offline_cache
 def test_offline_run_skips_needs_review_rows():
     result = run_eval("category", "offline")
     rows = _load_rows()
