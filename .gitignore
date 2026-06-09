@@ -9,11 +9,12 @@ venv/
 *.pem
 archive/
 spike/.env
-spike/outputs/*
-!spike/outputs/*.json
-spike/outputs-ai06/*
-!spike/outputs-ai06/*.json
+# Spike extraction outputs contain real diocese policy content. Never commit them.
+spike/outputs/
+spike/outputs-ai06/
 spike/venv/
+# Source policy documents are diocese-confidential. Keep them out of the repo.
+*.pdf
 docs/superpowers/.cache/
 internal/superpowers/.cache/
 .claude/
