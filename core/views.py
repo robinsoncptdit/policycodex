@@ -11,6 +11,7 @@ from django.views.decorators.http import require_POST, require_http_methods
 from github import GithubException
 
 from app.git_provider.github_provider import GitHubProvider
+from app.git_provider.propose import propose_change
 from app.git_provider.states import branch_to_slug
 from app.working_copy.config import load_working_copy_config
 from ai.gap_detection import is_gap, known_types
@@ -223,38 +224,39 @@ def policy_edit(request, slug):
         summary = (form.cleaned_data.get("summary") or "").strip()
         commit_message = summary or f"Update {slug}"
 
+        pr_title = f"Edit policies/{slug}: {commit_message}"
+        pr_body = (
+            f"Opened by PolicyCodex on behalf of {request.user.username}.\n"
+            f"\n"
+            f"Policy: policies/{slug}\n"
+            f"Author: {author_name} <{author_email}>\n"
+        )
+        if summary:
+            pr_body += f"\n{summary}\n"
+
+        # propose_change runs branch -> commit -> push -> open_pr; on ANY
+        # failure it restores a clean default branch (reverts the write_text
+        # above, deletes the local feature branch) so the next sync() pull
+        # never wedges on a dirty tree. On success it leaves the working copy
+        # back on the default branch (APP-33).
         try:
-            provider.branch(branch_name, working_dir)
-            provider.commit(
-                message=commit_message,
+            pr = propose_change(
+                provider=provider,
+                working_dir=working_dir,
+                default_branch=config.branch,
+                branch_name=branch_name,
                 files=[policy.policy_path],
+                commit_message=commit_message,
                 author_name=author_name,
                 author_email=author_email,
-                working_dir=working_dir,
+                pr_title=pr_title,
+                pr_body=pr_body,
             )
-            provider.push(branch_name, working_dir)
-            pr_title = f"Edit policies/{slug}: {commit_message}"
-            pr_body = (
-                f"Opened by PolicyCodex on behalf of {request.user.username}.\n"
-                f"\n"
-                f"Policy: policies/{slug}\n"
-                f"Author: {author_name} <{author_email}>\n"
-            )
-            if summary:
-                pr_body += f"\n{summary}\n"
-            pr = provider.open_pr(
-                title=pr_title,
-                body=pr_body,
-                head_branch=branch_name,
-                base_branch=config.branch,
-                working_dir=working_dir,
-            )
-        except (RuntimeError, ValueError) as exc:
-            logger.error("APP-07 provider failure on slug=%s: %s", slug, exc)
+        except Exception as exc:
+            logger.error("APP-07 propose_change failure on slug=%s: %s", slug, exc)
             messages.error(
                 request,
-                "Couldn't open the pull request. The change is saved locally; "
-                "ask your administrator to retry from the server logs.",
+                "Couldn't open the pull request. Please try again.",
             )
             return render(
                 request,

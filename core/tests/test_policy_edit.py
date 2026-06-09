@@ -193,8 +193,10 @@ def test_post_foundational_policy_also_returns_403(client, user):
 
 # --- POST happy path ---
 
-def test_post_valid_calls_branch_commit_push_open_pr_in_order(client, user, tmp_path):
-    """The happy path sequences all four GitHubProvider operations and writes the file."""
+def test_post_valid_invokes_propose_change_with_expected_args(client, user, tmp_path):
+    """The happy path writes the file then funnels through propose_change with
+    the right kwargs. Call-order of branch/commit/push/open_pr lives in
+    app/git_provider/tests/test_propose.py; here we only check the view's contract."""
     client.force_login(user)
 
     # Build a real on-disk policies/onboarding.md so the view can write to it.
@@ -232,76 +234,36 @@ def test_post_valid_calls_branch_commit_push_open_pr_in_order(client, user, tmp_
         with patch("core.views.Path.exists", return_value=True):
             with patch("core.views.BundleAwarePolicyReader") as MockReader:
                 MockReader.return_value.read.return_value = iter([real_policy])
-                with patch("core.views.GitHubProvider") as MockProvider:
-                    instance = MockProvider.return_value
-                    instance.open_pr.return_value = fake_pr
-                    response = client.post(
-                        "/policies/onboarding/edit/",
-                        data={
-                            "title": "Onboarding Revised",
-                            "body": "New body text.\n",
-                            "summary": "Tighten the welcome section",
-                        },
-                    )
+                with patch("core.views.GitHubProvider"):
+                    with patch("core.views.propose_change", return_value=fake_pr) as mock_propose:
+                        response = client.post(
+                            "/policies/onboarding/edit/",
+                            data={
+                                "title": "Onboarding Revised",
+                                "body": "New body text.\n",
+                                "summary": "Tighten the welcome section",
+                            },
+                        )
 
-    # Successful POST redirects to the success page.
-    assert response.status_code in (302, 200)  # 302 if redirect-to-success; 200 if render-success-directly
+    # Successful POST renders the success page.
+    assert response.status_code in (302, 200)
     # File on disk reflects the new title + body (round-tripped through _render_policy_md).
     new_text = policy_file.read_text(encoding="utf-8")
     assert "title: Onboarding Revised" in new_text
     assert "owner: HR Director" in new_text  # unexposed key preserved
     assert "New body text." in new_text
-    # GitHubProvider call sequence.
-    instance.branch.assert_called_once()
-    branch_args = instance.branch.call_args[0]
-    branch_name = branch_args[0]
-    assert branch_name.startswith("policycodex/edit-onboarding-")
-    instance.commit.assert_called_once()
-    commit_kwargs = instance.commit.call_args.kwargs or {}
-    commit_args = instance.commit.call_args.args
-    # commit(message, files, author_name, author_email, working_dir)
-    # The view may use kwargs or positional; assert by name when possible.
-    # Pull either way:
-    def _pick(name, idx):
-        if name in commit_kwargs:
-            return commit_kwargs[name]
-        return commit_args[idx]
-    msg = _pick("message", 0)
-    files = _pick("files", 1)
-    author_name = _pick("author_name", 2)
-    author_email = _pick("author_email", 3)
-    assert msg == "Tighten the welcome section"
-    assert files == [policy_file]
-    assert author_name == "Pat Editor"
-    assert author_email == "editor@example.com"
-    instance.push.assert_called_once()
-    push_args = instance.push.call_args[0]
-    assert push_args[0] == branch_name
-    instance.open_pr.assert_called_once()
-    open_pr_kwargs = instance.open_pr.call_args.kwargs or {}
-    open_pr_args = instance.open_pr.call_args.args
-    def _pick2(name, idx):
-        if name in open_pr_kwargs:
-            return open_pr_kwargs[name]
-        return open_pr_args[idx]
-    title = _pick2("title", 0)
-    body_text = _pick2("body", 1)
-    head_branch = _pick2("head_branch", 2)
-    base_branch = _pick2("base_branch", 3)
-    assert "onboarding" in title
-    assert "Tighten the welcome section" in title or "Tighten the welcome section" in body_text
-    assert head_branch == branch_name
-    assert base_branch == "main"
-    assert "Opened by PolicyCodex on behalf of editor" in body_text
-    # Call order: branch < commit < push < open_pr.
-    branch_n = instance.branch.call_args_list[0]
-    commit_n = instance.commit.call_args_list[0]
-    push_n = instance.push.call_args_list[0]
-    open_pr_n = instance.open_pr.call_args_list[0]
-    # Use the mock's mock_calls index ordering on the parent.
-    parent_calls = MockProvider.return_value.mock_calls
-    method_names = [c[0] for c in parent_calls]
-    assert method_names.index("branch") < method_names.index("commit") < method_names.index("push") < method_names.index("open_pr")
+    # propose_change called once with expected kwargs.
+    mock_propose.assert_called_once()
+    kwargs = mock_propose.call_args.kwargs
+    assert kwargs["default_branch"] == "main"
+    assert kwargs["branch_name"].startswith("policycodex/edit-onboarding-")
+    assert kwargs["files"] == [policy_file]
+    assert kwargs["commit_message"] == "Tighten the welcome section"
+    assert kwargs["author_name"] == "Pat Editor"
+    assert kwargs["author_email"] == "editor@example.com"
+    assert "onboarding" in kwargs["pr_title"]
+    assert "Tighten the welcome section" in kwargs["pr_title"]
+    assert "Opened by PolicyCodex on behalf of editor" in kwargs["pr_body"]
 
 
 def test_post_default_commit_message_when_summary_empty(client, user, tmp_path):
@@ -323,16 +285,16 @@ def test_post_default_commit_message_when_summary_empty(client, user, tmp_path):
         with patch("core.views.Path.exists", return_value=True):
             with patch("core.views.BundleAwarePolicyReader") as MockReader:
                 MockReader.return_value.read.return_value = iter([real_policy])
-                with patch("core.views.GitHubProvider") as MockProvider:
-                    instance = MockProvider.return_value
-                    instance.open_pr.return_value = {"pr_number": 1, "url": "u", "state": "open"}
-                    client.post(
-                        "/policies/onboarding/edit/",
-                        data={"title": "T2", "body": "b2\n", "summary": ""},
-                    )
-    commit_call = instance.commit.call_args
-    msg = commit_call.kwargs.get("message", commit_call.args[0] if commit_call.args else None)
-    assert msg == "Update onboarding"
+                with patch("core.views.GitHubProvider"):
+                    with patch(
+                        "core.views.propose_change",
+                        return_value={"pr_number": 1, "url": "u", "state": "open"},
+                    ) as mock_propose:
+                        client.post(
+                            "/policies/onboarding/edit/",
+                            data={"title": "T2", "body": "b2\n", "summary": ""},
+                        )
+    assert mock_propose.call_args.kwargs["commit_message"] == "Update onboarding"
 
 
 def test_post_renders_success_page_with_pr_url(client, user, tmp_path):
@@ -347,6 +309,11 @@ def test_post_renders_success_page_with_pr_url(client, user, tmp_path):
         slug="onboarding", kind="flat", policy_path=policy_file, data_path=None,
         frontmatter={"title": "T"}, body="b\n", foundational=False, provides=(),
     )
+    fake_pr = {
+        "pr_number": 42,
+        "url": "https://github.com/example/diocese-policies/pull/42",
+        "state": "open",
+    }
     with override_settings(
         POLICYCODEX_POLICY_REPO_URL="https://github.com/example/diocese-policies.git",
         POLICYCODEX_WORKING_COPY_ROOT=str(tmp_path),
@@ -354,18 +321,13 @@ def test_post_renders_success_page_with_pr_url(client, user, tmp_path):
         with patch("core.views.Path.exists", return_value=True):
             with patch("core.views.BundleAwarePolicyReader") as MockReader:
                 MockReader.return_value.read.return_value = iter([real_policy])
-                with patch("core.views.GitHubProvider") as MockProvider:
-                    instance = MockProvider.return_value
-                    instance.open_pr.return_value = {
-                        "pr_number": 42,
-                        "url": "https://github.com/example/diocese-policies/pull/42",
-                        "state": "open",
-                    }
-                    response = client.post(
-                        "/policies/onboarding/edit/",
-                        data={"title": "T2", "body": "b2\n", "summary": "msg"},
-                        follow=True,  # follow a redirect-to-success-page if used
-                    )
+                with patch("core.views.GitHubProvider"):
+                    with patch("core.views.propose_change", return_value=fake_pr):
+                        response = client.post(
+                            "/policies/onboarding/edit/",
+                            data={"title": "T2", "body": "b2\n", "summary": "msg"},
+                            follow=True,
+                        )
     assert response.status_code == 200
     body = response.content.decode()
     assert "https://github.com/example/diocese-policies/pull/42" in body
@@ -374,17 +336,18 @@ def test_post_renders_success_page_with_pr_url(client, user, tmp_path):
 
 # --- Provider failure paths ---
 
-@pytest.mark.parametrize("failing_method,error_message_fragment", [
-    ("branch", "branch"),
-    ("commit", "commit"),
-    ("push", "push"),
-    ("open_pr", "open"),
+@pytest.mark.parametrize("raised_exc", [
+    RuntimeError("git push failed"),
+    ValueError("bad value"),
+    Exception("unexpected"),
 ])
-def test_post_renders_form_with_error_on_provider_failure(
-    client, user, tmp_path, failing_method, error_message_fragment,
+def test_post_renders_form_with_error_on_propose_change_failure(
+    client, user, tmp_path, raised_exc,
 ):
-    """When any of branch/commit/push/open_pr raises, the form re-renders
-    with a user-visible error and HTTP 200 (not 500)."""
+    """When propose_change raises anything (network error, git failure, ...),
+    the form re-renders with a user-visible error and HTTP 200 (not 500).
+    propose_change itself restores a clean default branch on failure
+    (covered by app/git_provider/tests/test_propose.py)."""
     client.force_login(user)
     repo_dir = tmp_path / "diocese-policies"
     policies_dir = repo_dir / "policies"
@@ -402,17 +365,12 @@ def test_post_renders_form_with_error_on_provider_failure(
         with patch("core.views.Path.exists", return_value=True):
             with patch("core.views.BundleAwarePolicyReader") as MockReader:
                 MockReader.return_value.read.return_value = iter([real_policy])
-                with patch("core.views.GitHubProvider") as MockProvider:
-                    instance = MockProvider.return_value
-                    # Default to success then make ONE method raise.
-                    instance.open_pr.return_value = {"pr_number": 1, "url": "u", "state": "open"}
-                    getattr(instance, failing_method).side_effect = RuntimeError(
-                        f"git {failing_method} failed (exit 1): nope"
-                    )
-                    response = client.post(
-                        "/policies/onboarding/edit/",
-                        data={"title": "T2", "body": "b2\n", "summary": "msg"},
-                    )
+                with patch("core.views.GitHubProvider"):
+                    with patch("core.views.propose_change", side_effect=raised_exc):
+                        response = client.post(
+                            "/policies/onboarding/edit/",
+                            data={"title": "T2", "body": "b2\n", "summary": "msg"},
+                        )
     # No 500.
     assert response.status_code == 200
     body = response.content.decode()
@@ -444,13 +402,14 @@ def test_post_invalid_form_rerenders_with_errors(client, user, tmp_path):
         with patch("core.views.Path.exists", return_value=True):
             with patch("core.views.BundleAwarePolicyReader") as MockReader:
                 MockReader.return_value.read.return_value = iter([real_policy])
-                with patch("core.views.GitHubProvider") as MockProvider:
-                    response = client.post(
-                        "/policies/onboarding/edit/",
-                        data={"title": "", "body": "", "summary": ""},
-                    )
-                    # Provider was NEVER called because form was invalid.
-                    MockProvider.return_value.branch.assert_not_called()
+                with patch("core.views.GitHubProvider"):
+                    with patch("core.views.propose_change") as mock_propose:
+                        response = client.post(
+                            "/policies/onboarding/edit/",
+                            data={"title": "", "body": "", "summary": ""},
+                        )
+                        # propose_change NEVER called because form was invalid.
+                        mock_propose.assert_not_called()
     assert response.status_code == 200
     body = response.content.decode()
     # Form re-rendered with errors (Django's default error label or the field error UL).
