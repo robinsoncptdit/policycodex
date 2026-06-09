@@ -23,7 +23,7 @@ def _run(secrets_path: str | None) -> subprocess.CompletedProcess[str]:
     if secrets_path is not None:
         env["POLICYCODEX_CONFIG_PATH"] = secrets_path
     return subprocess.run(
-        ["sh", "-c", f". {_HELPER} && env"],
+        ["sh", "-c", '. "$1" && env', "sh", str(_HELPER)],
         capture_output=True,
         text=True,
         env=env,
