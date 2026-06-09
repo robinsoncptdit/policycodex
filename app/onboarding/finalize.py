@@ -19,6 +19,7 @@ from pathlib import Path
 
 import yaml
 
+from app.git_provider.propose import propose_change
 from app.onboarding import wizard
 
 CONFIG_SCHEMA_VERSION = 1
@@ -86,35 +87,33 @@ def finalize_onboarding(
     base_branch: str,
     username: str,
 ) -> dict:
-    """Write the config file, then branch -> commit -> push -> open PR.
+    """Write the config file, then funnel through propose_change.
 
-    Commits exactly [config_path, bundle_dir]; never `git add .`. Returns the PR
-    metadata dict from the provider. Any provider exception propagates to the
-    caller, which is responsible for the user-facing degrade.
+    Commits exactly [config_path, bundle_dir]; never `git add .`. Returns the
+    PR metadata dict. On any failure, propose_change restores a clean
+    default branch (the new config + bundle directory are removed since
+    they are not tracked yet) and re-raises; the caller is responsible for
+    the user-facing degrade. On success the working copy is left back on
+    the default branch (APP-33).
     """
     config_path = write_config_file(working_dir, config_yaml_text)
     branch_name = make_onboarding_branch_name()
     message = "Initialize diocese configuration and document-retention policy"
-
-    provider.branch(branch_name, working_dir)
-    provider.commit(
-        message=message,
-        files=[config_path, bundle_dir],
-        author_name=author_name,
-        author_email=author_email,
-        working_dir=working_dir,
-    )
-    provider.push(branch_name, working_dir)
     pr_body = (
         f"Opened by PolicyCodex during onboarding on behalf of {username}.\n\n"
         f"Contents:\n"
         f"- {CONFIG_DIR_NAME}/{CONFIG_FILE_NAME} (diocese configuration)\n"
         f"- policies/{bundle_dir.name}/ (document-retention foundational policy)\n"
     )
-    return provider.open_pr(
-        title="Initialize policy repository",
-        body=pr_body,
-        head_branch=branch_name,
-        base_branch=base_branch,
-        working_dir=working_dir,
+    return propose_change(
+        provider=provider,
+        working_dir=Path(working_dir),
+        default_branch=base_branch,
+        branch_name=branch_name,
+        files=[config_path, bundle_dir],
+        commit_message=message,
+        author_name=author_name,
+        author_email=author_email,
+        pr_title="Initialize policy repository",
+        pr_body=pr_body,
     )

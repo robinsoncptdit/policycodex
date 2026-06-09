@@ -48,8 +48,19 @@ FAKE_BUNDLE = {
 def working_copy(settings, tmp_path):
     settings.POLICYCODEX_POLICY_REPO_URL = "https://github.com/acme/policies.git"
     settings.POLICYCODEX_WORKING_COPY_ROOT = str(tmp_path)
-    policies_dir = tmp_path / "policies" / "policies"
+    working_dir = tmp_path / "policies"
+    policies_dir = working_dir / "policies"
     policies_dir.mkdir(parents=True)
+    # propose_change needs a real git repo on the default branch (APP-33).
+    import subprocess
+    def _git(*args):
+        return subprocess.run(["git", *args], cwd=working_dir, capture_output=True)
+    _git("init", "-b", "main")
+    _git("config", "user.email", "t@example.com")
+    _git("config", "user.name", "T")
+    (working_dir / ".gitkeep").write_text("", encoding="utf-8")
+    _git("add", "-A")
+    _git("commit", "-m", "init")
     return policies_dir
 
 

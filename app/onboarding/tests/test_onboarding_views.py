@@ -187,8 +187,21 @@ def working_copy(settings, tmp_path):
     # repo name "policies" -> working_dir = tmp_path/policies; the diocese repo
     # holds policies under a top-level policies/ dir (matches core/views.py),
     # so the policies root is working_dir/policies = tmp_path/policies/policies.
-    policies_dir = tmp_path / "policies" / "policies"
+    working_dir = tmp_path / "policies"
+    policies_dir = working_dir / "policies"
     policies_dir.mkdir(parents=True)
+    # propose_change runs real `git` subprocess calls (checkout default branch
+    # for crash recovery, restore on failure). The working copy must be a real
+    # git repo on the default branch with at least one commit (APP-33).
+    import subprocess
+    def _git(*args):
+        return subprocess.run(["git", *args], cwd=working_dir, capture_output=True)
+    _git("init", "-b", "main")
+    _git("config", "user.email", "t@example.com")
+    _git("config", "user.name", "T")
+    (working_dir / ".gitkeep").write_text("", encoding="utf-8")
+    _git("add", "-A")
+    _git("commit", "-m", "init")
     return policies_dir
 
 
@@ -336,7 +349,12 @@ def test_screen7_accept_commits_config_and_opens_pr(client, user, working_copy, 
     assert not (working_dir / ".policycodex-staging").exists()
 
 
-def test_screen7_accept_provider_failure_rerenders_review_and_keeps_local(client, user, working_copy, stub_extraction, monkeypatch):
+def test_screen7_accept_provider_failure_rerenders_review_with_clean_tree(client, user, working_copy, stub_extraction, monkeypatch):
+    """propose_change (APP-33) restores a clean default branch on failure:
+    the staged bundle dir and `.policycodex/config.yaml` are removed, so the
+    next `WorkingCopyManager.sync()` pull cannot wedge on a dirty tree. The
+    user retries from the review fragment (the staging draft is still on disk
+    so re-clicking accept re-scaffolds the bundle)."""
     from app.onboarding import retention_policy as rp
 
     class _BoomProvider:
@@ -352,8 +370,10 @@ def test_screen7_accept_provider_failure_rerenders_review_and_keeps_local(client
     resp = client.post("/onboarding/retention-policy/", {"action": "accept"})
 
     assert resp.status_code == 200
-    assert "Administrative" in resp.content.decode()
-    assert (working_copy / "document-retention" / "data.yaml").is_file()
+    assert "Administrative" in resp.content.decode()  # back on review fragment
+    # Clean-tree guarantee: bundle dir and config file are gone, not stranded.
+    assert not (working_copy / "document-retention").exists()
+    assert not (working_copy.parent / ".policycodex" / "config.yaml").exists()
 
 
 def test_screen7_extract_blocks_scanned_image_only_pdf(client, user, working_copy, monkeypatch):

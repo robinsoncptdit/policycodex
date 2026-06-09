@@ -203,12 +203,12 @@ def handle(request, target, state):
                 base_branch=config.branch,
                 username=request.user.get_username(),
             )
-        except (RuntimeError, ValueError) as exc:
+        except Exception as exc:
             logger.error("APP-16 onboarding finalize failed: %s", exc)
             messages.error(
                 request,
                 "Couldn't publish your configuration to the policy repository. "
-                "Your choices are saved locally; ask your administrator to retry.",
+                "Please try again.",
             )
             return _render_review(request, target, state, draft)
         shutil.rmtree(staging.parent, ignore_errors=True)
@@ -331,12 +331,12 @@ def _do_accept(request, state, policies_dir, staging):
             base_branch=config.branch,
             username=request.user.get_username(),
         )
-    except (RuntimeError, ValueError) as exc:
+    except Exception as exc:
         logger.error("APP-16 onboarding finalize failed: %s", exc)
         messages.error(
             request,
             "Couldn't publish your configuration to the policy repository. "
-            "Your choices are saved locally; ask your administrator to retry.",
+            "Please try again.",
         )
         return _render_body(
             request, mode="review",
