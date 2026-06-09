@@ -1,0 +1,706 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PolicyCodex: install to live handbook in 30 minutes</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50:  '#f4f6fa',
+              100: '#e6ebf3',
+              200: '#cbd5e6',
+              500: '#4a5f8a',
+              600: '#3a4f7a',
+              700: '#2a3f6a',
+              900: '#1a2f5a',
+            },
+          },
+        },
+      },
+    }
+  </script>
+
+  <style>
+    :root {
+      --p: 222 30% 41%;
+      --pf: 222 39% 33%;
+      --pc: 0 0% 100%;
+    }
+    html, body { font-family: 'Inter', system-ui, sans-serif; background: #eef2f7; }
+    .font-mono, code { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .gate-drafted   { background: #fef3c7; color: #92400e; }
+    .gate-reviewed  { background: #dbeafe; color: #1e40af; }
+    .gate-published { background: #d1fae5; color: #065f46; }
+    .ai-pill {
+      display: inline-flex; align-items: center;
+      padding: 0.1rem 0.45rem; border-radius: 0.375rem;
+      background: #ede9fe; color: #5b21b6;
+      font-size: 0.7rem; font-weight: 500;
+    }
+    .ai-pill.low { background: #ffedd5; color: #9a3412; }
+    .gap-badge {
+      display: inline-flex; align-items: center;
+      padding: 0.1rem 0.45rem; border-radius: 0.375rem;
+      background: #fee2e2; color: #991b1b;
+      font-size: 0.7rem; font-weight: 500;
+    }
+    .ai-summary { border-left: 3px solid #4a5f8a; }
+
+    .step-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 2rem; height: 2rem; border-radius: 9999px;
+      background: #4a5f8a; color: white;
+      font-size: 0.875rem; font-weight: 600;
+    }
+    .panel { background: white; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-radius: 0.75rem; overflow: hidden; }
+    .panel-screen { background: #f8fafc; padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #e2e8f0; }
+    .terminal { background: #0f172a; color: #e2e8f0; padding: 1rem 1.25rem; border-radius: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; line-height: 1.5; }
+    .terminal .prompt { color: #94a3b8; }
+    .terminal .out { color: #cbd5e1; }
+    .terminal .ok { color: #4ade80; }
+
+    .timeline-track {
+      position: relative;
+    }
+    .timeline-track::before {
+      content: '';
+      position: absolute;
+      left: 1rem;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, #4a5f8a 0%, #4a5f8a 95%, transparent 100%);
+      z-index: 0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Cover -->
+<section class="max-w-4xl mx-auto px-6 pt-12 pb-8">
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-10">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-lg bg-brand-500 flex items-center justify-center text-white font-semibold text-lg">PC</div>
+      <span class="text-2xl font-bold text-slate-900 tracking-tight">PolicyCodex</span>
+    </div>
+    <h1 class="text-4xl font-bold text-slate-900 tracking-tight leading-tight">From a clean VM to a published diocesan handbook in 30 minutes.</h1>
+    <p class="text-lg text-slate-600 mt-4 leading-relaxed">A linear walkthrough of the v0.1 install journey for a Catholic diocese. Each panel below is one step. The whole sequence is what your IT director runs once, then never again.</p>
+    <div class="flex gap-6 mt-6 text-sm text-slate-500">
+      <div><span class="text-slate-900 font-semibold">~30 min</span> total install</div>
+      <div><span class="text-slate-900 font-semibold">7 screens</span> in the wizard</div>
+      <div><span class="text-slate-900 font-semibold">3 manual steps</span> after wizard</div>
+      <div><span class="text-slate-900 font-semibold">$0</span> license fees (AGPL)</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- Timeline -->
+<div class="max-w-4xl mx-auto px-6 pb-16 timeline-track">
+
+  <!-- Step 1: Install -->
+  <section class="panel mb-8 relative">
+    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="step-num">1</span>
+        <div>
+          <div class="text-sm font-semibold text-slate-900">Install on a clean VM</div>
+          <div class="text-xs text-slate-500">minute 0 to 5</div>
+        </div>
+      </div>
+      <span class="text-xs text-slate-500">REPO-05</span>
+    </div>
+    <div class="p-6">
+      <p class="text-sm text-slate-700 mb-4">The IT director clones the public repo and runs one command. Docker Compose handles everything: builds the image, runs migrations, starts gunicorn, persists state to a named volume.</p>
+      <div class="terminal">
+<span class="prompt">$</span> git clone https://github.com/policycodex/policycodex.git
+<span class="prompt">$</span> cd policycodex && ./install.sh
+<span class="out">[+] Pulling python:3.14-slim-bookworm</span>
+<span class="out">[+] Building policycodex image...</span>
+<span class="out">[+] Running migrations</span>
+<span class="out">[+] Starting policycodex on port 8000</span>
+<span class="ok">✓</span> PolicyCodex is running at http://localhost:8000/
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Wizard Step 1: GitHub repo -->
+  <section class="panel mb-8 relative">
+    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="step-num">2</span>
+        <div>
+          <div class="text-sm font-semibold text-slate-900">Wizard screen 1 of 7: GitHub repository</div>
+          <div class="text-xs text-slate-500">minute 5 to 7</div>
+        </div>
+      </div>
+      <span class="text-xs text-slate-500">APP-09</span>
+    </div>
+    <div class="p-6">
+      <p class="text-sm text-slate-700 mb-4">Connect an existing private repo or have PolicyCodex create one. The wizard captures the choice; provisioning happens at the end of the flow.</p>
+      <div class="panel-screen">
+        <div class="text-xs text-slate-500 mb-1">Step 1 of 7</div>
+        <h3 class="text-base font-semibold text-slate-900 mb-1">Where should your policy repository live?</h3>
+        <p class="text-xs text-slate-600 mb-4">PolicyCodex stores every policy as a markdown file in a private GitHub repo per diocese. You can connect an existing repo or create a new one.</p>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="border-2 border-brand-500 bg-brand-50 rounded-lg p-3 cursor-pointer">
+            <div class="flex items-center gap-2 mb-1">
+              <input type="radio" checked class="text-brand-500">
+              <span class="text-sm font-medium text-slate-900">Create new</span>
+            </div>
+            <div class="text-xs text-slate-500">PolicyCodex creates a fresh private repo in your GitHub org.</div>
+          </label>
+          <label class="border border-slate-300 rounded-lg p-3 cursor-pointer">
+            <div class="flex items-center gap-2 mb-1">
+              <input type="radio" class="text-brand-500">
+              <span class="text-sm font-medium text-slate-900">Connect existing</span>
+            </div>
+            <div class="text-xs text-slate-500">Point at a repo you already have.</div>
+          </label>
+        </div>
+        <div class="mt-4 space-y-2">
+          <label class="block text-xs text-slate-700">GitHub organization</label>
+          <input type="text" value="Diocese-of-Pensacola-Tallahassee" class="w-full px-3 py-2 text-sm border border-slate-300 rounded">
+          <label class="block text-xs text-slate-700 mt-2">Repository name</label>
+          <input type="text" value="pt-policy" class="w-full px-3 py-2 text-sm border border-slate-300 rounded">
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Wizard Step 2: Address scheme -->
+  <section class="panel mb-8 relative">
+    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="step-num">3</span>
+        <div>
+          <div class="text-sm font-semibold text-slate-900">Wizard screen 2: Address scheme</div>
+          <div class="text-xs text-slate-500">minute 7 to 9</div>
+        </div>
+      </div>
+      <span class="text-xs text-slate-500">APP-10</span>
+    </div>
+    <div class="p-6">
+      <p class="text-sm text-slate-700 mb-4">Pick how policies get addressed in the handbook. LA Archdiocese's chapter-section-item format is the default. Catholic healthcare uses department codes. The choice persists in your repo as configuration.</p>
+      <div class="panel-screen">
+        <div class="text-xs text-slate-500 mb-1">Step 2 of 7</div>
+        <h3 class="text-base font-semibold text-slate-900 mb-3">How should your policies be addressed?</h3>
+        <div class="space-y-2">
+          <label class="block border-2 border-brand-500 bg-brand-50 rounded-lg p-3">
+            <div class="flex items-center gap-2"><input type="radio" checked> <span class="text-sm font-medium">Chapter.Section.Item</span></div>
+            <div class="text-xs text-slate-500 mt-1 ml-6">3.1.7 Whistleblower policy &middot; modeled on the Archdiocese of Los Angeles handbook</div>
+          </label>
+          <label class="block border border-slate-300 rounded-lg p-3">
+            <div class="flex items-center gap-2"><input type="radio"> <span class="text-sm font-medium">Department code</span></div>
+            <div class="text-xs text-slate-500 mt-1 ml-6">FIN-012 Whistleblower policy &middot; Catholic healthcare convention</div>
+          </label>
+          <label class="block border border-slate-300 rounded-lg p-3">
+            <div class="flex items-center gap-2"><input type="radio"> <span class="text-sm font-medium">Custom</span></div>
+            <div class="text-xs text-slate-500 mt-1 ml-6">Define your own pattern</div>
+          </label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Wizard Step 3: Versioning -->
+  <section class="panel mb-8 relative">
+    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="step-num">4</span>
+        <div>
+          <div class="text-sm font-semibold text-slate-900">Wizard screen 3: Versioning convention</div>
+          <div class="text-xs text-slate-500">minute 9 to 10</div>
+        </div>
+      </div>
+      <span class="text-xs text-slate-500">APP-11</span>
+    </div>
+    <div class="p-6">
+      <p class="text-sm text-slate-700 mb-4">Semver by default. 1.0 first published, 1.1 minor wording, 2.0 obligations changed. Every published policy carries a clear version stamp.</p>
+      <div class="panel-screen">
+        <div class="text-xs text-slate-500 mb-1">Step 3 of 7</div>
+        <h3 class="text-base font-semibold text-slate-900 mb-2">How should policies be versioned?</h3>
+        <div class="bg-white border border-slate-200 rounded p-3 text-xs">
+          <div class="font-medium text-slate-900 mb-2">Semantic versioning (recommended)</div>
+          <div class="grid grid-cols-3 gap-2 text-slate-600">
+            <div><span class="font-mono text-brand-500">1.0</span> First published</div>
+            <div><span class="font-mono text-brand-500">1.1</span> Minor wording</div>
+            <div><span class="font-mono text-brand-500">2.0</span> Obligations changed</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Wizard Step 4: Reviewer roles -->
+  <section class="panel mb-8 relative">
+    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="step-num">5</span>
+        <div>
+          <div class="text-sm font-semibold text-slate-900">Wizard screen 4: Reviewer roles</div>
+          <div class="text-xs text-slate-500">minute 10 to 12</div>
+        </div>
+      </div>
+      <span class="text-xs text-slate-500">APP-12</span>
+    </div>
+    <div class="p-6">
+      <p class="text-sm text-slate-700 mb-4">Pick which roles must approve a policy before it can be published. The selections write a GitHub branch protection rule on your policy repo, enforced by GitHub itself.</p>
+      <div class="panel-screen">
+        <div class="text-xs text-slate-500 mb-1">Step 4 of 7</div>
+        <h3 class="text-base font-semibold text-slate-900 mb-3">Who must approve a policy?</h3>
+        <div class="space-y-2 text-sm">
+          <label class="flex items-start gap-3 p-2 border border-slate-200 rounded"><input type="checkbox" checked> <div><div class="font-medium">Chancellor</div><div class="text-xs text-slate-500">Required on every policy</div></div></label>
+          <label class="flex items-start gap-3 p-2 border border-slate-200 rounded"><input type="checkbox" checked> <div><div class="font-medium">CFO</div><div class="text-xs text-slate-500">Required on financial policies only</div></div></label>
+          <label class="flex items-start gap-3 p-2 border border-slate-200 rounded"><input type="checkbox"> <div><div class="font-medium">HR Director</div><div class="text-xs text-slate-500">Required on personnel policies only</div></div></label>
+        </div>
+        <div class="ai-summary mt-4 bg-brand-50 p-3 rounded-r-lg">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="ai-pill">AI suggest</span>
+            <span class="text-xs text-slate-500">based on mid-sized diocese profile</span>
+          </div>
+          <p class="text-xs text-slate-700">Chancellor plus a department head scoped by category. <a class="text-brand-500 font-medium">Apply suggestion</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Wizard Step 5: Retention defaults -->
+  <section class="panel mb-8 relative">
+    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="step-num">6</span>
+        <div>
+          <div class="text-sm font-semibold text-slate-900">Wizard screen 5: Retention defaults</div>
+          <div class="text-xs text-slate-500">minute 12 to 14</div>
+        </div>
+      </div>
+      <span class="text-xs text-slate-500">APP-13</span>
+    </div>
+    <div class="p-6">
+      <p class="text-sm text-slate-700 mb-4">Default retention periods per category. Applied when a specific policy does not state its own retention. Overridden by your foundational retention bundle in step 7.</p>
+      <div class="panel-screen">
+        <div class="text-xs text-slate-500 mb-1">Step 5 of 7</div>
+        <h3 class="text-base font-semibold text-slate-900 mb-3">Default retention periods</h3>
+        <div class="bg-white border border-slate-200 rounded text-sm">
+          <div class="grid grid-cols-2 px-3 py-2 border-b text-xs font-medium uppercase tracking-wider text-slate-500"><div>Category</div><div>Years</div></div>
+          <div class="grid grid-cols-2 px-3 py-2 border-b"><div>Financial</div><div class="text-slate-600">7</div></div>
+          <div class="grid grid-cols-2 px-3 py-2 border-b"><div>Personnel</div><div class="text-slate-600">active + 7</div></div>
+          <div class="grid grid-cols-2 px-3 py-2 border-b"><div>Sacramental</div><div class="text-slate-600">permanent</div></div>
+          <div class="grid grid-cols-2 px-3 py-2"><div>General</div><div class="text-slate-600">5</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Wizard Step 6: LLM provider -->
+  <section class="panel mb-8 relative">
+    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="step-num">7</span>
+        <div>
+          <div class="text-sm font-semibold text-slate-900">Wizard screen 6: AI provider</div>
+          <div class="text-xs text-slate-500">minute 14 to 16</div>
+        </div>
+      </div>
+      <span class="text-xs text-slate-500">APP-14 + APP-31</span>
+    </div>
+    <div class="p-6">
+      <p class="text-sm text-slate-700 mb-4">Pick your AI provider and paste an API key. Important: this is an API key, not a Claude Pro / ChatGPT Plus / Google One subscription. Cost expectations shown.</p>
+      <div class="panel-screen">
+        <div class="text-xs text-slate-500 mb-1">Step 6 of 7</div>
+        <h3 class="text-base font-semibold text-slate-900 mb-2">Which AI provider?</h3>
+        <div class="bg-amber-50 border border-amber-200 rounded p-3 mb-3">
+          <div class="text-xs font-medium text-amber-900">PolicyCodex needs an API key, not a consumer subscription.</div>
+          <div class="text-xs text-amber-800 mt-1">Anthropic API key (not Claude Pro), OpenAI API key (not ChatGPT Plus), Gemini API key (not Google One), or Azure OpenAI deployment credentials.</div>
+        </div>
+        <select class="w-full px-3 py-2 text-sm border border-slate-300 rounded mb-3">
+          <option>Anthropic Claude (recommended)</option>
+          <option>OpenAI</option>
+          <option>Google Gemini</option>
+          <option>Azure OpenAI</option>
+          <option>Local Llama (self-hosted, no API key)</option>
+        </select>
+        <input type="password" placeholder="sk-ant-..." class="w-full px-3 py-2 text-sm border border-slate-300 rounded">
+        <div class="mt-3 text-xs">
+          <div class="font-medium text-slate-700 mb-1">Expected monthly cost</div>
+          <div class="bg-white border border-slate-200 rounded">
+            <div class="grid grid-cols-3 px-3 py-1.5 border-b text-xs text-slate-500"><div>Diocese size</div><div>Inventory burst</div><div>Steady state</div></div>
+            <div class="grid grid-cols-3 px-3 py-1.5 border-b"><div>Small (~50 policies)</div><div class="text-slate-600">$2-5</div><div class="text-slate-600">$3/mo</div></div>
+            <div class="grid grid-cols-3 px-3 py-1.5 border-b"><div>Mid (~200)</div><div class="text-slate-600">$5-20</div><div class="text-slate-600">$10/mo</div></div>
+            <div class="grid grid-cols-3 px-3 py-1.5"><div>Large (~500+)</div><div class="text-slate-600">$20-50</div><div class="text-slate-600">$30/mo</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Wizard Step 7: Upload retention -->
+  <section class="panel mb-8 relative">
+    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="step-num">8</span>
+        <div>
+          <div class="text-sm font-semibold text-slate-900">Wizard screen 7: Upload retention policy</div>
+          <div class="text-xs text-slate-500">minute 16 to 20</div>
+        </div>
+      </div>
+      <span class="text-xs text-slate-500">APP-15</span>
+    </div>
+    <div class="p-6">
+      <p class="text-sm text-slate-700 mb-4">Upload your Document Retention Policy PDF. PolicyCodex runs AI extraction on it to produce your foundational bundle: a typed classification list plus a retention schedule that grounds every future extraction.</p>
+      <div class="panel-screen">
+        <div class="text-xs text-slate-500 mb-1">Step 7 of 7</div>
+        <h3 class="text-base font-semibold text-slate-900 mb-3">Upload your retention policy</h3>
+        <div class="border-2 border-dashed border-slate-300 rounded p-6 text-center bg-white">
+          <div class="text-sm font-medium text-slate-900">retention-policy.pdf</div>
+          <div class="text-xs text-slate-500 mt-1">42 pages, 312 KB</div>
+        </div>
+        <div class="mt-4 bg-white border border-slate-200 rounded p-3">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-medium text-slate-900">Extraction complete</span>
+            <span class="ai-pill">AI &middot; high confidence</span>
+          </div>
+          <div class="text-xs text-slate-600">8 classifications, 24 retention rules detected. Review the typed table before accepting.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Step 9: Wizard completion -->
+  <section class="panel mb-8 relative">
+    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="step-num">9</span>
+        <div>
+          <div class="text-sm font-semibold text-slate-900">Wizard completion: next steps</div>
+          <div class="text-xs text-slate-500">minute 20</div>
+        </div>
+      </div>
+      <span class="text-xs text-slate-500">APP-29</span>
+    </div>
+    <div class="p-6">
+      <p class="text-sm text-slate-700 mb-4">The wizard accepts, opens a single onboarding PR with your config and foundational bundle, then guides you through the manual steps that v0.2 will automate: merge the PR, configure GitHub Pages, set DNS at your registrar.</p>
+      <div class="panel-screen">
+        <h3 class="text-base font-semibold text-slate-900 mb-3">Almost there. Three manual steps to publish.</h3>
+        <ol class="space-y-3 text-sm">
+          <li class="flex gap-3 bg-white border border-slate-200 rounded p-3">
+            <span class="text-brand-500 font-bold">1</span>
+            <div class="flex-1">
+              <div class="font-medium text-slate-900">Merge the onboarding PR</div>
+              <a class="text-xs text-brand-500">https://github.com/Diocese-of-Pensacola-Tallahassee/pt-policy/pull/1</a>
+            </div>
+          </li>
+          <li class="flex gap-3 bg-white border border-slate-200 rounded p-3">
+            <span class="text-brand-500 font-bold">2</span>
+            <div class="flex-1">
+              <div class="font-medium text-slate-900">Configure GitHub Pages</div>
+              <a class="text-xs text-brand-500">.../pt-policy/settings/pages</a>
+              <div class="text-xs text-slate-500 mt-1">Paste custom domain: <code class="text-xs">handbook.ptdiocese.org</code></div>
+            </div>
+          </li>
+          <li class="flex gap-3 bg-white border border-slate-200 rounded p-3">
+            <span class="text-brand-500 font-bold">3</span>
+            <div class="flex-1">
+              <div class="font-medium text-slate-900">Set DNS at your registrar</div>
+              <div class="text-xs text-slate-500 mt-1">CNAME <code>handbook</code> &rarr; <code>diocese-of-pensacola-tallahassee.github.io</code></div>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Step 10: Bulk ingest -->
+  <section class="panel mb-8 relative">
+    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="step-num">10</span>
+        <div>
+          <div class="text-sm font-semibold text-slate-900">Bring your existing policies into PolicyCodex</div>
+          <div class="text-xs text-slate-500">minute 20 to 25 (depends on corpus size)</div>
+        </div>
+      </div>
+      <span class="text-xs text-slate-500">AI-10 &middot; P1.2 connectors</span>
+    </div>
+    <div class="p-6">
+      <p class="text-sm text-slate-700 mb-4">Point PolicyCodex at your existing policies. AI extraction runs against every file, grounded in the foundational bundle you uploaded in step 8. The result lands as one bulk pull request with every policy staged as a draft for review.</p>
+
+      <!-- v0.2 plan: drop zone preview -->
+      <div class="panel-screen">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-base font-semibold text-slate-900">Choose how to import</h3>
+          <span class="text-xs text-slate-500">v0.2 visual surface previewed below</span>
+        </div>
+
+        <!-- Drop zone -->
+        <div class="border-2 border-dashed border-brand-200 bg-brand-50/40 rounded-lg p-6 text-center mb-3">
+          <div class="w-10 h-10 mx-auto rounded-lg bg-white border border-brand-200 flex items-center justify-center mb-2">
+            <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+          </div>
+          <div class="text-sm font-medium text-slate-900">Drop your exported policies here</div>
+          <div class="text-xs text-slate-500 mt-1">PDF, DOCX, MD, TXT &middot; up to several hundred files</div>
+        </div>
+
+        <!-- Connector cards -->
+        <div class="text-xs font-medium text-slate-700 mb-2">Or connect to where your policies already live</div>
+        <div class="grid grid-cols-5 gap-2">
+          <div class="border border-slate-200 rounded p-2 text-center bg-white">
+            <div class="text-xs font-medium text-slate-900">SharePoint</div>
+            <div class="text-xs text-slate-400 mt-0.5">v0.2</div>
+          </div>
+          <div class="border border-slate-200 rounded p-2 text-center bg-white">
+            <div class="text-xs font-medium text-slate-900">OneDrive</div>
+            <div class="text-xs text-slate-400 mt-0.5">v0.2</div>
+          </div>
+          <div class="border border-slate-200 rounded p-2 text-center bg-white">
+            <div class="text-xs font-medium text-slate-900">Google Drive</div>
+            <div class="text-xs text-slate-400 mt-0.5">v0.2</div>
+          </div>
+          <div class="border border-slate-200 rounded p-2 text-center bg-white">
+            <div class="text-xs font-medium text-slate-900">Box</div>
+            <div class="text-xs text-slate-400 mt-0.5">v0.2</div>
+          </div>
+          <div class="border border-slate-200 rounded p-2 text-center bg-white">
+            <div class="text-xs font-medium text-slate-900">Dropbox</div>
+            <div class="text-xs text-slate-400 mt-0.5">v0.2</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- v0.1 reality note -->
+      <div class="mt-4 bg-slate-50 border border-slate-200 rounded p-3">
+        <div class="text-xs font-medium text-slate-900 mb-1">A note on this step at v0.1</div>
+        <p class="text-xs text-slate-600 leading-relaxed">v0.1 ships local-folder ingest. The drop-files visual surface above and the cloud connectors (SharePoint, OneDrive, Google Drive, Box, Dropbox) are v0.2 work, prioritized by what adopters actually ask for. At v0.1, the IT director points PolicyCodex at any folder of exported policies. The same AI extraction runs. The same bulk PR opens. The only difference is where the IT director clicks to start it.</p>
+        <details class="mt-2">
+          <summary class="text-xs text-slate-500 cursor-pointer hover:text-slate-700">Show the v0.1 invocation</summary>
+          <div class="terminal mt-2 text-xs">
+<span class="prompt">$</span> python manage.py run_inventory_pass --folder ~/policies-export/
+<span class="out">Walking ~/policies-export/... found 187 files</span>
+<span class="out">Running per-policy AI extraction...</span>
+<span class="ok">✓</span> PR #4 opened with 187 drafts
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Step 11: Catalog -->
+  <section class="panel mb-8 relative">
+    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="step-num">11</span>
+        <div>
+          <div class="text-sm font-semibold text-slate-900">Review the catalog</div>
+          <div class="text-xs text-slate-500">minute 25</div>
+        </div>
+      </div>
+      <span class="text-xs text-slate-500">APP-06</span>
+    </div>
+    <div class="p-6">
+      <p class="text-sm text-slate-700 mb-4">Open the admin web app. The catalog shows every policy as a row with its current gate state. AI pills mark fields the model populated; the IT director or CFO clicks any row to review or edit.</p>
+      <div class="panel-screen">
+        <div class="text-sm font-medium text-slate-900 mb-3">Policies <span class="text-xs text-slate-500 font-normal">187 in inventory &middot; 0 published yet</span></div>
+        <div class="bg-white border border-slate-200 rounded text-sm">
+          <div class="grid grid-cols-5 px-3 py-2 border-b text-xs font-medium uppercase tracking-wider text-slate-500"><div>Address</div><div class="col-span-2">Title</div><div>Owner</div><div>Gate</div></div>
+          <div class="grid grid-cols-5 px-3 py-2 border-b hover:bg-slate-50">
+            <div class="font-mono text-xs">3.1.1</div>
+            <div class="col-span-2">Funds management: income</div>
+            <div>CFO <span class="ai-pill">AI</span></div>
+            <div><span class="gate-drafted px-2 py-0.5 rounded text-xs font-medium">Drafted</span></div>
+          </div>
+          <div class="grid grid-cols-5 px-3 py-2 border-b hover:bg-slate-50">
+            <div class="font-mono text-xs">3.1.19</div>
+            <div class="col-span-2">Diocesan whistleblower <br><span class="gap-badge">Not in retention schedule</span></div>
+            <div>HR Director <span class="ai-pill low">AI</span></div>
+            <div><span class="gate-drafted px-2 py-0.5 rounded text-xs font-medium">Drafted</span></div>
+          </div>
+          <div class="grid grid-cols-5 px-3 py-2 border-b hover:bg-slate-50">
+            <div class="font-mono text-xs">3.2.1</div>
+            <div class="col-span-2">Document retention <span class="text-xs text-slate-400">(foundational)</span></div>
+            <div>Chancellor</div>
+            <div><span class="gate-published px-2 py-0.5 rounded text-xs font-medium">Published</span></div>
+          </div>
+        </div>
+        <div class="mt-2 text-xs text-slate-500">+ 184 more rows</div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Step 12: Edit -->
+  <section class="panel mb-8 relative">
+    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="step-num">12</span>
+        <div>
+          <div class="text-sm font-semibold text-slate-900">CFO edits a policy through a form</div>
+          <div class="text-xs text-slate-500">repeats per policy as needed</div>
+        </div>
+      </div>
+      <span class="text-xs text-slate-500">APP-07</span>
+    </div>
+    <div class="p-6">
+      <p class="text-sm text-slate-700 mb-4">The CFO never sees Git. They click a row, edit the policy in a friendly form, and submit. Behind the scenes, PolicyCodex creates a branch, commits the change as the CFO's authored edit, and opens a PR.</p>
+      <div class="panel-screen">
+        <div class="text-xs text-slate-500 mb-1">4.2.7 Donor acknowledgment</div>
+        <h3 class="text-base font-semibold text-slate-900 mb-3">Edit policy</h3>
+        <div class="space-y-2 text-sm">
+          <div><label class="text-xs text-slate-500">Title</label><input type="text" value="Donor acknowledgment" class="w-full px-2 py-1 text-sm border border-slate-300 rounded"></div>
+          <div><label class="text-xs text-slate-500">Owner</label><input type="text" value="CFO" class="w-full px-2 py-1 text-sm border border-slate-300 rounded"></div>
+          <div><label class="text-xs text-slate-500">Next review</label><input type="date" value="2026-11-01" class="w-full px-2 py-1 text-sm border border-slate-300 rounded"></div>
+          <div><label class="text-xs text-slate-500">Body</label><textarea rows="4" class="w-full px-2 py-1 text-sm border border-slate-300 rounded">The Diocese shall provide written acknowledgment to any donor making a contribution of $250 or more, in accordance with IRS Publication 1771...</textarea></div>
+        </div>
+        <button class="mt-3 px-3 py-1.5 text-sm bg-brand-500 text-white rounded font-medium">Submit for review (opens PR)</button>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Step 13: Review -->
+  <section class="panel mb-8 relative">
+    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="step-num">13</span>
+        <div>
+          <div class="text-sm font-semibold text-slate-900">Reviewer approves the change</div>
+          <div class="text-xs text-slate-500">repeats per policy</div>
+        </div>
+      </div>
+      <span class="text-xs text-slate-500">APP-18</span>
+    </div>
+    <div class="p-6">
+      <p class="text-sm text-slate-700 mb-4">A designated reviewer (per the wizard's role selections) sees the PR in PolicyCodex. AI summarizes the change. Reviewer clicks Approve, which calls GitHub's review API on their behalf. The policy moves to Reviewed.</p>
+      <div class="panel-screen">
+        <div class="text-xs text-slate-500 mb-1">PR #142 &middot; awaiting review</div>
+        <h3 class="text-base font-semibold text-slate-900 mb-3">4.2.7 Donor acknowledgment</h3>
+        <div class="ai-summary bg-brand-50 rounded-r p-3 mb-3">
+          <div class="flex items-center gap-2 mb-1"><span class="ai-pill">AI summary</span></div>
+          <p class="text-xs text-slate-700">Adds IRS Publication 1771 substantiation language. Advances next-review date by one year. Body changes are clarifying, not substantive. Confidence: high.</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="px-3 py-1.5 text-sm bg-brand-500 text-white rounded font-medium">Approve</button>
+          <button class="px-3 py-1.5 text-sm border border-slate-300 rounded font-medium">Request changes</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Step 14: Publish -->
+  <section class="panel mb-8 relative">
+    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="step-num">14</span>
+        <div>
+          <div class="text-sm font-semibold text-slate-900">Publisher merges, handbook builds automatically</div>
+          <div class="text-xs text-slate-500">minute 28 to 30</div>
+        </div>
+      </div>
+      <span class="text-xs text-slate-500">APP-19 + PUBLISH-07</span>
+    </div>
+    <div class="p-6">
+      <p class="text-sm text-slate-700 mb-4">An admin with merge permission clicks Publish, which merges the PR. The merge triggers the GitHub Actions handbook build. Astro generates static HTML. GitHub Pages deploys it to the custom subdomain. Within five minutes, the change is live.</p>
+      <div class="terminal text-xs">
+<span class="out">GitHub Actions: Build handbook</span>
+<span class="out">  Run pnpm install</span>
+<span class="out">  Run pnpm build &middot; Astro generated 187 pages</span>
+<span class="out">  Run actions/upload-pages-artifact</span>
+<span class="out">  Run actions/deploy-pages</span>
+<span class="ok">✓</span> Deployed to https://handbook.ptdiocese.org/
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Step 15: Live handbook -->
+  <section class="panel mb-8 relative">
+    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="step-num">15</span>
+        <div>
+          <div class="text-sm font-semibold text-slate-900">Handbook live at your subdomain</div>
+          <div class="text-xs text-slate-500">minute 30</div>
+        </div>
+      </div>
+      <span class="text-xs text-slate-500">PUBLISH-07</span>
+    </div>
+    <div class="p-6">
+      <p class="text-sm text-slate-700 mb-4">The published handbook lives at the custom subdomain you set during onboarding. Stable URLs, chapter-section-item addressing, changelog from Git history, RSS feed for subscribers. Parish staff bookmark it. Clergy link to it. The diocesan policy program has a single source of truth that everyone trusts.</p>
+      <div class="panel-screen">
+        <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-200">
+          <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+          <code class="text-xs text-slate-600">https://handbook.ptdiocese.org/</code>
+          <span class="ml-auto text-xs text-emerald-700 font-medium">Live &middot; SSL valid</span>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900">Diocese of Pensacola-Tallahassee Policy Handbook</h3>
+        <p class="text-xs text-slate-500 mt-1">Last updated: today &middot; 187 policies &middot; 12 published, 175 in review</p>
+        <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+          <div class="bg-white border border-slate-200 rounded p-2"><div class="font-medium">Chapter 3</div><div class="text-slate-500">Financial Management</div></div>
+          <div class="bg-white border border-slate-200 rounded p-2"><div class="font-medium">Chapter 4</div><div class="text-slate-500">Human Resources</div></div>
+          <div class="bg-white border border-slate-200 rounded p-2"><div class="font-medium">Chapter 5</div><div class="text-slate-500">Safe Environment</div></div>
+          <div class="bg-white border border-slate-200 rounded p-2"><div class="font-medium">Chapter 6</div><div class="text-slate-500">Operations</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+
+<!-- Outcome -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <div class="bg-brand-500 text-white rounded-2xl shadow-sm p-10">
+    <h2 class="text-3xl font-bold tracking-tight">That is the install.</h2>
+    <p class="text-lg text-brand-50 mt-3 leading-relaxed">From clean VM to live handbook in about 30 minutes. After this, PolicyCodex runs itself. CFOs edit policies through forms. Reviewers approve through the UI. Every change is a PR with a named approver. Every merge rebuilds the handbook. Every published version carries a stable URL parish staff can link to.</p>
+    <div class="grid grid-cols-3 gap-6 mt-8">
+      <div>
+        <div class="text-3xl font-bold">100%</div>
+        <div class="text-sm text-brand-100 mt-1">of published policies have a corresponding merged PR with at least one named approver</div>
+      </div>
+      <div>
+        <div class="text-3xl font-bold">5 min</div>
+        <div class="text-sm text-brand-100 mt-1">from PR merge to handbook update live at the subdomain</div>
+      </div>
+      <div>
+        <div class="text-3xl font-bold">$0</div>
+        <div class="text-sm text-brand-100 mt-1">in license fees. AGPL-3.0 open source. Pay for setup, support, and customization if you want help.</div>
+      </div>
+    </div>
+    <div class="mt-8 pt-6 border-t border-brand-400">
+      <div class="text-sm">
+        <div>Want to try it for your diocese? Email <span class="font-mono">chuck@bricklauncher.com</span></div>
+        <div class="mt-1 text-brand-100">Public repo: <span class="font-mono">github.com/policycodex/policycodex</span> &middot; Install zero: Diocese of Pensacola-Tallahassee &middot; <span class="font-mono">handbook.ptdiocese.org</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
