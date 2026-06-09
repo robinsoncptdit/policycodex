@@ -1,0 +1,104 @@
+"""Guards that INSTALL-WITH-CLAUDE.md stays in lockstep with the live Docker
+install path.
+
+Plain file-scanning tests (no Django context), mirroring tests/test_docker_packaging.py
+and tests/test_python_pin.py. The prompt walks a non-technical admin through the
+real install, so it names real files, env keys, install commands, and URL routes.
+If any of those move and the prompt is not updated in the same change, one of
+these tripwires goes red.
+
+These cannot verify the prose is *accurate* (a human still reviews that). They
+verify the prompt has not been left pointing at files/keys/commands that no
+longer exist, which is the failure mode the CLAUDE.md mandate exists to prevent.
+"""
+from pathlib import Path
+
+_ROOT = Path(__file__).resolve().parent.parent
+_PROMPT_NAME = "INSTALL-WITH-CLAUDE.md"
+
+
+def _read(name: str) -> str:
+    return (_ROOT / name).read_text(encoding="utf-8")
+
+
+def _prompt() -> str:
+    return _read(_PROMPT_NAME)
+
+
+# Files the prompt tells the admin to clone, copy, run, or read. Each must
+# still exist on disk; a rename without updating the prompt fails here.
+_REFERENCED_FILES = (
+    "install.sh",
+    ".env.example",
+    "docker-compose.yml",
+    "docker/entrypoint.sh",
+    "Dockerfile",
+    "README.md",
+    "HOWTO-GitHub-Team-Setup.md",
+    "app/git_provider/github_config.py",
+    "core/management/commands/run_inventory_pass.py",
+)
+
+# Install-critical env keys. Each must appear in BOTH .env.example AND the
+# prompt: drop/rename in .env.example -> the env-side assert fails; drop the
+# guidance from the prompt -> the prompt-side assert fails.
+_ENV_KEYS = (
+    "DJANGO_SECRET_KEY",
+    "DJANGO_ALLOWED_HOSTS",
+    "POLICYCODEX_DB_PATH",
+    "POLICYCODEX_CONFIG_PATH",
+    "DJANGO_SUPERUSER_USERNAME",
+)
+
+# URL fragments the login-first flow depends on, paired with the URLconf file
+# that must still define them. If a route moves, the prompt would send the
+# admin to a dead URL; this keeps the two honest together.
+_ROUTE_TOKENS = (
+    ("/health/", "core/urls.py", "health/"),
+    ("/catalog/", "core/urls.py", "catalog/"),
+    ("/onboarding/", "policycodex_site/urls.py", "onboarding/"),
+    ("/login/", "policycodex_site/urls.py", "login/"),
+)
+
+
+def test_prompt_exists_and_is_substantial():
+    text = _prompt()
+    assert len(text) > 2000, "install prompt is suspiciously short"
+
+
+def test_prompt_references_only_existing_files():
+    text = _prompt()
+    for name in _REFERENCED_FILES:
+        assert (_ROOT / name).is_file(), f"prompt references missing file: {name}"
+        assert name in text, f"prompt no longer mentions tracked file: {name}"
+
+
+def test_env_keys_present_in_both_example_and_prompt():
+    env_example = _read(".env.example")
+    text = _prompt()
+    for key in _ENV_KEYS:
+        assert key in env_example, f"{key} missing from .env.example"
+        assert key in text, f"prompt no longer documents env key: {key}"
+
+
+def test_install_command_matches_install_script():
+    # The prompt promises ./install.sh runs `docker compose up --build`.
+    assert "docker compose up --build" in _read("install.sh")
+    assert "install.sh" in _prompt()
+    assert "docker compose up --build" in _prompt()
+
+
+def test_login_first_routes_still_exist():
+    text = _prompt()
+    for url_fragment, urlconf, route in _ROUTE_TOKENS:
+        assert url_fragment in text, f"prompt dropped the {url_fragment} step"
+        assert route in _read(urlconf), (
+            f"{route} no longer defined in {urlconf}; prompt {url_fragment} is stale"
+        )
+
+
+def test_maintainer_discipline_survives():
+    # The "update me when the Docker path moves" contract must stay in the file
+    # AND in the auto-loaded standing context (CLAUDE.md), or the lockstep rots.
+    assert "For maintainers" in _prompt()
+    assert _PROMPT_NAME in _read("CLAUDE.md")
