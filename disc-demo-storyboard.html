@@ -129,7 +129,7 @@
     <div class="p-6">
       <p class="text-sm text-slate-700 mb-4">The IT director clones the public repo and runs one command. Docker Compose handles everything: builds the image, runs migrations, starts gunicorn, persists state to a named volume.</p>
       <div class="terminal">
-<span class="prompt">$</span> git clone https://github.com/policycodex/policycodex.git
+<span class="prompt">$</span> git clone https://github.com/robinsoncptdit/policycodex.git
 <span class="prompt">$</span> cd policycodex && ./install.sh
 <span class="out">[+] Pulling python:3.14-slim-bookworm</span>
 <span class="out">[+] Building policycodex image...</span>
@@ -265,7 +265,7 @@
       <span class="text-xs text-slate-500">APP-12</span>
     </div>
     <div class="p-6">
-      <p class="text-sm text-slate-700 mb-4">Pick which roles must approve a policy before it can be published. The selections write a GitHub branch protection rule on your policy repo, enforced by GitHub itself.</p>
+      <p class="text-sm text-slate-700 mb-4">Pick which roles must approve a policy before it can be published. The wizard captures the choice; you turn on the matching GitHub branch-protection rule with our setup guide, so approvals are enforced by GitHub itself.</p>
       <div class="panel-screen">
         <div class="text-xs text-slate-500 mb-1">Step 4 of 7</div>
         <h3 class="text-base font-semibold text-slate-900 mb-3">Who must approve a policy?</h3>
@@ -443,7 +443,7 @@
         <span class="step-num">10</span>
         <div>
           <div class="text-sm font-semibold text-slate-900">Bring your existing policies into PolicyCodex</div>
-          <div class="text-xs text-slate-500">minute 20 to 25 (depends on corpus size)</div>
+          <div class="text-xs text-slate-500">runs in the background &middot; depends on corpus size</div>
         </div>
       </div>
       <span class="text-xs text-slate-500">AI-10 &middot; P1.2 connectors</span>
@@ -526,7 +526,7 @@
     <div class="p-6">
       <p class="text-sm text-slate-700 mb-4">Open the admin web app. The catalog shows every policy as a row with its current gate state. AI pills mark fields the model populated; the IT director or CFO clicks any row to review or edit.</p>
       <div class="panel-screen">
-        <div class="text-sm font-medium text-slate-900 mb-3">Policies <span class="text-xs text-slate-500 font-normal">187 in inventory &middot; 0 published yet</span></div>
+        <div class="text-sm font-medium text-slate-900 mb-3">Policies <span class="text-xs text-slate-500 font-normal">188 in inventory &middot; 1 published (foundational) &middot; 187 drafted</span></div>
         <div class="bg-white border border-slate-200 rounded text-sm">
           <div class="grid grid-cols-5 px-3 py-2 border-b text-xs font-medium uppercase tracking-wider text-slate-500"><div>Address</div><div class="col-span-2">Title</div><div>Owner</div><div>Gate</div></div>
           <div class="grid grid-cols-5 px-3 py-2 border-b hover:bg-slate-50">
@@ -598,7 +598,7 @@
     <div class="p-6">
       <p class="text-sm text-slate-700 mb-4">A designated reviewer (per the wizard's role selections) sees the PR in PolicyCodex. AI summarizes the change. Reviewer clicks Approve, which calls GitHub's review API on their behalf. The policy moves to Reviewed.</p>
       <div class="panel-screen">
-        <div class="text-xs text-slate-500 mb-1">PR #142 &middot; awaiting review</div>
+        <div class="text-xs text-slate-500 mb-1">PR #5 &middot; awaiting review</div>
         <h3 class="text-base font-semibold text-slate-900 mb-3">4.2.7 Donor acknowledgment</h3>
         <div class="ai-summary bg-brand-50 rounded-r p-3 mb-3">
           <div class="flex items-center gap-2 mb-1"><span class="ai-pill">AI summary</span></div>
@@ -620,7 +620,7 @@
         <span class="step-num">14</span>
         <div>
           <div class="text-sm font-semibold text-slate-900">Publisher merges, handbook builds automatically</div>
-          <div class="text-xs text-slate-500">minute 28 to 30</div>
+          <div class="text-xs text-slate-500">first policy live in minutes &middot; the rest follow at review pace</div>
         </div>
       </div>
       <span class="text-xs text-slate-500">APP-19 + PUBLISH-07</span>
@@ -628,9 +628,9 @@
     <div class="p-6">
       <p class="text-sm text-slate-700 mb-4">An admin with merge permission clicks Publish, which merges the PR. The merge triggers the GitHub Actions handbook build. Astro generates static HTML. GitHub Pages deploys it to the custom subdomain. Within five minutes, the change is live.</p>
       <div class="terminal text-xs">
-<span class="out">GitHub Actions: Build handbook</span>
+<span class="out">GitHub Actions: Build handbook (merge of PR #5)</span>
 <span class="out">  Run pnpm install</span>
-<span class="out">  Run pnpm build &middot; Astro generated 187 pages</span>
+<span class="out">  Run pnpm build &middot; Astro generated the published handbook (2 policies live)</span>
 <span class="out">  Run actions/upload-pages-artifact</span>
 <span class="out">  Run actions/deploy-pages</span>
 <span class="ok">✓</span> Deployed to https://handbook.ptdiocese.org/
@@ -660,7 +660,7 @@
           <span class="ml-auto text-xs text-emerald-700 font-medium">Live &middot; SSL valid</span>
         </div>
         <h3 class="text-lg font-bold text-slate-900">Diocese of Pensacola-Tallahassee Policy Handbook</h3>
-        <p class="text-xs text-slate-500 mt-1">Last updated: today &middot; 187 policies &middot; 12 published, 175 in review</p>
+        <p class="text-xs text-slate-500 mt-1">Last updated: today &middot; 188 policies &middot; 2 published &middot; 186 in review (each goes live as it clears review)</p>
         <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
           <div class="bg-white border border-slate-200 rounded p-2"><div class="font-medium">Chapter 3</div><div class="text-slate-500">Financial Management</div></div>
           <div class="bg-white border border-slate-200 rounded p-2"><div class="font-medium">Chapter 4</div><div class="text-slate-500">Human Resources</div></div>
@@ -696,7 +696,7 @@
     <div class="mt-8 pt-6 border-t border-brand-400">
       <div class="text-sm">
         <div>Want to try it for your diocese? Email <span class="font-mono">chuck@bricklauncher.com</span></div>
-        <div class="mt-1 text-brand-100">Public repo: <span class="font-mono">github.com/policycodex/policycodex</span> &middot; Install zero: Diocese of Pensacola-Tallahassee &middot; <span class="font-mono">handbook.ptdiocese.org</span></div>
+        <div class="mt-1 text-brand-100">Public repo: <span class="font-mono">github.com/robinsoncptdit/policycodex</span> &middot; Install zero: Diocese of Pensacola-Tallahassee &middot; <span class="font-mono">handbook.ptdiocese.org</span></div>
       </div>
     </div>
   </div>
