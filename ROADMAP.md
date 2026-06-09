@@ -1,6 +1,6 @@
 # PolicyCodex Roadmap
 
-*Last updated 2026-06-08. Living document. Themes evolve as real-world install signal arrives.*
+*Last updated 2026-06-09. Living document. Themes evolve as real-world install signal arrives.*
 
 ## How to read this
 
@@ -33,13 +33,14 @@ If you are evaluating PolicyCodex for your diocese or for a partnership, the mos
 
 What the maintainer team does in the months between v0.1 ship and v0.2 scope commitment. This phase exists deliberately. We do not commit v0.2 scope speculatively.
 
-**Priorities:**
+**What the maintainer team focuses on during the transition:**
 
-- Walk the v0.1 closeout checklist (`internal/PolicyCodex-v0.1-Closeout-Checklist.md`): compress CLAUDE.md, snapshot v0.1 artifacts, draft fresh v0.2 spec scaffolding.
-- Track install reports from dioceses that try v0.1 after DISC. Capture friction, requested features, and partnership conversations in `internal/PolicyCodex-DISC-2026-Feedback.md`.
-- Deepen engagement with the reference design partners. The Archdiocese of Los Angeles is the gold-standard install-N candidate. Convert from "reviewer" to "active design partner" if interest holds.
-- Architectural prep work that does not commit feature scope: add `document_type` to frontmatter as an optional field (default unset, legacy means "policy"), extend the AI inventory prompt to suggest type alongside category, and evaluate the prompt against the PT corpus to baseline classification accuracy. This work is substrate, not surface.
-- Resist building v0.2 features speculatively. The right question is "what do real adopters need," not "what do we want to build."
+- Closing out the v0.1 codebase cleanly. Snapshot the artifacts so the next cycle opens with a clean working state.
+- Tracking install reports from dioceses that try PolicyCodex after DISC. Friction, requested features, and partnership conversations all feed v0.2 prioritization.
+- Deepening engagement with the reference design partners. The Archdiocese of Los Angeles is the strongest install-N candidate and is the conversation focus.
+- Quiet architectural prep work that does not commit feature scope. Adding an optional document-type field to policy frontmatter, extending the AI inventory prompt to suggest type alongside category, and baseline-testing classification accuracy against a labeled set. Substrate work, not surface.
+- Active outreach to diocesan IT directors after DISC. A brief listserv email post-conference, then personalized one-to-one follow-ups through July and August.
+- Resisting the urge to build v0.2 features speculatively. The right question is "what do real adopters need," not "what do we want to build."
 
 The transition phase has no hard end date. Target close: end of August 2026. Three trigger criteria determine what happens next:
 
@@ -48,8 +49,6 @@ The transition phase has no hard end date. Target close: end of August 2026. Thr
 **Medium signal (v0.2 commits after a check-in):** one or two diocesan IT directors with installs in progress, plus documented feedback shaping what v0.2 should prioritize. This is the most likely scenario.
 
 **Weak or no signal:** v0.2 holds. Transition either extends another month with more focused outreach, or the maintainer team steps back and v0.1 stays as a public artifact. The maintainer-mode business depends on real adopters. No adopters means no business to build for, and that is a legitimate outcome.
-
-The concrete team charter for the transition phase (Chuck's outreach commitments, the coder friends' architectural prep work, Scarlet's codebase maintenance, and the DISC listserv outreach plan) lives in `internal/PolicyCodex-Transition-Plan.md`. The outreach mechanism is a brief DISC listserv email post-conference followed by personalized 1-to-1 follow-ups through July and August.
 
 ## Active Design (v0.2, scope pending the transition signal)
 
@@ -117,10 +116,10 @@ Some things will not be built no matter how the roadmap evolves. Naming them her
 
 ## How to engage
 
-**If you represent a diocese interested in being an install partner:** read the v0.1 spec at `PolicyWonk-v0.1-Spec.md`, try a local install per the README, open a GitHub Discussion with what you found. For installation partnership conversations: chuck@bricklauncher.com.
+**If you represent a diocese interested in being an install partner:** read the v0.1 spec at `PolicyWonk-v0.1-Spec.md`, try a local install per the README, and email chuck@bricklauncher.com to start an installation conversation. Open a GitHub Discussion with anything you found during the install attempt.
 
-**If you are a developer interested in contributing:** read the v0.1 spec, the active sprint board at `PolicyWonk-v0.1-Tickets.md`, and CONTRIBUTING.md when it lands. Open issues against the sprint board or pick up an open ticket.
+**If you are a developer interested in contributing:** read the v0.1 spec, browse the source code, and open a GitHub Issue describing what you want to work on. CONTRIBUTING.md will land before the first outside pull request to set expectations on review cadence and code style.
 
-**If you are a researcher or PM curious about the architecture and the maintainer-mode business model:** the working artifacts live in `internal/`. Start with the v0.1 PRD, then the v0.2 brainstorm at `internal/PolicyCodex-v0.2-Brainstorm.md`, then this roadmap.
+**If you are a researcher or product manager curious about the architecture or the maintainer-mode business model:** the v0.1 spec and this roadmap are the public surface and a good first read. The detailed decision rationale, weekly sprint logs, and design brainstorms live in the maintainer's working notes. Email chuck@bricklauncher.com if you want access to a specific decision document.
 
 The maintainer earns through setup, support, and customization, not through license fees. Partnership terms get worked out per engagement.
