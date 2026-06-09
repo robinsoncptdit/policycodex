@@ -45,9 +45,17 @@ def get_allowed_hosts(environ) -> list[str]:
     return [h.strip() for h in raw.split(",") if h.strip()]
 
 
-def get_db_path(environ, base_dir: Path) -> Path:
+def get_db_path(environ, base_dir: Path, data_dir: Path = Path("/data")) -> Path:
+    # Explicit POLICYCODEX_DB_PATH always wins. Otherwise, when the container
+    # data volume is mounted, persist there so the DB survives a container
+    # recreate even if .env omits the path. Local (non-container) runs have no
+    # data volume and fall back to the repo-root sqlite file.
     raw = environ.get("POLICYCODEX_DB_PATH", "").strip()
-    return Path(raw) if raw else base_dir / "db.sqlite3"
+    if raw:
+        return Path(raw)
+    if data_dir.is_dir():
+        return data_dir / "db.sqlite3"
+    return base_dir / "db.sqlite3"
 
 
 def get_source_url(environ) -> str:

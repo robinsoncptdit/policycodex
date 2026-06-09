@@ -45,8 +45,32 @@ def test_allowed_hosts_parses_csv_and_strips():
     ) == ["example.org", "10.0.0.5", "localhost"]
 
 
-def test_db_path_default_is_base_dir(tmp_path):
-    assert env.get_db_path({}, tmp_path) == tmp_path / "db.sqlite3"
+def test_db_path_default_is_base_dir_without_data_volume(tmp_path):
+    # No env var and no mounted data volume (local dev): fall back to base_dir.
+    missing_volume = tmp_path / "no-such-data"
+    assert (
+        env.get_db_path({}, tmp_path, data_dir=missing_volume)
+        == tmp_path / "db.sqlite3"
+    )
+
+
+def test_db_path_prefers_data_volume_when_present(tmp_path):
+    # No env var but the container data volume is mounted: persist there so the
+    # DB survives container recreate even if .env omits POLICYCODEX_DB_PATH.
+    volume = tmp_path / "data"
+    volume.mkdir()
+    assert (
+        env.get_db_path({}, tmp_path, data_dir=volume) == volume / "db.sqlite3"
+    )
+
+
+def test_db_path_env_wins_over_data_volume(tmp_path):
+    # An explicit POLICYCODEX_DB_PATH always wins, volume present or not.
+    volume = tmp_path / "data"
+    volume.mkdir()
+    assert env.get_db_path(
+        {"POLICYCODEX_DB_PATH": "/custom/x.sqlite3"}, tmp_path, data_dir=volume
+    ) == Path("/custom/x.sqlite3")
 
 
 def test_db_path_uses_env(tmp_path):
