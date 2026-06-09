@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Onboarding complete | PolicyCodex{% endblock %}
+
+{% block content %}
+  <div class="max-w-2xl mx-auto">
+    <div class="card bg-base-100 border border-base-300">
+      <div class="card-body space-y-6">
+        <div>
+          <h1 class="text-xl font-semibold text-base-content">Your handbook is almost live.</h1>
+          <p class="text-sm text-slate-500 mt-1">
+            Onboarding opened a pull request with your configuration. Three steps
+            finish the job. Nothing publishes until you merge the pull request.
+          </p>
+        </div>
+
+        <ol class="space-y-4">
+          <li class="flex gap-3">
+            <span class="badge badge-primary badge-sm mt-0.5">1</span>
+            <div>
+              <p class="font-medium text-base-content">Merge the onboarding pull request.</p>
+              {% if pr_url %}
+                <a href="{{ pr_url }}" class="link link-primary text-sm" target="_blank" rel="noopener">view PR &rarr;</a>
+              {% else %}
+                <p class="text-sm text-slate-500">Open your policy repository and merge the open onboarding pull request.</p>
+              {% endif %}
+            </div>
+          </li>
+
+          <li class="flex gap-3">
+            <span class="badge badge-primary badge-sm mt-0.5">2</span>
+            <div>
+              <p class="font-medium text-base-content">Configure GitHub Pages.</p>
+              <a href="{{ pages_url }}" class="link link-primary text-sm" target="_blank" rel="noopener">open settings &rarr;</a>
+            </div>
+          </li>
+
+          <li class="flex gap-3">
+            <span class="badge badge-primary badge-sm mt-0.5">3</span>
+            <div>
+              <p class="font-medium text-base-content">Set the CNAME record at your registrar.</p>
+              <div class="flex items-center gap-2 mt-1">
+                <code class="text-xs bg-base-200 rounded px-2 py-1">handbook &rarr; {{ cname_target }}</code>
+                <button type="button" class="btn btn-ghost btn-xs" data-copy="{{ cname_target }}">Copy</button>
+              </div>
+            </div>
+          </li>
+        </ol>
+
+        <div class="pt-4 border-t border-base-300">
+          <a href="{% url 'catalog' %}" class="btn btn-primary btn-sm">Continue to your catalog</a>
+        </div>
+
+        <p class="text-xs text-slate-500">
+          Full publishing sequence:
+          <a href="{{ howto_url }}" class="link link-hover text-primary" target="_blank" rel="noopener">GitHub Team setup guide</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.querySelectorAll('[data-copy]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        navigator.clipboard.writeText(btn.dataset.copy);
+      });
+    });
+  </script>
+{% endblock %}
