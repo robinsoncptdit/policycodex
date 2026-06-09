@@ -174,29 +174,25 @@ def test_post_valid_writes_data_yaml_and_opens_pr(client, user, tmp_path):
         with patch("core.views.Path.exists", return_value=True):
             with patch("core.views.BundleAwarePolicyReader") as MockReader:
                 MockReader.return_value.read.return_value = iter([policy])
-                with patch("core.views.GitHubProvider") as MockProvider:
-                    instance = MockProvider.return_value
-                    instance.open_pr.return_value = fake_pr
-                    resp = client.post(
-                        "/policies/document-retention/foundational-edit/",
-                        data=payload, follow=True,
-                    )
+                with patch("core.views.GitHubProvider"):
+                    with patch(
+                        "core.views.propose_change", return_value=fake_pr
+                    ) as mock_propose:
+                        resp = client.post(
+                            "/policies/document-retention/foundational-edit/",
+                            data=payload, follow=True,
+                        )
     assert resp.status_code == 200
     written = yaml.safe_load(policy.data_path.read_text())
     assert [c["id"] for c in written["classifications"]] == ["administrative", "financial", "legal"]
     assert written["classifications"][0]["name"] == "Administrative Records"
     assert written["retention_schedule"][0]["retention"] == "5 years"
-    instance.branch.assert_called_once()
-    assert instance.branch.call_args[0][0].startswith("policycodex/edit-document-retention-")
-    commit_call = instance.commit.call_args
-    files = commit_call.kwargs.get("files", commit_call.args[1] if len(commit_call.args) > 1 else None)
-    assert files == [policy.data_path]
-    instance.push.assert_called_once()
-    instance.open_pr.assert_called_once()
+    mock_propose.assert_called_once()
+    kwargs = mock_propose.call_args.kwargs
+    assert kwargs["branch_name"].startswith("policycodex/edit-document-retention-")
+    assert kwargs["files"] == [policy.data_path]
+    assert kwargs["default_branch"] == "main"
     assert "https://github.com/x/y/pull/31" in resp.content.decode()
-    method_names = [c[0] for c in MockProvider.return_value.mock_calls]
-    assert method_names.index("branch") < method_names.index("commit") \
-        < method_names.index("push") < method_names.index("open_pr")
 
 
 def test_post_delete_row_drops_it_from_data_yaml(client, user, tmp_path):
@@ -221,13 +217,15 @@ def test_post_delete_row_drops_it_from_data_yaml(client, user, tmp_path):
         with patch("core.views.Path.exists", return_value=True):
             with patch("core.views.BundleAwarePolicyReader") as MockReader:
                 MockReader.return_value.read.return_value = iter([policy])
-                with patch("core.views.GitHubProvider") as MockProvider:
-                    MockProvider.return_value.open_pr.return_value = {
-                        "pr_number": 1, "url": "u", "state": "open"}
-                    client.post(
-                        "/policies/document-retention/foundational-edit/",
-                        data=payload,
-                    )
+                with patch("core.views.GitHubProvider"):
+                    with patch(
+                        "core.views.propose_change",
+                        return_value={"pr_number": 1, "url": "u", "state": "open"},
+                    ):
+                        client.post(
+                            "/policies/document-retention/foundational-edit/",
+                            data=payload,
+                        )
     written = yaml.safe_load(policy.data_path.read_text())
     types = [r["type"] for r in written["retention_schedule"]]
     assert types == ["General correspondence"]  # the deleted row is gone
@@ -247,12 +245,13 @@ def test_post_invalid_formset_rerenders_without_calling_provider(client, user, t
         with patch("core.views.Path.exists", return_value=True):
             with patch("core.views.BundleAwarePolicyReader") as MockReader:
                 MockReader.return_value.read.return_value = iter([policy])
-                with patch("core.views.GitHubProvider") as MockProvider:
-                    resp = client.post(
-                        "/policies/document-retention/foundational-edit/",
-                        data=payload,
-                    )
-                    MockProvider.return_value.branch.assert_not_called()
+                with patch("core.views.GitHubProvider"):
+                    with patch("core.views.propose_change") as mock_propose:
+                        resp = client.post(
+                            "/policies/document-retention/foundational-edit/",
+                            data=payload,
+                        )
+                        mock_propose.assert_not_called()
     assert resp.status_code == 200
     assert "Open PR" in resp.content.decode()  # re-rendered editor
 
@@ -271,13 +270,15 @@ def test_post_provider_failure_rerenders_with_error(client, user, tmp_path):
         with patch("core.views.Path.exists", return_value=True):
             with patch("core.views.BundleAwarePolicyReader") as MockReader:
                 MockReader.return_value.read.return_value = iter([policy])
-                with patch("core.views.GitHubProvider") as MockProvider:
-                    instance = MockProvider.return_value
-                    instance.branch.side_effect = RuntimeError("git branch failed")
-                    resp = client.post(
-                        "/policies/document-retention/foundational-edit/",
-                        data=payload,
-                    )
+                with patch("core.views.GitHubProvider"):
+                    with patch(
+                        "core.views.propose_change",
+                        side_effect=RuntimeError("git push failed"),
+                    ):
+                        resp = client.post(
+                            "/policies/document-retention/foundational-edit/",
+                            data=payload,
+                        )
     assert resp.status_code == 200
     body = resp.content.decode()
     assert "Open PR" in body  # editor re-rendered, not a 500

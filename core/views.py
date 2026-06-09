@@ -385,40 +385,40 @@ def _foundational_edit_post(request, slug, policy):
     summary = (meta.cleaned_data.get("summary") or "").strip()
     commit_message = summary or f"Update {slug} classifications and retention schedule"
 
+    pr_title = f"Edit policies/{slug}: {commit_message}"
+    pr_body = (
+        f"Opened by PolicyCodex on behalf of {request.user.username}.\n"
+        f"\n"
+        f"Foundational policy: policies/{slug} (data.yaml)\n"
+        f"Author: {author_name} <{author_email}>\n"
+    )
+    if summary:
+        pr_body += f"\n{summary}\n"
+
+    # propose_change runs branch -> commit -> push -> open_pr; on ANY
+    # failure it restores a clean default branch (reverts the data.yaml
+    # write above, deletes the local feature branch). On success it
+    # leaves the working copy back on the default branch (APP-33).
     try:
-        provider.branch(branch_name, working_dir)
-        provider.commit(
-            message=commit_message,
+        pr = propose_change(
+            provider=provider,
+            working_dir=working_dir,
+            default_branch=config.branch,
+            branch_name=branch_name,
             files=[policy.data_path],
+            commit_message=commit_message,
             author_name=author_name,
             author_email=author_email,
-            working_dir=working_dir,
+            pr_title=pr_title,
+            pr_body=pr_body,
         )
-        provider.push(branch_name, working_dir)
-        pr_title = f"Edit policies/{slug}: {commit_message}"
-        pr_body = (
-            f"Opened by PolicyCodex on behalf of {request.user.username}.\n"
-            f"\n"
-            f"Foundational policy: policies/{slug} (data.yaml)\n"
-            f"Author: {author_name} <{author_email}>\n"
-        )
-        if summary:
-            pr_body += f"\n{summary}\n"
-        pr = provider.open_pr(
-            title=pr_title,
-            body=pr_body,
-            head_branch=branch_name,
-            base_branch=config.branch,
-            working_dir=working_dir,
-        )
-    except (RuntimeError, ValueError) as exc:
-        logger.error("APP-25 provider failure on slug=%s: %s", slug, exc)
+    except Exception as exc:
+        logger.error("APP-25 propose_change failure on slug=%s: %s", slug, exc)
         # Surface the failure inline (not via messages.error like policy_edit):
         # foundational_edit.html has no messages block, and inline keeps the
         # admin's unsaved table edits on screen instead of a bare redirect.
         return _render(
-            error="Couldn't open the pull request. The change is saved locally; "
-                  "ask your administrator to retry from the server logs."
+            error="Couldn't open the pull request. Please try again."
         )
 
     return render(request, "policy_edit_success.html", {"policy": policy, "pr": pr})
