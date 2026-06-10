@@ -179,3 +179,9 @@ STORAGES = {
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
+
+# DISC-02: hydrate provider env vars from the credential store. Must run
+# AFTER INSTALLED_APPS but before the first LLM/GitHub SDK call. Safe on
+# first boot (no-op when no credentials are stored yet).
+from app.credentials import hydrate_environment  # noqa: E402
+hydrate_environment()
