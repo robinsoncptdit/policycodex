@@ -101,7 +101,10 @@ def _clean_classification(entry: dict[str, Any]) -> dict[str, Any]:
     for key in _CLASSIFICATION_KEYS:
         if not entry.get(key):
             raise RetentionExtractionError(f"classification missing '{key}': {entry!r}")
-    return {"id": str(entry["id"]), "name": str(entry["name"])}
+    cleaned: dict[str, Any] = {"id": str(entry["id"]), "name": str(entry["name"])}
+    if entry.get("deprecated"):
+        cleaned["deprecated"] = True
+    return cleaned
 
 
 def _clean_retention_row(row: dict[str, Any]) -> dict[str, Any]:

@@ -283,3 +283,208 @@ def test_post_provider_failure_rerenders_with_error(client, user, tmp_path):
     body = resp.content.decode()
     assert "Open PR" in body  # editor re-rendered, not a 500
     assert "couldn't" in body.lower() or "failed" in body.lower() or "error" in body.lower()
+
+
+# APP-32: deprecated:true tombstone representation + soft-delete on DELETE.
+
+_DEPRECATED_DATA_YAML = (
+    "classifications:\n"
+    "- id: administrative\n"
+    "  name: Administrative\n"
+    "- id: legacy-hr\n"
+    "  name: Legacy HR Records\n"
+    "  deprecated: true\n"
+    "retention_schedule:\n"
+    "- group: Administrative Records\n"
+    "  type: General correspondence\n"
+    "  retention: 3 years\n"
+)
+
+
+def _bundle_with_deprecated(tmp_path):
+    """A bundle whose data.yaml carries a pre-existing deprecated classification."""
+    policies_dir = tmp_path / "policies"
+    bundle = policies_dir / "document-retention"
+    bundle.mkdir(parents=True)
+    (bundle / "policy.md").write_text(
+        "---\ntitle: Document Retention Policy\nowner: CFO\n"
+        "foundational: true\nprovides:\n- classifications\n- retention-schedule\n---\n\n# DRP\n",
+        encoding="utf-8",
+    )
+    (bundle / "data.yaml").write_text(_DEPRECATED_DATA_YAML, encoding="utf-8")
+    policy = LogicalPolicy(
+        slug="document-retention", kind="bundle",
+        policy_path=bundle / "policy.md", data_path=bundle / "data.yaml",
+        frontmatter={"title": "Document Retention Policy", "owner": "CFO",
+                     "foundational": True, "provides": ["classifications", "retention-schedule"]},
+        body="# DRP\n", foundational=True,
+        provides=("classifications", "retention-schedule"),
+    )
+    return policies_dir, policy
+
+
+def test_get_renders_deprecated_classification_with_checkbox_checked(client, user, tmp_path):
+    """The deprecated:true row round-trips into the rendered form as a checked checkbox."""
+    client.force_login(user)
+    _policies_dir, policy = _bundle_with_deprecated(tmp_path)
+    with override_settings(POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+                           POLICYCODEX_WORKING_COPY_ROOT=str(tmp_path)):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter([policy])
+                resp = client.get("/policies/document-retention/foundational-edit/")
+    assert resp.status_code == 200
+    body = resp.content.decode()
+    assert 'name="cls-1-deprecated"' in body
+    legacy_row_idx = body.find('value="legacy-hr"')
+    assert legacy_row_idx != -1
+    deprecated_cb_idx = body.find('name="cls-1-deprecated"', legacy_row_idx)
+    snippet = body[deprecated_cb_idx:deprecated_cb_idx + 200]
+    assert "checked" in snippet, f"deprecated checkbox not rendered checked: {snippet!r}"
+
+
+def test_post_delete_existing_classification_writes_soft_delete_tombstone(client, user, tmp_path):
+    """DELETE on an existing classification row writes {id, name, deprecated: true} instead of dropping."""
+    client.force_login(user)
+    _policies_dir, policy = _bundle_on_disk(tmp_path)
+    payload = _post_payload(
+        classifications=[
+            {"id": "administrative", "name": "Administrative"},
+            {"id": "financial", "name": "Financial", "DELETE": "on"},
+        ],
+        retention=[
+            {"group": "Administrative Records", "type": "General correspondence",
+             "retention": "3 years"},
+            {"group": "Financial Records", "type": "Audited statements",
+             "retention": "Permanent"},
+        ],
+    )
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://github.com/example/diocese-policies.git",
+        POLICYCODEX_WORKING_COPY_ROOT=str(tmp_path),
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter([policy])
+                with patch("core.views.GitHubProvider"):
+                    with patch("core.views.propose_change",
+                               return_value={"pr_number": 1, "url": "u", "state": "open"}):
+                        client.post(
+                            "/policies/document-retention/foundational-edit/",
+                            data=payload,
+                        )
+    written = yaml.safe_load(policy.data_path.read_text())
+    ids = [c["id"] for c in written["classifications"]]
+    assert ids == ["administrative", "financial"]
+    fin = written["classifications"][1]
+    assert fin == {"id": "financial", "name": "Financial", "deprecated": True}
+    assert "deprecated" not in written["classifications"][0]
+
+
+def test_post_delete_new_extra_classification_drops_it(client, user, tmp_path):
+    """DELETE on a brand-new 'extra' classification row drops it entirely (never existed)."""
+    client.force_login(user)
+    _policies_dir, policy = _bundle_on_disk(tmp_path)
+    payload = _post_payload(
+        classifications=[
+            {"id": "administrative", "name": "Administrative"},
+            {"id": "financial", "name": "Financial"},
+        ],
+        add_classification={"id": "legal", "name": "Legal", "DELETE": "on"},
+        retention=[
+            {"group": "Administrative Records", "type": "General correspondence",
+             "retention": "3 years"},
+            {"group": "Financial Records", "type": "Audited statements",
+             "retention": "Permanent"},
+        ],
+    )
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://github.com/example/diocese-policies.git",
+        POLICYCODEX_WORKING_COPY_ROOT=str(tmp_path),
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter([policy])
+                with patch("core.views.GitHubProvider"):
+                    with patch("core.views.propose_change",
+                               return_value={"pr_number": 1, "url": "u", "state": "open"}):
+                        client.post(
+                            "/policies/document-retention/foundational-edit/",
+                            data=payload,
+                        )
+    written = yaml.safe_load(policy.data_path.read_text())
+    ids = [c["id"] for c in written["classifications"]]
+    assert ids == ["administrative", "financial"]
+    for c in written["classifications"]:
+        assert "deprecated" not in c
+
+
+def test_post_checking_deprecated_without_delete_writes_deprecated_flag(client, user, tmp_path):
+    """Checking the `deprecated` checkbox on a live row writes deprecated: true (explicit flip)."""
+    client.force_login(user)
+    _policies_dir, policy = _bundle_on_disk(tmp_path)
+    payload = _post_payload(
+        classifications=[
+            {"id": "administrative", "name": "Administrative", "deprecated": "on"},
+            {"id": "financial", "name": "Financial"},
+        ],
+        retention=[
+            {"group": "Administrative Records", "type": "General correspondence",
+             "retention": "3 years"},
+            {"group": "Financial Records", "type": "Audited statements",
+             "retention": "Permanent"},
+        ],
+    )
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://github.com/example/diocese-policies.git",
+        POLICYCODEX_WORKING_COPY_ROOT=str(tmp_path),
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter([policy])
+                with patch("core.views.GitHubProvider"):
+                    with patch("core.views.propose_change",
+                               return_value={"pr_number": 1, "url": "u", "state": "open"}):
+                        client.post(
+                            "/policies/document-retention/foundational-edit/",
+                            data=payload,
+                        )
+    written = yaml.safe_load(policy.data_path.read_text())
+    assert written["classifications"][0] == {
+        "id": "administrative", "name": "Administrative", "deprecated": True,
+    }
+
+
+def test_post_round_trip_preserves_pre_existing_deprecated_row(client, user, tmp_path):
+    """Editing other fields leaves a pre-existing deprecated row unchanged (still deprecated)."""
+    client.force_login(user)
+    _policies_dir, policy = _bundle_with_deprecated(tmp_path)
+    payload = _post_payload(
+        classifications=[
+            {"id": "administrative", "name": "Administrative Records"},
+            {"id": "legacy-hr", "name": "Legacy HR Records", "deprecated": "on"},
+        ],
+        retention=[
+            {"group": "Administrative Records", "type": "General correspondence",
+             "retention": "3 years"},
+        ],
+    )
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://github.com/example/diocese-policies.git",
+        POLICYCODEX_WORKING_COPY_ROOT=str(tmp_path),
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter([policy])
+                with patch("core.views.GitHubProvider"):
+                    with patch("core.views.propose_change",
+                               return_value={"pr_number": 1, "url": "u", "state": "open"}):
+                        client.post(
+                            "/policies/document-retention/foundational-edit/",
+                            data=payload,
+                        )
+    written = yaml.safe_load(policy.data_path.read_text())
+    assert written["classifications"][0] == {"id": "administrative", "name": "Administrative Records"}
+    assert written["classifications"][1] == {
+        "id": "legacy-hr", "name": "Legacy HR Records", "deprecated": True,
+    }

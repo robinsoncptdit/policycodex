@@ -280,7 +280,7 @@ def policy_edit(request, slug):
 
 def _classification_initial(data: dict) -> list[dict]:
     return [
-        {"id": c.get("id", ""), "name": c.get("name", "")}
+        {"id": c.get("id", ""), "name": c.get("name", ""), "deprecated": bool(c.get("deprecated", False))}
         for c in (data.get("classifications") or [])
     ]
 
@@ -345,11 +345,19 @@ def _foundational_edit_post(request, slug, policy):
     if not (cforms.is_valid() and rforms.is_valid() and meta.is_valid()):
         return _render()
 
-    classifications = [
-        {"id": f.cleaned_data["id"], "name": f.cleaned_data["name"]}
-        for f in cforms
-        if f.cleaned_data and not f.cleaned_data.get("DELETE")
-    ]
+    initial_count = cforms.initial_form_count()
+    classifications = []
+    for i, f in enumerate(cforms):
+        if not f.cleaned_data:
+            continue
+        is_existing = i < initial_count
+        deleted = f.cleaned_data.get("DELETE")
+        if deleted and not is_existing:
+            continue
+        row = {"id": f.cleaned_data["id"], "name": f.cleaned_data["name"]}
+        if deleted or f.cleaned_data.get("deprecated"):
+            row["deprecated"] = True
+        classifications.append(row)
     retention_schedule = [
         {
             "group": f.cleaned_data["group"],

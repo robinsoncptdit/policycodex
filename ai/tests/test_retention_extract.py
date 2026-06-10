@@ -106,3 +106,19 @@ def test_extract_bundle_does_not_carry_usage():
     result = extract_retention_bundle(provider, "PDF TEXT HERE")
     assert "_usage" not in result
     assert result == VALID_BUNDLE
+
+
+# APP-32: _clean_classification now passes `deprecated: true` through when present.
+
+def test_clean_classification_passes_deprecated_through():
+    from ai.retention_extract import _clean_classification
+    out = _clean_classification({"id": "legacy-hr", "name": "Legacy HR Records", "deprecated": True})
+    assert out == {"id": "legacy-hr", "name": "Legacy HR Records", "deprecated": True}
+
+
+def test_clean_classification_omits_deprecated_when_falsey():
+    from ai.retention_extract import _clean_classification
+    out_missing = _clean_classification({"id": "administrative", "name": "Administrative"})
+    out_false = _clean_classification({"id": "administrative", "name": "Administrative", "deprecated": False})
+    assert out_missing == {"id": "administrative", "name": "Administrative"}
+    assert out_false == {"id": "administrative", "name": "Administrative"}

@@ -43,6 +43,11 @@ class ClassificationForm(forms.Form):
         label="name",
         widget=forms.TextInput(attrs={"autocomplete": "off"}),
     )
+    deprecated = forms.BooleanField(
+        label="deprecated",
+        required=False,
+        help_text="Soft-delete: hides for new uses, keeps the id valid for existing references.",
+    )
 
 
 class RetentionRowForm(forms.Form):

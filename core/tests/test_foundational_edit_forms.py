@@ -48,7 +48,7 @@ def test_classification_formset_extra_blank_row_is_ignored():
     fs = ClassificationFormSet(data, prefix="cls")
     assert fs.is_valid(), fs.errors
     filled = [f.cleaned_data for f in fs if f.cleaned_data and not f.cleaned_data.get("DELETE")]
-    assert filled == [{"id": "administrative", "name": "Administrative", "DELETE": False}]
+    assert filled == [{"id": "administrative", "name": "Administrative", "deprecated": False, "DELETE": False}]
 
 
 def test_classification_formset_marks_delete():

@@ -16,12 +16,13 @@
       {{ cforms.management_form }}
       <div class="card bg-base-100 border border-base-300 overflow-hidden">
         <table class="table table-sm">
-          <thead><tr class="text-xs uppercase tracking-wider text-slate-500"><th>id</th><th>name</th><th class="w-16">delete</th></tr></thead>
+          <thead><tr class="text-xs uppercase tracking-wider text-slate-500"><th>id</th><th>name</th><th class="w-24">deprecated</th><th class="w-16">delete</th></tr></thead>
           <tbody id="cls-rows">
             {% for f in cforms %}
               <tr class="hover:bg-slate-50">
                 <td>{{ f.id }}{{ f.id.errors }}</td>
                 <td>{{ f.name }}{{ f.name.errors }}</td>
+                <td>{{ f.deprecated }}</td>
                 <td>{% if f.DELETE %}{{ f.DELETE }}{% endif %}</td>
               </tr>
             {% endfor %}
