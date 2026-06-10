@@ -1,15 +1,17 @@
-"""Guards that INSTALL-WITH-CLAUDE.md stays in lockstep with the live Docker
-install path.
+"""Guards that INSTALL-WITH-CLAUDE.md and README.md stay in lockstep with the
+live Docker install path.
 
 Plain file-scanning tests (no Django context), mirroring tests/test_docker_packaging.py
-and tests/test_python_pin.py. The prompt walks a non-technical admin through the
-real install, so it names real files, env keys, install commands, and URL routes.
-If any of those move and the prompt is not updated in the same change, one of
-these tripwires goes red.
+and tests/test_python_pin.py. The Claude-Code prompt walks a non-technical admin
+through the real install, so it names real files, env keys, install commands, and
+URL routes; the README install section walks a developer-IT-director through the
+same path. If any of those move and the docs are not updated in the same change,
+one of these tripwires goes red.
 
 These cannot verify the prose is *accurate* (a human still reviews that). They
-verify the prompt has not been left pointing at files/keys/commands that no
-longer exist, which is the failure mode the CLAUDE.md mandate exists to prevent.
+verify the docs have not been left pointing at files/keys/commands/routes that
+no longer exist, which is the failure mode the CLAUDE.md mandate exists to
+prevent.
 """
 from pathlib import Path
 
