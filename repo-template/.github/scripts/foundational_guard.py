@@ -129,12 +129,20 @@ _STATUS = {"A": "added", "M": "modified", "D": "deleted", "R": "renamed"}
 # C (copy) cannot appear because the diff uses -M only (no -C).
 
 
-def collect_changes(base_sha, head_sha):
-    """Build the Change list for every changed markdown file in base..head."""
-    diff = subprocess.run(
+def _name_status_diff(base_sha, head_sha):
+    """Run `git diff --name-status -M` between base and head. Single definition
+    shared by both collectors so a future flag addition (e.g. --diff-filter)
+    cannot drift between call sites in the vendored copy.
+    """
+    return subprocess.run(
         ["git", "diff", "--name-status", "-M", base_sha, head_sha],
         check=True, capture_output=True, text=True,
     ).stdout
+
+
+def collect_changes(base_sha, head_sha):
+    """Build the Change list for every changed markdown file in base..head."""
+    diff = _name_status_diff(base_sha, head_sha)
     changes = []
     for line in diff.splitlines():
         parts = line.split("\t")
@@ -157,10 +165,7 @@ def collect_changes(base_sha, head_sha):
 
 def collect_data_yaml_changes(base_sha, head_sha):
     """Build the DataYamlChange list for every changed data.yaml file in base..head."""
-    diff = subprocess.run(
-        ["git", "diff", "--name-status", "-M", base_sha, head_sha],
-        check=True, capture_output=True, text=True,
-    ).stdout
+    diff = _name_status_diff(base_sha, head_sha)
     changes = []
     for line in diff.splitlines():
         parts = line.split("\t")
