@@ -214,3 +214,166 @@ def test_workflow_triggers_on_pull_request_and_manual_dispatch():
     assert on["pull_request"]["branches"] == ["main"]
     assert "policies/**" in on["pull_request"]["paths"]
     assert "workflow_dispatch" in on
+
+
+# REPO-14: extend the guard to inspect data.yaml diffs and fail any
+# classification id removed without a `deprecated: true` tombstone.
+
+def _data_yaml_change(path, change_type, base_data=None, head_data=None):
+    return guard.DataYamlChange(
+        path=path,
+        change_type=change_type,
+        base_data=base_data or {},
+        head_data=head_data or {},
+    )
+
+
+def test_data_yaml_change_dataclass_is_frozen():
+    ch = _data_yaml_change("policies/document-retention/data.yaml", "modified",
+                           base_data={"x": 1}, head_data={"x": 2})
+    import dataclasses
+    with __import__("pytest").raises(dataclasses.FrozenInstanceError):
+        ch.path = "policies/other/data.yaml"
+
+
+def test_parse_data_yaml_handles_missing_text():
+    assert guard._parse_data_yaml(None) == {}
+    assert guard._parse_data_yaml("") == {}
+
+
+def test_parse_data_yaml_handles_unparseable():
+    assert guard._parse_data_yaml("- not a mapping\n") == {}
+    assert guard._parse_data_yaml(":\n:\n:\n") == {}
+
+
+def test_data_yaml_unchanged_classifications_pass():
+    base = {"classifications": [{"id": "administrative", "name": "Administrative"}]}
+    head = {"classifications": [{"id": "administrative", "name": "Administrative Records"}]}
+    ch = _data_yaml_change("policies/document-retention/data.yaml", "modified",
+                           base_data=base, head_data=head)
+    assert guard.find_data_yaml_violations([ch]) == []
+
+
+def test_data_yaml_added_classification_passes():
+    base = {"classifications": [{"id": "administrative", "name": "Administrative"}]}
+    head = {"classifications": [
+        {"id": "administrative", "name": "Administrative"},
+        {"id": "financial", "name": "Financial"},
+    ]}
+    ch = _data_yaml_change("policies/document-retention/data.yaml", "modified",
+                           base_data=base, head_data=head)
+    assert guard.find_data_yaml_violations([ch]) == []
+
+
+def test_data_yaml_soft_delete_passes():
+    """Id stays in head with deprecated:true -> no violation."""
+    base = {"classifications": [
+        {"id": "administrative", "name": "Administrative"},
+        {"id": "legacy-hr", "name": "Legacy HR Records"},
+    ]}
+    head = {"classifications": [
+        {"id": "administrative", "name": "Administrative"},
+        {"id": "legacy-hr", "name": "Legacy HR Records", "deprecated": True},
+    ]}
+    ch = _data_yaml_change("policies/document-retention/data.yaml", "modified",
+                           base_data=base, head_data=head)
+    assert guard.find_data_yaml_violations([ch]) == []
+
+
+def test_data_yaml_hard_remove_active_id_violates():
+    """Id removed entirely from head -> violation, with the id named in the message."""
+    base = {"classifications": [
+        {"id": "administrative", "name": "Administrative"},
+        {"id": "financial", "name": "Financial"},
+    ]}
+    head = {"classifications": [{"id": "administrative", "name": "Administrative"}]}
+    ch = _data_yaml_change("policies/document-retention/data.yaml", "modified",
+                           base_data=base, head_data=head)
+    violations = guard.find_data_yaml_violations([ch])
+    assert len(violations) == 1
+    assert "financial" in violations[0]
+    assert "deprecated: true" in violations[0]
+
+
+def test_data_yaml_hard_remove_already_deprecated_id_still_violates():
+    """Even an already-deprecated id cannot be hard-removed via PR."""
+    base = {"classifications": [
+        {"id": "administrative", "name": "Administrative"},
+        {"id": "legacy-hr", "name": "Legacy HR Records", "deprecated": True},
+    ]}
+    head = {"classifications": [{"id": "administrative", "name": "Administrative"}]}
+    ch = _data_yaml_change("policies/document-retention/data.yaml", "modified",
+                           base_data=base, head_data=head)
+    violations = guard.find_data_yaml_violations([ch])
+    assert len(violations) == 1
+    assert "legacy-hr" in violations[0]
+
+
+def test_data_yaml_added_or_deleted_change_types_skip():
+    """Only `modified` enters the rule; add/delete fall under .md rules."""
+    added = _data_yaml_change("policies/new/data.yaml", "added",
+                              head_data={"classifications": [{"id": "a", "name": "A"}]})
+    deleted = _data_yaml_change("policies/gone/data.yaml", "deleted",
+                                base_data={"classifications": [{"id": "a", "name": "A"}]})
+    assert guard.find_data_yaml_violations([added, deleted]) == []
+
+
+def test_integration_data_yaml_remove_classification_blocks(tmp_path, monkeypatch):
+    """End-to-end: a real git repo with a data.yaml that hard-removes an id -> main() returns 1."""
+    repo = _init_repo(tmp_path)
+    bundle = repo / "policies" / "document-retention"
+    bundle.mkdir(parents=True)
+    (bundle / "policy.md").write_text(_FOUNDATIONAL_MD, encoding="utf-8")
+    (bundle / "data.yaml").write_text(
+        "classifications:\n"
+        "- id: administrative\n"
+        "  name: Administrative\n"
+        "- id: financial\n"
+        "  name: Financial\n",
+        encoding="utf-8",
+    )
+    base = _commit_all(repo, "add foundational bundle with two classifications")
+    (bundle / "data.yaml").write_text(
+        "classifications:\n"
+        "- id: administrative\n"
+        "  name: Administrative\n",
+        encoding="utf-8",
+    )
+    head = _commit_all(repo, "hard-remove financial classification")
+
+    monkeypatch.chdir(repo)
+    monkeypatch.setenv("BASE_SHA", base)
+    monkeypatch.setenv("HEAD_SHA", head)
+    assert guard.main() == 1
+
+
+def test_integration_data_yaml_soft_delete_passes(tmp_path, monkeypatch):
+    """End-to-end: a soft-delete (deprecated:true tombstone kept) -> main() returns 0."""
+    repo = _init_repo(tmp_path)
+    bundle = repo / "policies" / "document-retention"
+    bundle.mkdir(parents=True)
+    (bundle / "policy.md").write_text(_FOUNDATIONAL_MD, encoding="utf-8")
+    (bundle / "data.yaml").write_text(
+        "classifications:\n"
+        "- id: administrative\n"
+        "  name: Administrative\n"
+        "- id: financial\n"
+        "  name: Financial\n",
+        encoding="utf-8",
+    )
+    base = _commit_all(repo, "add foundational bundle with two classifications")
+    (bundle / "data.yaml").write_text(
+        "classifications:\n"
+        "- id: administrative\n"
+        "  name: Administrative\n"
+        "- id: financial\n"
+        "  name: Financial\n"
+        "  deprecated: true\n",
+        encoding="utf-8",
+    )
+    head = _commit_all(repo, "soft-delete financial classification")
+
+    monkeypatch.chdir(repo)
+    monkeypatch.setenv("BASE_SHA", base)
+    monkeypatch.setenv("HEAD_SHA", head)
+    assert guard.main() == 0

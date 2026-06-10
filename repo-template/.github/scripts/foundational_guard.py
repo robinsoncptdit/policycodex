@@ -63,6 +63,36 @@ class Change:
     head_frontmatter: dict
 
 
+@dataclass(frozen=True)
+class DataYamlChange:
+    """A diff entry for a policies/<slug>/data.yaml file (REPO-14).
+
+    Parallel to Change (which is for .md files). Kept as a separate dataclass
+    so each shape is self-describing and find_violations / find_data_yaml_violations
+    stay independently testable.
+    """
+    path: str
+    change_type: str  # "added" | "modified" | "deleted" | "renamed"
+    base_data: dict
+    head_data: dict
+
+
+def _parse_data_yaml(text):
+    """Return a data.yaml file's parsed mapping, or {} if missing/unparseable.
+
+    Matches parse_frontmatter's fail-open posture: unparseable input yields
+    an empty mapping rather than crashing the CI run. The app's L3 startup
+    check is the backstop for invalid bundles.
+    """
+    if not text:
+        return {}
+    try:
+        loaded = yaml.safe_load(text)
+    except yaml.YAMLError:
+        return {}
+    return loaded if isinstance(loaded, dict) else {}
+
+
 def find_violations(changes):
     """Return human-readable violation messages for a list of Change. Empty = OK."""
     violations = []
@@ -125,13 +155,66 @@ def collect_changes(base_sha, head_sha):
     return changes
 
 
+def collect_data_yaml_changes(base_sha, head_sha):
+    """Build the DataYamlChange list for every changed data.yaml file in base..head."""
+    diff = subprocess.run(
+        ["git", "diff", "--name-status", "-M", base_sha, head_sha],
+        check=True, capture_output=True, text=True,
+    ).stdout
+    changes = []
+    for line in diff.splitlines():
+        parts = line.split("\t")
+        code = parts[0][0]
+        change_type = _STATUS.get(code, "modified")
+        old_path = parts[1]
+        new_path = parts[-1]
+        if not (new_path.startswith("policies/") and new_path.endswith("/data.yaml")):
+            continue
+        base_text = None if code == "A" else _show(base_sha, old_path)
+        head_text = None if code == "D" else _show(head_sha, new_path)
+        changes.append(DataYamlChange(
+            path=new_path,
+            change_type=change_type,
+            base_data=_parse_data_yaml(base_text),
+            head_data=_parse_data_yaml(head_text),
+        ))
+    return changes
+
+
+def find_data_yaml_violations(changes):
+    """Return human-readable violation messages for a list of DataYamlChange.
+
+    Rule: any classification id present in base.classifications but missing
+    from head.classifications is a removal violation. An id present in head
+    with `deprecated: true` IS in head_ids (soft-delete tombstone) and passes
+    silently. Hard remove (id missing entirely) always fails the guard --
+    the locked design says hard remove requires out-of-band dependent
+    re-classification first, which CI cannot verify.
+    """
+    violations = []
+    for ch in changes:
+        if ch.change_type != "modified":
+            continue
+        base_ids = {c["id"] for c in (ch.base_data.get("classifications") or []) if c.get("id")}
+        head_ids = {c["id"] for c in (ch.head_data.get("classifications") or []) if c.get("id")}
+        for rid in sorted(base_ids - head_ids):
+            violations.append(
+                f"PR removes classification id '{rid}' from {ch.path} without a "
+                f"`deprecated: true` tombstone. Soft-delete instead, or restore the id."
+            )
+    return violations
+
+
 def main():
     base = os.environ.get("BASE_SHA")
     head = os.environ.get("HEAD_SHA")
     if not base or not head:
         print("foundational-guard: BASE_SHA and HEAD_SHA must be set.", file=sys.stderr)
         return 2
-    violations = find_violations(collect_changes(base, head))
+    violations = (
+        find_violations(collect_changes(base, head))
+        + find_data_yaml_violations(collect_data_yaml_changes(base, head))
+    )
     if violations:
         print("Foundational-policy guard FAILED:", file=sys.stderr)
         for v in violations:
