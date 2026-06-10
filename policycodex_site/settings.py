@@ -52,6 +52,16 @@ else:
         "django-insecure-test-only-not-for-production",
     )
 
+# Preserve the REPO-05 invariant: in production (DEBUG off), a real key must
+# be configured. Without this guard, a non-Docker boot that forgets to set
+# POLICYCODEX_SECRET_KEY_FILE would silently fall back to the dev string.
+if not DEBUG and SECRET_KEY.startswith("django-insecure-"):
+    raise RuntimeError(
+        "Refusing to start with the insecure default SECRET_KEY while DEBUG is off. "
+        "Set POLICYCODEX_SECRET_KEY_FILE to a file containing a real key, "
+        "or set DJANGO_SECRET_KEY in the environment."
+    )
+
 ALLOWED_HOSTS = _env.get_allowed_hosts(os.environ)
 
 # AGPL "View Source" footer target (REPO-05). Placeholder org until the
