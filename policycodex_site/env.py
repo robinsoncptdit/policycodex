@@ -15,7 +15,7 @@ _DEV_SECRET_KEY = "django-insecure-77@z8v71u2tc7%7qp)rpg7!cctxh32l5+_**y%4uw9+j(
 
 _TRUTHY = ("1", "true", "yes")
 
-_DEFAULT_SOURCE_URL = "https://github.com/policycodex/policycodex"
+_DEFAULT_SOURCE_URL = "https://github.com/robinsoncptdit/policycodex"
 
 
 class SettingsError(Exception):

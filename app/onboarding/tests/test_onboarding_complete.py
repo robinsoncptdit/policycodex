@@ -43,7 +43,7 @@ def _seed_create(client):
 
 
 def test_connect_mode_renders_derived_links(client, user, settings):
-    settings.POLICYCODEX_SOURCE_URL = "https://github.com/policycodex/policycodex"
+    settings.POLICYCODEX_SOURCE_URL = "https://github.com/robinsoncptdit/policycodex"
     client.force_login(user)
     _seed_connect(client)
     resp = client.get(reverse("onboarding-complete"))
@@ -53,7 +53,7 @@ def test_connect_mode_renders_derived_links(client, user, settings):
     assert "acme.github.io" in body
     assert 'data-copy="acme.github.io"' in body
     assert (
-        "https://github.com/policycodex/policycodex/blob/main/"
+        "https://github.com/robinsoncptdit/policycodex/blob/main/"
         "HOWTO-GitHub-Team-Setup.md" in body
     )
     assert reverse("catalog") in body  # the continue button target

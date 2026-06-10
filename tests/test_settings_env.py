@@ -80,7 +80,7 @@ def test_db_path_uses_env(tmp_path):
 
 
 def test_source_url_default_placeholder():
-    assert env.get_source_url({}) == "https://github.com/policycodex/policycodex"
+    assert env.get_source_url({}) == "https://github.com/robinsoncptdit/policycodex"
 
 
 def test_source_url_uses_env():

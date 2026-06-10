@@ -4,7 +4,7 @@
 # it will run once the image is pushed. Until then, use docker-compose.yml.
 services:
   app:
-    image: ghcr.io/policycodex/policycodex:latest
+    image: ghcr.io/robinsoncptdit/policycodex:latest
     env_file:
       - .env
     ports:
