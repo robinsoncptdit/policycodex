@@ -372,6 +372,7 @@ def test_changed_entries_become_skipped_changed_without_llm_call(tmp_path):
     body = provider.open_pr_calls[0]["body"]
     assert "by-laws" in body
     assert "changed since last inventory" in body
+    assert "Drafted 1 policies" in body
     written_idx = body.index("Drafted 1 policies")
     changed_idx = body.index("changed since last inventory")
     assert changed_idx > written_idx

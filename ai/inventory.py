@@ -21,7 +21,7 @@ import re
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 from ai import audit, emit
 from ai.inventory_extract import InventoryExtractionError, extract_policy_metadata
@@ -123,7 +123,7 @@ def run_inventory_pass(
     author_name: str,
     author_email: str,
     base_branch: str,
-    changed_entries: list[ManifestEntry] = (),
+    changed_entries: Sequence[ManifestEntry] = (),
     username: str = "PolicyCodex",
 ) -> InventoryResult:
     """Extract every manifest file, emit drafts, and open one bulk PR.
