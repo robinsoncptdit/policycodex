@@ -124,12 +124,13 @@ cd policycodex
 python3 -m venv .venv
 .venv/bin/pip install -r ai/requirements.txt -r app/requirements.txt
 
-# Initialize the database and run
+# Initialize the database, create an admin account, and run
 .venv/bin/python manage.py migrate
+.venv/bin/python manage.py createsuperuser
 .venv/bin/python manage.py runserver
 ```
 
-Open `http://localhost:8000` and complete the seven-screen onboarding wizard:
+Open `http://localhost:8000/login/`, sign in with the admin account you just created, then complete the seven-screen onboarding wizard at `/onboarding/`:
 
 1. Connect or create a private GitHub repo for your policies (PolicyCodex uses a GitHub App)
 2. Pick an address scheme (LA chapter-section-item or Catholic healthcare department code)
@@ -144,11 +145,11 @@ Open `http://localhost:8000` and complete the seven-screen onboarding wizard:
 PolicyCodex ships as a container. From the repo root:
 
 ```bash
-cp .env.example .env          # set DJANGO_SECRET_KEY and your hostnames
+cp .env.example .env          # set DJANGO_SECRET_KEY, your hostnames, and DJANGO_SUPERUSER_USERNAME / _EMAIL / _PASSWORD
 ./install.sh                  # builds the image and starts the stack
 ```
 
-Open `http://localhost:8000` and complete the onboarding wizard.
+Open `http://localhost:8000/login/`, sign in with the admin account, then complete the onboarding wizard at `/onboarding/`. The container creates the admin from the `DJANGO_SUPERUSER_*` env vars on first boot. If you would rather not put a password in `.env`, leave those keys blank and run `docker compose exec app python manage.py createsuperuser` after `./install.sh` finishes.
 
 - **State** (the SQLite database and cloned policy working copies) persists in the `policycodex-data` Docker volume.
 - **Credentials** (the GitHub App private key and your LLM API key) stay on the host in `~/.config/policycodex/`, bind-mounted read-only into the container. They never enter the image or any committed file. Inside `~/.config/policycodex/config.env`, set `POLICYCODEX_GH_PRIVATE_KEY_PATH` to a `/secrets/...` path.

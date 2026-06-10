@@ -114,3 +114,30 @@ def test_load_secrets_helper_sourced_by_entrypoint():
     assert ". /usr/local/bin/load-secrets.sh || true" in text, (
         "entrypoint no longer sources the REPO-17 load-secrets.sh helper"
     )
+
+
+# REPO-19: the README install walkthrough must walk through login + admin
+# creation, not just the wizard. `/onboarding/`, `/catalog/`, and `/` are
+# all login_required, so a first-run admin who follows the README straight
+# from boot to the wizard URL is bounced to /login/ with no documented
+# credentials step. Mirrors `_ROUTE_TOKENS` for INSTALL-WITH-CLAUDE.md.
+_README_LOGIN_TOKENS = (
+    "/login/",
+    "createsuperuser",
+)
+
+
+def test_readme_install_walkthrough_documents_login_step():
+    readme = _read("README.md")
+    quick_start = readme.find("## Quick Start")
+    roadmap = readme.find("## Roadmap")
+    assert quick_start != -1, "Quick Start heading missing from README"
+    assert roadmap != -1 and roadmap > quick_start, (
+        "Roadmap heading missing or precedes Quick Start in README"
+    )
+    install_section = readme[quick_start:roadmap]
+    for token in _README_LOGIN_TOKENS:
+        assert token in install_section, (
+            f"README install walkthrough no longer documents {token!r}; "
+            "REPO-19 sync regression"
+        )
