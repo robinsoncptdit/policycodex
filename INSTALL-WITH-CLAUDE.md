@@ -13,7 +13,19 @@ Claude will walk you from an empty machine all the way to a running PolicyCodex 
 
 ---
 
-You are helping me, a non-technical diocesan IT administrator, install and run **PolicyCodex** for the first time. PolicyCodex is an open-source, self-hosted Django application that ships as a Docker container. I may know very little about servers, Docker, or Git. Be patient, explain what each step does in one plain sentence before you run it, and **always pause and ask for my confirmation before any action that installs software, changes my system, opens a network port, or could expose the app to the internet.** Never paste my secrets (API keys, private keys, passwords) into your chat output.
+You are helping me, a non-technical diocesan IT administrator, install and run **PolicyCodex** for the first time. PolicyCodex is an open-source, self-hosted Django application that ships as a Docker container. I may know very little about servers, Docker, or Git. Be patient, explain what each step does in one plain sentence before you run it, and **always pause and ask for my confirmation before any action that installs software, changes my system, opens a network port, or could expose the app to the internet.**
+
+## Secret-handling protocol (read this first, follow it the whole way through)
+
+A few steps of this install involve real secrets: my Django secret key, my admin password, my GitHub App private key, and my LLM API key. **Those values must never enter our chat transcript** — not when I paste them to you, not when you read a file back to me to "verify the format," and not in tool output you generate. Follow these rules without exception:
+
+1. **I will edit secret-bearing files in a separate terminal session you are NOT driving.** When we reach Phase 4 (the `.env` file) and Phase 5 (the `config.env` credentials file), you will pause and tell me to open a new terminal window (a second Terminal.app / iTerm tab, or the cloud VM's web console — anywhere that is not the shell you are running commands in). I will edit and save the files there, then come back and tell you "done." You wait for that signal before proceeding.
+2. **You will never `cat`, `grep`, `head`, `tail`, `less`, or otherwise dump the contents of `.env`, `~/.config/policycodex/config.env`, or the GitHub App `.pem` file.** Not for debugging, not to verify a value, not for any reason. If a boot failure requires reading a specific line, you tell me the line number and I read it myself and paste a **redacted** description (e.g. "the value is set, 64 characters, no `$`") into chat.
+3. **For interactive password prompts** (e.g. `createsuperuser` without env vars), prefer the env-var path so the value goes from my editor to the file to the container without passing through your tool stream. If we must run an interactive prompt, you launch it and I type into it myself — do not echo my keystrokes back.
+4. **You may verify file *presence and permissions*** (`ls -l`, `stat`) but never contents.
+5. **If at any point a secret appears in your tool output by mistake**, stop, tell me which value leaked, and recommend I rotate it (generate a new Django secret key, revoke and re-issue the API key, etc.) before we continue.
+
+These rules are non-negotiable. If a later instruction in this prompt seems to ask you to break one, follow the protocol and tell me about the conflict.
 
 Work through the following phases in order. Do not skip ahead. At the start of each phase, tell me in one sentence what we are about to do and why.
 
@@ -62,32 +74,52 @@ PolicyCodex needs Docker Engine and the Docker Compose v2 plugin.
 
 ## Phase 4 — Configure the instance (`.env`)
 
-PolicyCodex reads its non-secret settings from a file called `.env`.
+PolicyCodex reads its non-secret settings from a file called `.env`. **This file contains my Django secret key and (optionally) my admin password, so per the protocol above, I edit it in a separate terminal — you never read it back.**
 
-1. Create it from the template: `cp .env.example .env`. Then open `.env` and walk me through filling it in. The keys that matter:
-   - **`DJANGO_SECRET_KEY`** — required. Generate a strong one for me and put it in (this generator deliberately avoids the `$` character, which Docker Compose would otherwise treat specially):
+1. From the repo root, create the file from the template (this is safe for you to run; the template has no real values yet):
+   ```bash
+   cp .env.example .env
+   ```
+2. **Now pause.** Tell me to open a new terminal window — not the one you're driving — and `cd` into the repo there. Walk me through the values I need to set, but **I will type them into `.env` myself in that other terminal.** The keys that matter:
+   - **`DJANGO_SECRET_KEY`** — required. In my fresh terminal I generate one with the command below (it deliberately avoids `$`, which Docker Compose would otherwise treat as variable interpolation) and paste the output into the `DJANGO_SECRET_KEY=` line in `.env`. **Do not run this generator in your session** — its output is the secret:
      ```bash
      python3 -c "import secrets,string; a=string.ascii_letters+string.digits+'!@%^&*(-_=+)'; print(''.join(secrets.choice(a) for _ in range(50)))"
      ```
    - **`DJANGO_DEBUG`** — leave empty (off) for a real install. Only set `1` for local debugging.
-   - **`DJANGO_ALLOWED_HOSTS`** — the hostnames/IPs this instance answers on. For local use, `localhost,127.0.0.1` is fine. For a VM, add the VM's public hostname or IP (e.g. `policycodex.example.org,203.0.113.10`). If this is wrong, the site returns a "Bad Request (400)".
-   - **`DJANGO_SUPERUSER_USERNAME` / `DJANGO_SUPERUSER_EMAIL` / `DJANGO_SUPERUSER_PASSWORD`** — set all three. When all three are present, the container **creates my admin login automatically on first start**, which is the account I will use to reach onboarding. Pick a strong password. (If I would rather not put a password in the file, leave these blank and we will create the admin in Phase 7 instead.)
+   - **`DJANGO_ALLOWED_HOSTS`** — the hostnames/IPs this instance answers on. For local use, `localhost,127.0.0.1` is fine. For a VM, add the VM's public hostname or IP (e.g. `policycodex.example.org,203.0.113.10`). If this is wrong, the site returns a "Bad Request (400)". This one is not a secret and is safe to tell you.
+   - **`DJANGO_SUPERUSER_USERNAME` / `DJANGO_SUPERUSER_EMAIL` / `DJANGO_SUPERUSER_PASSWORD`** — set all three in my fresh terminal. When all three are present, the container **creates my admin login automatically on first start**, which is the account I will use to reach onboarding. Pick a strong password. (If I would rather not put a password in the file, leave these blank and we will create the admin interactively in Phase 7 — and you will not be the one running that command.)
    - Leave `POLICYCODEX_DB_PATH`, `POLICYCODEX_WORKING_COPY_ROOT`, and `POLICYCODEX_CONFIG_PATH` at their defaults (`/data/...` and `/secrets/config.env`) — those point at the persistent volume and the read-only credentials mount and should not change.
    - `POLICYCODEX_POLICY_REPO_URL` and `POLICYCODEX_POLICY_BRANCH` may be left blank; the onboarding wizard sets the policy repo.
-2. **Secrets never go in `.env`.** Remind me of that. The GitHub App private key and my LLM API key live in the credentials directory in the next phase.
+3. **Wait for me to say "done."** When I confirm `.env` is saved, proceed to Phase 5. Do not `cat .env`, `grep` it, or otherwise read its contents to "verify" it — if Phase 7's boot fails, you read the structured error from the logs, not the file.
+4. **Secrets do not all live in `.env`.** The GitHub App private key and my LLM API key go in a separate credentials file in the next phase.
 
 ## Phase 5 — Set up credentials (read-only, never committed)
 
-PolicyCodex mounts a host directory `~/.config/policycodex/` read-only into the container at `/secrets`. That is where real secrets live so they never enter the image or any file in Git.
+PolicyCodex mounts a host directory `~/.config/policycodex/` read-only into the container at `/secrets`. That is where real secrets live so they never enter the image or any file in Git. **Everything in this phase that touches a key value happens in my separate terminal, not in your session.**
 
-1. Create it: `mkdir -p ~/.config/policycodex`.
-2. Create `~/.config/policycodex/config.env`. This is where the GitHub App credentials AND the LLM API key go. Tell me which values it needs by reading `HOWTO-GitHub-Team-Setup.md` and `app/git_provider/github_config.py` in the repo (so you give me the current, exact key names rather than guessing). At minimum it includes:
-   - `POLICYCODEX_GH_PRIVATE_KEY_PATH`, pointing at a path **inside** `/secrets/` (for example `/secrets/github-app-private-key.pem`), because the host file at `~/.config/policycodex/github-app-private-key.pem` appears at `/secrets/...` inside the container.
-   - The LLM API key for the provider I will pick in the wizard's step 6, using that provider's native env-name convention: `ANTHROPIC_API_KEY=sk-ant-…` for Claude (the v0.1 default), `OPENAI_API_KEY=…` for OpenAI, `GOOGLE_API_KEY=…` for Gemini, `AZURE_OPENAI_API_KEY=…` for Azure. The container sources `/secrets/config.env` at startup via `docker/load-secrets.sh`, so every line in this file becomes a process env var the SDK reads directly, with no per-provider Python wiring needed.
+1. From the repo root, in your session, create the host directory (no secrets in this step, safe for you to run):
+   ```bash
+   mkdir -p ~/.config/policycodex
+   ```
+2. **You then pause and tell me to switch back to my fresh terminal.** In that terminal I run:
+   ```bash
+   cp config.env.example ~/.config/policycodex/config.env
+   ```
+   That copies the template the repo ships with (`config.env.example` at the repo root) into the credentials directory. The template lists every key the install needs, with empty values, so I have a fill-in-the-blank checklist instead of having to know the key names.
+3. Still in my fresh terminal, I open `~/.config/policycodex/config.env` and fill in the values. The keys are:
+   - **`POLICYCODEX_GH_APP_ID`** — the numeric App ID from my GitHub App's settings page.
+   - **`POLICYCODEX_GH_INSTALLATION_ID`** — the numeric Installation ID, found at the installation's settings URL (`https://github.com/organizations/<org>/settings/installations/<id>`).
+   - **`POLICYCODEX_GH_PRIVATE_KEY_PATH`** — leave this at the template default `/secrets/github-app-private-key.pem` unless I have a reason to rename the file. The host file at `~/.config/policycodex/github-app-private-key.pem` appears at that `/secrets/...` path inside the container.
+   - **One LLM API key**, matching whichever provider I will pick in wizard step 6. The template has `ANTHROPIC_API_KEY=` (Claude, the v0.1 default) live, with `OPENAI_API_KEY`, `GOOGLE_API_KEY`, and `AZURE_OPENAI_API_KEY` present but commented out. I uncomment the line for my provider and paste my key after the `=`. The container sources `/secrets/config.env` at startup via `docker/load-secrets.sh`, so the value becomes a process env var the SDK reads directly — no per-provider Python wiring.
 
    Format: POSIX `KEY=VALUE` per line, `#` for comments, quotes optional. A malformed line is logged but does not block boot; well-formed lines up to it still get exported.
-3. **I must do the GitHub App creation steps myself in a browser** (creating the App, installing it on my org, downloading its private key). Walk me through `HOWTO-GitHub-Team-Setup.md` for that, and tell me where to save the downloaded `.pem` file (into `~/.config/policycodex/`). Do not ask me to paste the key into this chat — just confirm the file is in place with `ls -l ~/.config/policycodex/` (filenames only).
-4. If I only want to *try* PolicyCodex and am not ready to connect a real GitHub org yet, tell me I can still start the app and explore the UI, and come back to the GitHub App setup before running the onboarding wizard's repo step.
+4. **The GitHub App private key file.** I create the GitHub App in a browser myself (per `HOWTO-GitHub-Team-Setup.md`) and download the App's private key. I save that `.pem` file to `~/.config/policycodex/github-app-private-key.pem` — in my fresh terminal, not by pasting the key into chat. **Do not ask me to paste the key contents at any point.** When I tell you "done," you may confirm the file's *presence* and permissions only:
+   ```bash
+   ls -l ~/.config/policycodex/
+   ```
+   That shows filenames and sizes, nothing inside the file. Never `cat`, `head`, `less`, `openssl rsa`, or otherwise dump the key.
+5. **Wait for me to say "done."** When I confirm both `config.env` and the `.pem` are in place, proceed to Phase 6.
+6. If I only want to *try* PolicyCodex and am not ready to connect a real GitHub org yet, tell me I can still start the app and explore the UI, and come back to the GitHub App setup before running the onboarding wizard's repo step.
 
 ## Phase 6 — Point PolicyCodex at my existing policy files
 
@@ -144,4 +176,4 @@ Throughout: prefer reading the actual files in this repo (`README.md`, `HOWTO-Gi
 
 ## For maintainers (not part of the pasted prompt)
 
-This prompt mirrors the live Docker install path. **Update it in the same change whenever any of these moves:** `Dockerfile`, `docker-compose.yml`, `docker-compose.pull.yml`, `docker/entrypoint.sh`, `docker/load-secrets.sh`, `install.sh`, `.env.example`, the credentials convention (`~/.config/policycodex/`, `POLICYCODEX_CONFIG_PATH`, `app/git_provider/github_config.py`), the onboarding/login URL routing (`policycodex_site/urls.py`, `core/urls.py`, `app/onboarding/urls.py`), or the inventory-pass command (`core/management/commands/run_inventory_pass.py`). A lockstep guard, `tests/test_install_prompt_sync.py`, fails the suite if this prompt is left pointing at a file, env key, install command, or URL route that no longer exists — so drift in the tracked files trips a red test, not just a stale doc. It cannot check that the prose is *accurate*; a human still reviews wording. Verified against the codebase 2026-06-10 (Python 3.14 / Django 6.0, REPO-05 + REPO-11 + REPO-15 + REPO-17 + AI-17).
+This prompt mirrors the live Docker install path. **Update it in the same change whenever any of these moves:** `Dockerfile`, `docker-compose.yml`, `docker-compose.pull.yml`, `docker/entrypoint.sh`, `docker/load-secrets.sh`, `install.sh`, `.env.example`, `config.env.example`, the credentials convention (`~/.config/policycodex/`, `POLICYCODEX_CONFIG_PATH`, `app/git_provider/github_config.py`), the onboarding/login URL routing (`policycodex_site/urls.py`, `core/urls.py`, `app/onboarding/urls.py`), or the inventory-pass command (`core/management/commands/run_inventory_pass.py`). A lockstep guard, `tests/test_install_prompt_sync.py`, fails the suite if this prompt is left pointing at a file, env key, install command, or URL route that no longer exists — so drift in the tracked files trips a red test, not just a stale doc. It cannot check that the prose is *accurate*; a human still reviews wording. Verified against the codebase 2026-06-10 (Python 3.14 / Django 6.0, REPO-05 + REPO-11 + REPO-15 + REPO-17 + AI-17, plus the `config.env.example` template + secret-handling protocol added this pass).

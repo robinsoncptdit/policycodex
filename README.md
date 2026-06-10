@@ -152,7 +152,7 @@ cp .env.example .env          # set DJANGO_SECRET_KEY, your hostnames, and DJANG
 Open `http://localhost:8000/login/`, sign in with the admin account, then complete the onboarding wizard at `/onboarding/`. The container auto-creates the admin from the `DJANGO_SUPERUSER_*` env vars on first boot. (Alternative: leave those env vars blank in `.env` and run `docker compose exec app python manage.py createsuperuser` after `./install.sh` finishes to create the admin interactively instead.)
 
 - **State** (the SQLite database and cloned policy working copies) persists in the `policycodex-data` Docker volume.
-- **Credentials** (the GitHub App private key and your LLM API key) stay on the host in `~/.config/policycodex/`, bind-mounted read-only into the container. They never enter the image or any committed file. Inside `~/.config/policycodex/config.env`, set `POLICYCODEX_GH_PRIVATE_KEY_PATH` to a `/secrets/...` path.
+- **Credentials** (the GitHub App private key and your LLM API key) stay on the host in `~/.config/policycodex/`, bind-mounted read-only into the container. They never enter the image or any committed file. Copy the shipped template into place and fill it in: `mkdir -p ~/.config/policycodex && cp config.env.example ~/.config/policycodex/config.env`. Then edit that copy with your GitHub App ID, installation ID, private-key path (default `/secrets/github-app-private-key.pem`), and your LLM API key.
 - A pre-built published image (no local build) is coming post-DISC; `docker-compose.pull.yml` is the placeholder for that path.
 
 ### Rebuilding the CSS

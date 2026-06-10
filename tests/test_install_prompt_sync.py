@@ -32,6 +32,7 @@ def _prompt() -> str:
 _REFERENCED_FILES = (
     "install.sh",
     ".env.example",
+    "config.env.example",
     "docker-compose.yml",
     "docker/entrypoint.sh",
     "docker/load-secrets.sh",
@@ -40,6 +41,27 @@ _REFERENCED_FILES = (
     "HOWTO-GitHub-Team-Setup.md",
     "app/git_provider/github_config.py",
     "core/management/commands/run_inventory_pass.py",
+)
+
+# Required GitHub App keys from app/git_provider/github_config.py. The
+# config.env.example template must enumerate all of them: any added there
+# without updating the template would mean a real install hits a
+# load_github_config() FileNotFoundError/ValueError instead of just an
+# unfilled value -- the template is meant to remove that footgun.
+_REQUIRED_GH_KEYS = (
+    "POLICYCODEX_GH_APP_ID",
+    "POLICYCODEX_GH_INSTALLATION_ID",
+    "POLICYCODEX_GH_PRIVATE_KEY_PATH",
+)
+
+# LLM provider env names the prompt names by convention. Each must appear
+# in the template (active or commented) so an admin who picks a non-default
+# provider in wizard step 6 doesn't have to know which env var the SDK reads.
+_LLM_PROVIDER_KEYS = (
+    "ANTHROPIC_API_KEY",
+    "OPENAI_API_KEY",
+    "GOOGLE_API_KEY",
+    "AZURE_OPENAI_API_KEY",
 )
 
 # Install-critical env keys. Each must appear in BOTH .env.example AND the
@@ -127,6 +149,39 @@ _README_LOGIN_TOKENS = (
     "/login/",
     "createsuperuser",
 )
+
+
+def test_config_env_example_covers_required_github_keys():
+    template = _read("config.env.example")
+    github_config = _read("app/git_provider/github_config.py")
+    for key in _REQUIRED_GH_KEYS:
+        assert key in github_config, (
+            f"{key} no longer required by github_config.py; "
+            "either restore it or drop it from _REQUIRED_GH_KEYS"
+        )
+        assert key in template, (
+            f"config.env.example missing {key}; the template must enumerate "
+            "every key github_config.load_github_config requires"
+        )
+
+
+def test_config_env_example_covers_all_llm_provider_keys():
+    template = _read("config.env.example")
+    prompt = _prompt()
+    for key in _LLM_PROVIDER_KEYS:
+        assert key in template, f"config.env.example missing {key}"
+        assert key in prompt, f"prompt no longer names {key}; sync regression"
+
+
+def test_prompt_uses_config_env_example_in_phase_5():
+    # Phase 5 must tell the admin to `cp config.env.example` rather than
+    # punting on what keys belong in config.env. A rename of the template
+    # without updating the prompt trips here.
+    text = _prompt()
+    assert "config.env.example" in text, (
+        "prompt no longer references config.env.example; admins are back to "
+        "reading Python source to figure out which keys belong in config.env"
+    )
 
 
 def test_readme_install_walkthrough_documents_login_step():
