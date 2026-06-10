@@ -62,6 +62,17 @@ class WizardState:
                 best_slug = slug
         return best_slug
 
+    def bootstrap_complete(self) -> bool:
+        """All three bootstrap screens (admin, github-app, llm-provider) completed."""
+        from app.credentials import store
+        bootstrap_slugs = ("admin-account", "github-app", "llm-provider")
+        if not all(self.is_complete(slug) for slug in bootstrap_slugs):
+            return False
+        try:
+            return store.first_boot_complete()
+        except RuntimeError:
+            return False
+
     def all_data(self) -> dict:
         return dict(self._store["data"])
 

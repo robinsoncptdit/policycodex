@@ -10,12 +10,13 @@ from app.onboarding.finalize import make_onboarding_branch_name, write_config_fi
 def test_build_config_yaml_emits_steps_in_wizard_order():
     all_data = {
         # Deliberately out of wizard order; output must be re-ordered.
-        "address-scheme": {"scheme": "chapter-section-item"},
+        "configuration": {"address_scheme": "chapter-section-item"},
         "github-repo": {"mode": "connect", "repo_url": "https://github.com/d/r", "branch": "main"},
     }
     doc = yaml.safe_load(build_config_yaml(all_data))
     assert doc["schema_version"] == 1
-    assert list(doc["onboarding"].keys()) == ["github-repo", "address-scheme"]
+    # github-repo is index 3, configuration is index 4 in DISC-03 STEPS order.
+    assert list(doc["onboarding"].keys()) == ["github-repo", "configuration"]
     assert doc["onboarding"]["github-repo"]["repo_url"] == "https://github.com/d/r"
 
 

@@ -16,13 +16,13 @@ class Step:
 
 
 STEPS: tuple[Step, ...] = (
-    Step("github-repo", "GitHub repository"),
-    Step("address-scheme", "Address scheme"),
-    Step("versioning", "Versioning convention"),
-    Step("reviewer-roles", "Reviewer roles"),
-    Step("retention", "Retention defaults"),
-    Step("llm-provider", "LLM provider"),
-    Step("retention-policy", "Retention policy"),
+    Step("admin-account", "Create your admin account"),
+    Step("github-app", "GitHub App credentials"),
+    Step("llm-provider", "AI provider"),
+    Step("github-repo", "Policy repository"),
+    Step("configuration", "Configuration"),
+    Step("retention-policy", "Document retention policy"),
+    Step("policy-documents", "Your policy documents"),
 )
 
 _BY_SLUG = {s.slug: s for s in STEPS}

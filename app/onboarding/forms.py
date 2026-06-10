@@ -69,23 +69,6 @@ class GitHubRepoForm(forms.Form):
         return cleaned
 
 
-class LLMProviderForm(forms.Form):
-    PROVIDER_CHOICES = [
-        ("claude", "Anthropic Claude (default)"),
-        ("openai", "OpenAI"),
-        ("gemini", "Google Gemini"),
-        ("azure-openai", "Azure OpenAI"),
-        ("local-llama", "Local Llama (self-hosted, no API key)"),
-    ]
-
-    provider = forms.ChoiceField(
-        choices=PROVIDER_CHOICES,
-        widget=forms.RadioSelect,
-        initial="claude",
-        label="LLM provider",
-    )
-
-
 class RetentionPolicyUploadForm(forms.Form):
     pdf_file = forms.FileField(
         label="Retention policy PDF",
@@ -101,7 +84,6 @@ class RetentionPolicyUploadForm(forms.Form):
 
 _FORMS = {
     "github-repo": GitHubRepoForm,
-    "llm-provider": LLMProviderForm,
 }
 
 

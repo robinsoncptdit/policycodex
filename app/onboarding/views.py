@@ -1,11 +1,13 @@
-"""Onboarding wizard views (APP-08): routing, gating, and navigation shell."""
+"""Onboarding wizard views (APP-08 / DISC-03): routing, gating, and per-screen dispatch."""
+from pathlib import Path
 from urllib.parse import urlparse
 
-from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import redirect, render
+from django.urls import reverse
 
 from app.onboarding import forms as onboarding_forms
 from app.onboarding import retention_policy
@@ -32,27 +34,70 @@ def _step_context(target, state, form=None):
     return ctx
 
 
-@login_required
+def _admin_exists() -> bool:
+    User = get_user_model()
+    return User.objects.filter(is_superuser=True).exists()
+
+
+def _working_copy_dir() -> Path:
+    """Return the local clone path; tests patch this."""
+    from app.working_copy.config import load_working_copy_config
+    try:
+        return load_working_copy_config().working_dir
+    except RuntimeError:
+        return Path("/data/working-copy/__absent__")
+
+
+def _gate_for(step: str, request, state) -> object | None:
+    """Run gating signals in order; return a redirect Response if blocked, else None."""
+    # Signal 1: admin presence.
+    if not _admin_exists():
+        if step != "admin-account":
+            return redirect("onboarding_step", step="admin-account")
+        return None
+    # Signal 2: working-copy presence (only required for screen 6 onward).
+    requires_working_copy = step in ("retention-policy", "policy-documents")
+    if requires_working_copy and not _working_copy_dir().exists():
+        return redirect("onboarding_step", step="github-repo")
+    # Signal 3: cannot jump past furthest_step.
+    furthest = state.furthest_step()
+    if wizard.index_of(step) > wizard.index_of(furthest):
+        return redirect("onboarding_step", step=furthest)
+    return None
+
+
+def _resume_target(state) -> str:
+    """Resolve which onboarding URL to send the user to."""
+    # DISC-11 will surface in-progress runs; for now no inventory model exists.
+    try:
+        from app.inventory.models import InventoryRun
+        if InventoryRun.objects.filter(status="running").exists():
+            return reverse("inventory")
+    except (ImportError, Exception):
+        pass
+    return reverse("onboarding_step", kwargs={"step": state.current_step})
+
+
+def _onboarding_root_unauthenticated(request):
+    """Handle unauthenticated access to /onboarding/ — route to screen 1 if no
+    admin exists, otherwise let @login_required redirect to login."""
+    if not _admin_exists():
+        return redirect("onboarding_step", step="admin-account")
+    return redirect(f"/login/?next={request.path}")
+
+
 def onboarding_root(request):
-    """Resume: send the admin to their current (furthest reached) step."""
+    """Resume: send the admin to the right place based on gating signals."""
+    if not request.user.is_authenticated:
+        return _onboarding_root_unauthenticated(request)
     state = WizardState(request.session)
-    return redirect("onboarding_step", step=state.current_step)
+    return redirect(_resume_target(state))
 
 
-@login_required
-def onboarding_step(request, step):
-    target = wizard.get_step(step)
-    if target is None:
-        raise Http404(f"Unknown onboarding step: {step}")
-
-    state = WizardState(request.session)
-
-    if step == retention_policy.STEP_SLUG:
-        return retention_policy.handle(request, target, state)
-
+def _generic_step(request, target, state):
+    """Generic form-driven step (used by github-repo until DISC-07 lifts it)."""
+    step = target.slug
     if request.method == "POST":
-        # Per-step form validation/processing lands in APP-09..16; the
-        # skeleton treats every step's submit as a no-op save then navigates.
         action = request.POST.get("action")
         if action == "back":
             prev = wizard.prev_step(step)
@@ -65,48 +110,90 @@ def onboarding_step(request, step):
             if form_cls is not None:
                 form = form_cls(request.POST)
                 if not form.is_valid():
-                    # Invalid input: re-render with errors; do NOT advance.
-                    return render(
-                        request,
-                        "onboarding/step.html",
-                        _step_context(target, state, form),
-                    )
+                    return render(request, "onboarding/step.html", _step_context(target, state, form))
                 state.set_data(step, form.cleaned_data)
             state.mark_complete(step)
-            if wizard.is_last(step):
-                # APP-15/APP-16 hook: commit wizard config to the policy repo
-                # and flip POLICYCODEX_ONBOARDING_COMPLETE. Not done here.
-                messages.success(request, "Onboarding steps complete.")
-                return redirect("catalog")
             nxt = wizard.next_step(step)
+            if nxt is None:
+                return redirect("inventory")
             state.set_current(nxt.slug)
             return redirect("onboarding_step", step=nxt.slug)
-        # Unknown or missing action: defensive re-render only. The normal
-        # wizard UI never posts without a known action, so binding request.POST
-        # here (which may show form errors) is acceptable for this dead path.
+        # Unknown or missing action: defensive re-render.
         form_cls = onboarding_forms.form_class_for(step)
         form = form_cls(request.POST) if form_cls is not None else None
         return render(request, "onboarding/step.html", _step_context(target, state, form))
-
-    # GET gating: cannot skip ahead of the furthest step reached. Revisiting
-    # the current step or any earlier/completed step is allowed. GET never
-    # mutates current_step; only a `continue` POST advances it (keeps
-    # furthest_step monotonic so backward review does not trap the user).
-    furthest = state.furthest_step()
-    if wizard.index_of(step) > wizard.index_of(furthest):
-        return redirect("onboarding_step", step=furthest)
 
     form_cls = onboarding_forms.form_class_for(step)
     form = form_cls(initial=state.get_data(step)) if form_cls is not None else None
     return render(request, "onboarding/step.html", _step_context(target, state, form))
 
 
+@login_required
+def onboarding_step(request, step):
+    target = wizard.get_step(step)
+    if target is None:
+        raise Http404(f"Unknown onboarding step: {step}")
+
+    state = WizardState(request.session)
+    gated = _gate_for(step, request, state)
+    if gated is not None:
+        return gated
+
+    # Per-screen handlers (DISC-04..DISC-10). Dispatched by slug.
+    # Each try/ImportError block is scaffold debt: remove when the DISC ticket lands.
+
+    if step == "admin-account":
+        # DISC-04 scaffold; remove when screen lands
+        try:
+            from app.onboarding.screens import admin_account
+            return admin_account.handle(request, target, state)
+        except ImportError:
+            return _generic_step(request, target, state)
+
+    if step == "github-app":
+        # DISC-05 scaffold; remove when screen lands
+        try:
+            from app.onboarding.screens import github_app
+            return github_app.handle(request, target, state)
+        except ImportError:
+            return _generic_step(request, target, state)
+
+    if step == "llm-provider":
+        # DISC-06 scaffold; remove when screen lands
+        try:
+            from app.onboarding.screens import llm_provider
+            return llm_provider.handle(request, target, state)
+        except ImportError:
+            return _generic_step(request, target, state)
+
+    if step == "configuration":
+        # DISC-08 scaffold; remove when screen lands
+        try:
+            from app.onboarding.screens import configuration
+            return configuration.handle(request, target, state)
+        except ImportError:
+            return _generic_step(request, target, state)
+
+    if step == "policy-documents":
+        # DISC-10 scaffold; remove when screen lands
+        try:
+            from app.onboarding.screens import policy_documents
+            return policy_documents.handle(request, target, state)
+        except ImportError:
+            return _generic_step(request, target, state)
+
+    if step == "retention-policy":
+        return retention_policy.handle(request, target, state)
+
+    # github-repo keeps today's generic-form path until DISC-07 lifts it.
+    return _generic_step(request, target, state)
+
+
 def _derive_repo(state):
-    """Return (org, repo) from the screen-1 github-repo wizard data, or None.
+    """Return (org, repo) from the github-repo wizard data, or None.
 
     connect mode parses the repo_url; create mode reads org + repo_name.
-    Returns None when the data is missing or org/repo cannot be derived, so
-    the completion view can guard instead of rendering a half-empty screen.
+    Returns None when the data is missing or org/repo cannot be derived.
     """
     data = state.get_data("github-repo") or {}
     mode = data.get("mode")
@@ -123,26 +210,3 @@ def _derive_repo(state):
     if not org or not repo:
         return None
     return org, repo
-
-
-@login_required
-def onboarding_complete(request):
-    """APP-29: presentation-only post-onboarding screen. Walks the admin
-    through merge-PR -> configure-Pages -> set-CNAME. No API calls."""
-    state = WizardState(request.session)
-    derived = _derive_repo(state)
-    if derived is None:
-        return redirect("onboarding")
-    org, repo = derived
-    repo_url = f"https://github.com/{org}/{repo}"
-    howto_url = (
-        settings.POLICYCODEX_SOURCE_URL.rstrip("/")
-        + "/blob/main/HOWTO-GitHub-Team-Setup.md"
-    )
-    return render(request, "onboarding/complete.html", {
-        "repo_url": repo_url,
-        "pages_url": f"{repo_url}/settings/pages",
-        "cname_target": f"{org}.github.io",
-        "howto_url": howto_url,
-        "pr_url": request.session.pop("onboarding_pr_url", None),
-    })
