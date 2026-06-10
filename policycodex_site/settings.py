@@ -38,8 +38,19 @@ POLICYCODEX_ONBOARDING_COMPLETE = _onboarding_raw.lower() in ("1", "true", "yes"
 # gets DEBUG on and the historical dev key (see policycodex_site/env.py).
 DEBUG = _env.get_debug(os.environ)
 
-# SECURITY: when DEBUG is off, DJANGO_SECRET_KEY is required.
-SECRET_KEY = _env.get_secret_key(os.environ, debug=DEBUG)
+# DISC-01: SECRET_KEY persists across container restarts via a file in /data.
+# The entrypoint generates it on first boot. At test time, a sane default is
+# provided so settings imports without a real /data mount.
+_secret_key_file = os.environ.get("POLICYCODEX_SECRET_KEY_FILE", "")
+if _secret_key_file and os.path.isfile(_secret_key_file):
+    with open(_secret_key_file, "r", encoding="utf-8") as _fh:
+        SECRET_KEY = _fh.read().strip()
+else:
+    # Test / dev fallback. Production paths set POLICYCODEX_SECRET_KEY_FILE.
+    SECRET_KEY = os.environ.get(
+        "DJANGO_SECRET_KEY",
+        "django-insecure-test-only-not-for-production",
+    )
 
 ALLOWED_HOSTS = _env.get_allowed_hosts(os.environ)
 

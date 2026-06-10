@@ -74,12 +74,10 @@ def test_env_example_holds_no_real_secret_values():
             assert line.strip() == "DJANGO_SECRET_KEY="
 
 
-def test_dockerfile_copies_load_secrets_helper():
-    # REPO-17: the Dockerfile must ship docker/load-secrets.sh into
-    # /usr/local/bin alongside entrypoint.sh and mark it executable. The
-    # entrypoint sources it on boot; without these two lines the
-    # `. /usr/local/bin/load-secrets.sh` call would error and the
-    # entrypoint's `|| true` would silently mask a missing helper.
+def test_dockerfile_does_not_copy_load_secrets_helper():
+    # DISC-01: load-secrets.sh is no longer sourced by the entrypoint; its
+    # COPY + chmod lines were removed from the Dockerfile. DISC-15 will
+    # delete the file itself. The Dockerfile must not re-add those lines.
     text = _read("Dockerfile")
-    assert "COPY docker/load-secrets.sh /usr/local/bin/load-secrets.sh" in text
-    assert "chmod +x /usr/local/bin/load-secrets.sh" in text
+    assert "COPY docker/load-secrets.sh" not in text
+    assert "chmod +x /usr/local/bin/load-secrets.sh" not in text

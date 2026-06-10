@@ -129,14 +129,13 @@ def test_maintainer_discipline_survives():
     assert _PROMPT_NAME in _read("CLAUDE.md")
 
 
-def test_load_secrets_helper_sourced_by_entrypoint():
-    # REPO-17: the entrypoint must source /usr/local/bin/load-secrets.sh
-    # before `migrate`/`gunicorn` so the LLM API key (and any future
-    # env-driven config) from /secrets/config.env is in-process. The
-    # `|| true` guard keeps a malformed user-side line non-fatal to boot.
+def test_load_secrets_helper_not_sourced_by_entrypoint():
+    # DISC-01: the entrypoint no longer sources load-secrets.sh (that
+    # helper and the /secrets bind-mount model is replaced by the
+    # /data-volume key-file model). DISC-15 will delete the file itself.
     text = _read("docker/entrypoint.sh")
-    assert ". /usr/local/bin/load-secrets.sh || true" in text, (
-        "entrypoint no longer sources the REPO-17 load-secrets.sh helper"
+    assert ". /usr/local/bin/load-secrets.sh" not in text, (
+        "entrypoint still sources the legacy load-secrets.sh; DISC-01 removed it"
     )
 
 
