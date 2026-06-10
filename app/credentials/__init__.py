@@ -29,7 +29,14 @@ def hydrate_environment() -> None:
             env_name = _LLM_ENV_MAP.get(provider)
             if env_name and store.has(key_slug):
                 os.environ[env_name] = store.get(key_slug)
-        if store.has("github_app.private_key_pem"):
+        # Require all three GH-App fields together; a partial wizard state
+        # (e.g., PEM written but app_id absent after a crash) would otherwise
+        # raise KeyError on every settings import.
+        if (
+            store.has("github_app.private_key_pem")
+            and store.has("github_app.app_id")
+            and store.has("github_app.installation_id")
+        ):
             pem_path = Path(os.environ.get(
                 "POLICYCODEX_GITHUB_APP_KEY_PATH",
                 "/data/.github-app-key.pem",
