@@ -3,3 +3,10 @@
 # only ever `git add`s explicit paths, so this is defense-in-depth for any
 # manual git use in the diocese repo.
 .policycodex-staging/
+
+# PolicyCodex ingest manifest (AI-17) - per-host state, never commit. Records
+# the prior inventory pass's source-file hashes so the next run can diff
+# against them and re-process only added/changed sources. The companion
+# .policycodex/config.yaml file (committed by onboarding) lives in the same
+# directory but is tracked; only this single file is ignored.
+.policycodex/ingest-manifest.json

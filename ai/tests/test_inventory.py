@@ -322,3 +322,90 @@ def test_corrupt_file_read_error_is_non_fatal(tmp_path, monkeypatch):
     assert "read failed" in result.errors["corrupt"]
     # The good file still drafted and a PR still opened.
     assert result.pr is not None
+
+
+# AI-17: changed_entries surfaces sources whose content changed since the last
+# inventory without re-extracting them. The locked slug-exists guard already
+# protects drafts; this new path makes the change VISIBLE.
+
+def test_changed_entries_become_skipped_changed_without_llm_call(tmp_path):
+    """run_inventory_pass with changed_entries=[entry] produces skipped_changed=[slug],
+    makes no LLM call for that entry, writes no .md, and the PR body lists it
+    in its own section above skipped_existing."""
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+    work = tmp_path / "work"
+    (work / "policies").mkdir(parents=True)
+
+    new_source = _src(src_dir, "acceptable-use.txt")
+    changed_source = _src(src_dir, "by-laws.md", body="Updated body since last run.")
+
+    provider = FakeGitProvider()
+    llm = FakeLLM()
+
+    result = run_inventory_pass(
+        manifest=_manifest(new_source),
+        changed_entries=_manifest(changed_source),
+        working_dir=work,
+        provider=provider,
+        llm_provider=llm,
+        taxonomy=None,
+        author_name="PolicyCodex",
+        author_email="bot@policycodex.local",
+        base_branch="main",
+        username="PolicyCodex",
+    )
+
+    assert result.written == ["acceptable-use"]
+    assert result.skipped_changed == ["by-laws"]
+    # LLM called exactly once (for the new source), never for the changed one.
+    assert llm.calls == 1
+    # No draft file written for the changed source.
+    assert not (work / "policies" / "by-laws.md").exists()
+    assert not (work / "policies" / "by-laws.audit.yaml").exists()
+    # The new source is committed; the changed source is not.
+    assert len(provider.commit_calls) == 1
+    committed = {p.name for p in provider.commit_calls[0]["files"]}
+    assert committed == {"acceptable-use.md", "acceptable-use.audit.yaml"}
+    # PR body lists the skipped_changed bucket above skipped_existing,
+    # immediately after the written section.
+    body = provider.open_pr_calls[0]["body"]
+    assert "by-laws" in body
+    assert "changed since last inventory" in body
+    written_idx = body.index("Drafted 1 policies")
+    changed_idx = body.index("changed since last inventory")
+    assert changed_idx > written_idx
+
+
+def test_changed_entries_alone_does_not_open_a_pr(tmp_path):
+    """Only skipped_changed (no new written) -> no commit, no branch, no PR."""
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+    work = tmp_path / "work"
+    (work / "policies").mkdir(parents=True)
+
+    changed_source = _src(src_dir, "by-laws.md", body="Updated body.")
+
+    provider = FakeGitProvider()
+    llm = FakeLLM()
+
+    result = run_inventory_pass(
+        manifest=[],
+        changed_entries=_manifest(changed_source),
+        working_dir=work,
+        provider=provider,
+        llm_provider=llm,
+        taxonomy=None,
+        author_name="PolicyCodex",
+        author_email="bot@policycodex.local",
+        base_branch="main",
+        username="PolicyCodex",
+    )
+
+    assert result.skipped_changed == ["by-laws"]
+    assert result.written == []
+    assert result.pr is None
+    assert provider.branch_calls == []
+    assert provider.commit_calls == []
+    assert provider.push_calls == []
+    assert provider.open_pr_calls == []

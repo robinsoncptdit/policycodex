@@ -59,6 +59,9 @@ class InventoryResult:
 
     written: slugs whose .md + .audit.yaml were written and staged.
     skipped_existing: slugs already present in the working copy (not clobbered).
+    skipped_changed: slugs whose source content changed since the prior inventory
+        (AI-17); the existing draft was preserved (re-extraction would trample
+        the maintainer's edits) and the source needs manual review.
     skipped_collision: source filenames that slugify to a slug already drafted
         earlier in THIS pass (a real document, dropped to avoid clobbering its
         sibling; rename the source to disambiguate).
@@ -70,6 +73,7 @@ class InventoryResult:
 
     written: list[str] = field(default_factory=list)
     skipped_existing: list[str] = field(default_factory=list)
+    skipped_changed: list[str] = field(default_factory=list)
     skipped_collision: list[str] = field(default_factory=list)
     skipped_empty: list[str] = field(default_factory=list)
     skipped_unsupported: list[str] = field(default_factory=list)
@@ -84,6 +88,13 @@ def _build_pr_body(result: "InventoryResult", username: str) -> str:
         f"Drafted {len(result.written)} policies:",
     ]
     lines += [f"- policies/{slug}.md" for slug in result.written]
+    if result.skipped_changed:
+        lines += [
+            "",
+            f"Skipped {len(result.skipped_changed)} source files changed since last inventory "
+            "(existing drafts preserved, review manually):",
+        ]
+        lines += [f"- {slug}" for slug in result.skipped_changed]
     if result.skipped_existing:
         lines += ["", f"Skipped {len(result.skipped_existing)} already present:"]
         lines += [f"- {slug}" for slug in result.skipped_existing]
@@ -112,6 +123,7 @@ def run_inventory_pass(
     author_name: str,
     author_email: str,
     base_branch: str,
+    changed_entries: list[ManifestEntry] = (),
     username: str = "PolicyCodex",
 ) -> InventoryResult:
     """Extract every manifest file, emit drafts, and open one bulk PR.
@@ -132,6 +144,13 @@ def run_inventory_pass(
     result = InventoryResult()
     to_commit: list[Path] = []
     written_slugs: set[str] = set()
+
+    # AI-17: surface sources whose content changed since the prior inventory.
+    # No LLM call, no file write -- the locked design protects the existing
+    # draft (which may carry maintainer edits) from auto-overwrite. The
+    # maintainer reviews the source diff and decides what to carry forward.
+    for entry in changed_entries:
+        result.skipped_changed.append(_slugify(entry.path.stem))
 
     for entry in manifest:
         slug = _slugify(entry.path.stem)
