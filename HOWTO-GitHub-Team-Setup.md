@@ -65,9 +65,11 @@ check does not block merges.
 
 PolicyCodex installs a `foundational-guard` GitHub Action in your policy repo
 (from the repo template). On a pull request that changes `policies/`, it fails
-the check if the diff deletes a foundational policy or empties a foundational
-policy's `provides:` list. By default this check is **advisory**: it shows a red
-mark on the pull request but does not block the merge.
+the check if the diff deletes a foundational policy, empties a foundational
+policy's `provides:` list, or hard-removes a classification id from a
+foundational `data.yaml` without leaving a `deprecated: true` tombstone. By
+default this check is **advisory**: it shows a red mark on the pull request but
+does not block the merge.
 
 To make it **blocking**, add it as a required status check:
 
