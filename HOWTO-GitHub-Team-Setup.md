@@ -1,24 +1,109 @@
-# How To: Set Up GitHub Team Tier and Branch Protection
+# How To: Set Up GitHub for PolicyCodex
 
 PolicyCodex stores every policy as a markdown file in a private GitHub repo your
-organization owns. The audit trail (every change reviewed, approved, and merged
-through a pull request) depends on **branch protection** being enforced on that
-repo's `main` branch.
+organization owns. Two pieces of GitHub setup make that work:
 
-GitHub does not enforce branch protection or rulesets on **private** repositories
-in a **Free** organization. To get an enforceable audit trail, upgrade your
-organization to the **Team** plan first, then turn on the ruleset.
+1. A **GitHub App** your org owns and installs on the policy repo. PolicyCodex
+   authenticates as the App to read the repo, open pull requests, and trigger
+   the handbook build. Required for every install.
+2. **Branch protection** on the policy repo's `main` branch, which is the audit
+   trail: every change reviewed, approved, and merged through a pull request.
+   GitHub does not enforce branch protection on **private** repos in a **Free**
+   organization, so to get an enforceable audit trail you also upgrade the
+   organization to the **Team** plan first.
 
-This guide walks both steps. It takes about 15 minutes. You need the **Owner**
-role on the organization.
+This guide walks all of it: create the App, upgrade to Team, turn on the
+ruleset, optionally require the foundational-policy guard, and publish the
+handbook at a public custom subdomain. Plan on about 30 minutes total. You need
+the **Owner** role on the organization.
 
 ## What you need first
 
 - Owner access to the GitHub organization that holds your policy repo.
-- A payment method (the Team plan is billed per seat).
 - The name of your policy repo (the private repo PolicyCodex commits to).
+- A payment method (the Team plan is billed per seat). Skip this if you are
+  only completing Part 1 against a Free org and accept the weaker enforcement.
+- For Part 5 (the handbook), DNS control of the parent zone of your chosen
+  subdomain.
 
-## Part 1: Upgrade the organization to the Team plan
+## Part 1: Create the PolicyCodex GitHub App
+
+Each diocese registers its own GitHub App. The App stays on your org, owns its
+own private key, and only ever sees the one repo you install it on. PolicyCodex
+authenticates as the App using the credentials you save in Phase 5 of the
+install (see `INSTALL-WITH-CLAUDE.md`): an **App ID**, an **Installation ID**,
+and a **private key** `.pem` file.
+
+You can do Part 1 on either a **Free** or a **Team** org; nothing about App
+creation requires Team. The downstream parts (branch protection, Pages) are
+where the Team plan matters.
+
+1. Sign in to GitHub as an Owner of the org that will hold the App.
+2. Go to your org's **Settings** page: `https://github.com/<your-org>`,
+   **Settings**. In the left sidebar, scroll to **Developer settings** at the
+   bottom, then **GitHub Apps**, then **New GitHub App**.
+
+3. Fill in the basic fields:
+
+   | Field | Value |
+   |---|---|
+   | GitHub App name | `PolicyCodex - <Your Org>` (names must be unique GitHub-wide; pick something that includes your org so it does not collide) |
+   | Description | `Policy lifecycle management for our diocese. Reads and writes our private policy repo, opens pull requests for edits, and triggers handbook builds.` |
+   | Homepage URL | `https://github.com/<your-org>/<your-repo>` |
+   | Callback URL | Leave blank (PolicyCodex v0.1 does not use the user-on-behalf-of OAuth flow). |
+   | Setup URL | Leave blank. |
+   | Webhook → Active | **Uncheck.** PolicyCodex v0.1 polls; it does not consume webhooks. |
+   | Webhook URL | Leave blank. |
+   | Webhook secret | Leave blank. |
+
+4. Under **Repository permissions**, set exactly these (everything else stays
+   on **No access**):
+
+   | Permission | Access | Why PolicyCodex needs it |
+   |---|---|---|
+   | Contents | Read and write | Commit policy edits to feature branches. |
+   | Pull requests | Read and write | Open, read, and merge the PRs that drive every gate transition. |
+   | Metadata | Read-only | Mandatory; auto-selected. |
+   | Workflows | Read and write | Commit the vendored `.github/workflows/build-handbook.yml` and `foundational-guard.yml` during onboarding. |
+   | Administration | Read-only | Read the branch-protection ruleset for the L3 startup self-check. |
+
+   Leave **Organization permissions** and **Account permissions** on **No
+   access** across the board.
+
+5. Under **Where can this GitHub App be installed?**, choose **Only on this
+   account**. This is your org's App, not a public one.
+
+6. Click **Create GitHub App**.
+
+7. On the App's settings page, capture the values you need for Phase 5 of the
+   install:
+
+   - The **App ID** is shown near the top (a numeric value). Copy it. This is
+     `POLICYCODEX_GH_APP_ID` in `~/.config/policycodex/config.env`.
+   - Scroll to **Private keys** and click **Generate a private key**. Your
+     browser downloads a `.pem` file. **Save that file straight to
+     `~/.config/policycodex/github-app-private-key.pem` on the VM that will
+     run PolicyCodex.** Do not paste the contents into chat or any other
+     surface. `chmod 600` the file. The absolute path you saved it at is
+     `POLICYCODEX_GH_PRIVATE_KEY_PATH`.
+
+8. Install the App on your policy repo:
+
+   - From the App's settings page, click **Install App** in the left sidebar.
+   - Click **Install** next to your org.
+   - Choose **Only select repositories** and pick your policy repo.
+     (Least-privilege: do not pick "All repositories".)
+   - Click **Install**.
+
+9. Capture the **Installation ID**. After install, your browser is on
+   `https://github.com/organizations/<your-org>/settings/installations/<installation-id>`.
+   The trailing number is the Installation ID. Copy it. This is
+   `POLICYCODEX_GH_INSTALLATION_ID` in `~/.config/policycodex/config.env`.
+
+You now have all three values Phase 5 needs. Return to the install prompt to
+finish wiring them up.
+
+## Part 2: Upgrade the organization to the Team plan
 
 1. Go to your organization on GitHub: `https://github.com/<your-org>`.
 2. Open **Settings** (you must be an org Owner to see org settings).
@@ -33,7 +118,7 @@ role on the organization.
 
 When this finishes, the org's plan reads **Team** under Billing.
 
-## Part 2: Turn on branch protection for your policy repo
+## Part 3: Turn on branch protection for your policy repo
 
 With the org on Team, enforcement on a private repo now takes effect.
 
@@ -61,7 +146,7 @@ Add the `handbook-build` status check as required once your publish workflow
 (the GitHub Actions handbook build) is in place. Leave it off until then so the
 check does not block merges.
 
-## Part 3 (optional): Require the foundational-policy guard
+## Part 4 (optional): Require the foundational-policy guard
 
 PolicyCodex installs a `foundational-guard` GitHub Action in your policy repo
 (from the repo template). On a pull request that changes `policies/`, it fails
@@ -94,7 +179,7 @@ that never reports, and you will not be able to merge it. Two ways to avoid that
 
 PolicyCodex ships the guard advisory by default; requiring it is your choice.
 
-## Part 4: Publish the handbook at a public custom subdomain
+## Part 5: Publish the handbook at a public custom subdomain
 
 PolicyCodex builds your handbook on every merge to `main` (the build runs from `.github/workflows/build-handbook.yml`, vendored from the repo template). Once you complete this part, every merge also publishes the handbook to a public subdomain you control, served by GitHub Pages with HTTPS via Let's Encrypt. Cost is zero on the Team plan or higher.
 
