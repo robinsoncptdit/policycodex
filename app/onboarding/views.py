@@ -4,7 +4,6 @@ from urllib.parse import urlparse
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -84,7 +83,7 @@ def _resume_target(state) -> str:
 
 def _onboarding_root_unauthenticated(request):
     """Handle unauthenticated access to /onboarding/ — route to screen 1 if no
-    admin exists, otherwise let @login_required redirect to login."""
+    admin exists, otherwise redirect to login."""
     if not _admin_exists():
         return redirect("onboarding_step", step="admin-account")
     return redirect(f"/login/?next={request.path}")
