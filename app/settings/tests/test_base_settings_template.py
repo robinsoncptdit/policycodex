@@ -34,6 +34,7 @@ def test_active_slug_marked():
         ],
         "panel_title": "AI provider",
     })
-    # The active item should carry a marker; we look for "active" class on
-    # the llm-provider link.
+    # Exactly one link carries the active marker classes; both slugs render.
+    assert html.count("bg-base-200 font-medium") == 1
+    assert "github-app" in html
     assert "llm-provider" in html
