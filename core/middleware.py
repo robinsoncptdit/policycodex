@@ -25,7 +25,8 @@ class ForcePasswordChangeMiddleware:
                     try:
                         change_url = reverse("password_change")
                     except NoReverseMatch:
-                        # Task 6 registers this URL; fall through until then.
+                        # URL not registered yet. Remove this guard and the
+                        # NoReverseMatch import once the change view is wired.
                         return self.get_response(request)
                     return redirect(f"{change_url}?next={request.path}")
         return self.get_response(request)

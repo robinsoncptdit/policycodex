@@ -32,10 +32,7 @@ def test_must_change_user_hitting_catalog_redirects_to_change(client, user_must_
 def test_already_changed_user_passes_through(client, user_changed):
     client.force_login(user_changed)
     response = client.get("/catalog/", follow=False)
-    # Catalog itself might redirect for other reasons (e.g., no policies),
-    # but it should NOT be a redirect TO /accounts/password/change/.
-    if response.status_code == 302:
-        assert "/accounts/password/change/" not in response.url
+    assert response.status_code != 302 or "/accounts/password/change/" not in response.url
 
 
 @pytest.mark.skip("Task 6 wires password_change URL")
@@ -48,9 +45,7 @@ def test_must_change_user_can_reach_change_page_itself(client, user_must_change)
 def test_must_change_user_can_reach_logout(client, user_must_change):
     client.force_login(user_must_change)
     response = client.get("/logout/", follow=False)
-    # Logout redirects to /login/ — accept any non-redirect-to-change.
-    if response.status_code == 302:
-        assert "/accounts/password/change/" not in response.url
+    assert response.status_code != 302 or "/accounts/password/change/" not in response.url
 
 
 def test_unauthenticated_user_unaffected(client):
