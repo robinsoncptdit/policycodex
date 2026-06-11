@@ -8,9 +8,9 @@ User = get_user_model()
 
 @pytest.fixture
 def logged_in_admin(db):
-    User.objects.create_superuser("admin", "a@b.com", "pw")
+    admin = User.objects.get(username="admin")
     c = Client()
-    c.login(username="admin", password="pw")
+    c.force_login(admin)
     return c
 
 

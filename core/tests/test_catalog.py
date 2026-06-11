@@ -185,7 +185,7 @@ def test_root_redirects_to_catalog_on_first_boot(client, db):
 
 def test_root_redirects_authenticated_admin_to_catalog(client, db):
     """Post-bootstrap: an authenticated admin lands on /catalog/."""
-    admin = User.objects.create_superuser(username="admin", email="a@b.com", password="pw")
+    admin = User.objects.get(username="admin")
     client.force_login(admin)
     response = client.get("/")
     assert response.status_code == 302
@@ -195,7 +195,6 @@ def test_root_redirects_authenticated_admin_to_catalog(client, db):
 def test_root_redirects_unauthenticated_visitor_to_login_after_bootstrap(client, db):
     """Post-bootstrap with no active session: GET / hands off to /catalog/,
     which @login_required bounces to /login/."""
-    User.objects.create_superuser(username="admin", email="a@b.com", password="pw")
     response = client.get("/")
     assert response.status_code == 302
     assert response.url == "/catalog/"
