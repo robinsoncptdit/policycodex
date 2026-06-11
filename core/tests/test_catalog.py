@@ -175,9 +175,8 @@ def test_catalog_empty_state_when_policies_dir_missing(client, user):
 
 
 def test_root_redirects_to_catalog_on_first_boot(client, db):
-    """First boot: a seeded admin exists (Task 3 of the Settings-page rebuild).
-    GET / redirects to /catalog/ regardless; unauthenticated visitors bounce
-    to /login/ via @login_required on the catalog view."""
+    """Admin is always present; GET / redirects to /catalog/ regardless;
+    unauthenticated visitors then bounce to /login/ via @login_required."""
     response = client.get("/")
     assert response.status_code == 302
     assert response.url == "/catalog/"

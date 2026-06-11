@@ -1,8 +1,7 @@
-"""Seeded admin/admin1234 lands on first migrate. Idempotent."""
 import pytest
 from django.contrib.auth import get_user_model
-from django.core.management import call_command
-from django.db import connection
+
+from core.models import UserProfile
 
 User = get_user_model()
 
@@ -23,9 +22,8 @@ def test_seeded_admin_not_recreated_when_present():
     admin.profile.must_change_password = False
     admin.profile.save()
     admin.save()
-    # Re-run the data migration in-process. Simplest: invoke its forward function.
-    from core.migrations import _seed_default_admin_callable as forward  # see step 3
+    from core.migrations import _seed_default_admin_callable as forward
     forward(None, None)
     admin.refresh_from_db()
     assert admin.check_password("new-stronger-password-2026")
-    assert admin.profile.must_change_password is False
+    assert UserProfile.objects.get(user=admin).must_change_password is False
