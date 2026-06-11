@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     'core',
     'app.working_copy.apps.WorkingCopyAppConfig',
     'app.onboarding.apps.OnboardingAppConfig',
+    'app.inventory.apps.InventoryConfig',
 ]
 
 MIDDLEWARE = [

@@ -125,6 +125,8 @@ def run_inventory_pass(
     base_branch: str,
     changed_entries: Sequence[ManifestEntry] = (),
     username: str = "PolicyCodex",
+    on_item_done=lambda **_: None,
+    on_item_failed=lambda **_: None,
 ) -> InventoryResult:
     """Extract every manifest file, emit drafts, and open one bulk PR.
 
@@ -177,6 +179,7 @@ def run_inventory_pass(
             # extract() reads untrusted external document files; one corrupt
             # file must not sink a bulk pass over dozens of others.
             result.errors[slug] = f"read failed: {exc}"
+            on_item_failed(source=entry.path.name, error=f"read failed: {exc}")
             continue
         if not text.strip():
             result.skipped_empty.append(entry.path.name)
@@ -186,6 +189,7 @@ def run_inventory_pass(
             metadata = extract_policy_metadata(llm_provider, text, taxonomy)
         except InventoryExtractionError as exc:
             result.errors[slug] = str(exc)
+            on_item_failed(source=entry.path.name, error=str(exc))
             continue
 
         metadata["_source_file"] = entry.path.name
@@ -194,6 +198,14 @@ def run_inventory_pass(
         to_commit.extend([md_path, audit_path])
         result.written.append(slug)
         written_slugs.add(slug)
+        _confidence_map = {"low": 0.3, "medium": 0.6, "high": 0.9}
+        on_item_done(
+            source=entry.path.name,
+            slug=slug,
+            title=metadata.get("title", ""),
+            classification=metadata.get("category", ""),
+            confidence=_confidence_map.get(metadata.get("category_confidence", ""), 0.0),
+        )
 
     if not to_commit:
         return result

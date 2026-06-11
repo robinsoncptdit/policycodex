@@ -378,6 +378,69 @@ def test_changed_entries_become_skipped_changed_without_llm_call(tmp_path):
     assert changed_idx > written_idx
 
 
+def test_run_inventory_pass_calls_on_item_done(tmp_path):
+    """DISC-11: on_item_done fires for each successfully-extracted policy."""
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+    work = tmp_path / "work"
+    (work / "policies").mkdir(parents=True)
+
+    manifest = _manifest(
+        _src(src_dir, "acceptable-use.txt"),
+        _src(src_dir, "by-laws.md"),
+    )
+    provider = FakeGitProvider()
+    llm = FakeLLM()
+    done_calls = []
+
+    run_inventory_pass(
+        manifest=manifest,
+        working_dir=work,
+        provider=provider,
+        llm_provider=llm,
+        taxonomy=None,
+        author_name="PolicyCodex",
+        author_email="bot@policycodex.local",
+        base_branch="main",
+        on_item_done=lambda **kw: done_calls.append(kw),
+    )
+
+    assert len(done_calls) == 2
+    sources = {c["source"] for c in done_calls}
+    assert sources == {"acceptable-use.txt", "by-laws.md"}
+    assert all("slug" in c for c in done_calls)
+    assert all("title" in c for c in done_calls)
+    assert all("classification" in c for c in done_calls)
+    assert all("confidence" in c for c in done_calls)
+
+
+def test_run_inventory_pass_calls_on_item_failed(tmp_path):
+    """DISC-11: on_item_failed fires for each extraction failure."""
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+    work = tmp_path / "work"
+    (work / "policies").mkdir(parents=True)
+
+    provider = FakeGitProvider()
+    failed_calls = []
+
+    run_inventory_pass(
+        manifest=_manifest(_src(src_dir, "broken.txt")),
+        working_dir=work,
+        provider=provider,
+        llm_provider=BadLLM(),
+        taxonomy=None,
+        author_name="PolicyCodex",
+        author_email="bot@policycodex.local",
+        base_branch="main",
+        on_item_failed=lambda **kw: failed_calls.append(kw),
+    )
+
+    assert len(failed_calls) == 1
+    assert failed_calls[0]["source"] == "broken.txt"
+    assert "error" in failed_calls[0]
+
+
 def test_changed_entries_alone_does_not_open_a_pr(tmp_path):
     """Only skipped_changed (no new written) -> no commit, no branch, no PR."""
     src_dir = tmp_path / "src"
