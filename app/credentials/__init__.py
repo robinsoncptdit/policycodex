@@ -47,8 +47,8 @@ def hydrate_environment() -> None:
             os.environ["POLICYCODEX_GH_APP_ID"] = store.get("github_app.app_id")
             os.environ["POLICYCODEX_GH_INSTALLATION_ID"] = store.get("github_app.installation_id")
             os.environ["POLICYCODEX_GH_PRIVATE_KEY_PATH"] = str(pem_path)
-        # DISC-pivot: policy_repo.* needs to flow into Django settings so
-        # working_copy/config.py picks it up across worker requests.
+        # policy_repo.* flows into the env so working_copy/config.py picks
+        # it up across worker requests.
         if store.has("policy_repo.url"):
             os.environ["POLICYCODEX_POLICY_REPO_URL"] = store.get("policy_repo.url")
         if store.has("policy_repo.branch"):

@@ -22,8 +22,6 @@ from __future__ import annotations
 import uuid
 from pathlib import Path
 
-import yaml
-
 from app.git_provider.github_provider import GitHubProvider
 from app.git_provider.propose import propose_change
 from app.working_copy.config import load_working_copy_config

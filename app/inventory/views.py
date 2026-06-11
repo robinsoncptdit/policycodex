@@ -1,6 +1,7 @@
 """DISC-12: inventory progress page. DISC-13: HTMX polling status endpoint."""
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from django.contrib.auth.decorators import login_required
@@ -49,13 +50,11 @@ def _working_dir_or_fail() -> Path:
 
 def _stage_dir_or_fail():
     """Return the ingest staging directory if configured, else None."""
-    import os
     root = os.environ.get("POLICYCODEX_INGEST_STAGING_ROOT")
     if not root:
         return None
     stage_root = Path(root)
-    # Return the most recent run directory if any exist.
-    dirs = sorted(stage_root.iterdir()) if stage_root.exists() else []
+    dirs = sorted(p for p in stage_root.iterdir() if p.is_dir()) if stage_root.exists() else []
     return dirs[-1] if dirs else None
 
 
