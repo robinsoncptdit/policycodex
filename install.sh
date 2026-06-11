@@ -11,6 +11,12 @@ if ! command -v docker >/dev/null 2>&1; then
     exit 1
 fi
 
+# docker-compose.yml declares env_file: .env. On a fresh clone the file
+# doesn't exist yet; seed it from the committed example so compose loads.
+if [ ! -f .env ]; then
+    cp .env.example .env
+fi
+
 docker compose up --build -d
 
 echo "Waiting for PolicyCodex to come up..."
