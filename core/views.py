@@ -19,6 +19,7 @@ from app.git_provider.github_provider import GitHubProvider
 from app.git_provider.propose import propose_change
 from app.git_provider.states import branch_to_slug
 from app.working_copy.config import load_working_copy_config
+from app.working_copy.manager import WorkingCopyManager
 from ai.gap_detection import is_gap, known_types
 from ai.retention_extract import RetentionExtractionError, build_data_yaml
 from ai.taxonomy_loader import load_foundational_taxonomy
@@ -639,3 +640,15 @@ class ForcedPasswordChangeView(PasswordChangeView):
         profile.must_change_password = False
         profile.save(update_fields=["must_change_password"])
         return lifecycle_state(self.request).next_url
+
+
+@require_role("Editor")
+@require_POST
+def catalog_sync(request):
+    try:
+        config = load_working_copy_config()
+        WorkingCopyManager(config, GitHubProvider()).sync()
+        messages.success(request, "Catalog synced from GitHub.")
+    except Exception as exc:  # noqa: BLE001 surfaced to user
+        messages.error(request, f"Could not sync: {exc}")
+    return redirect("catalog")

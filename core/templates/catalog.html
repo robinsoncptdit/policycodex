@@ -5,6 +5,10 @@
 {% block content %}
   <div class="flex items-end justify-between mb-6">
     <h2 class="text-xl font-semibold text-slate-900 tracking-tight">Policy catalog</h2>
+    <form method="post" action="{% url 'catalog_sync' %}" class="inline">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-outline btn-sm">Sync from GitHub</button>
+    </form>
   </div>
 
   {% if is_empty_onboarding %}

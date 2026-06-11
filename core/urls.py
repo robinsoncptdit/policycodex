@@ -12,6 +12,7 @@ urlpatterns = [
     # `htmx`). Empty for now; APP-28c adds the first fragment views.
     path("htmx/", include("core.htmx_urls")),
     path("catalog/", views.catalog, name="catalog"),
+    path("catalog/sync/", views.catalog_sync, name="catalog_sync"),
     path("policies/approve/", views.approve_pr, name="approve_pr"),
     path("policies/<slug:slug>/edit/", views.policy_edit, name="policy_edit"),
     path(
