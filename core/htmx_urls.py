@@ -14,5 +14,6 @@ app_name = "htmx"
 
 urlpatterns = [
     path("onboarding/", include("app.onboarding.htmx_urls")),
+    path("inventory/", include("app.inventory.htmx_urls")),
     path("foundational/<slug:slug>/row/", core_views.foundational_row, name="foundational_row"),
 ]

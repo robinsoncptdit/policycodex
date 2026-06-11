@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Extracting policies | PolicyCodex{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-2xl font-semibold mb-2">Extracting your policies</h1>
+  <p class="mb-4 text-base-content/80">
+    PolicyCodex is reading each document and drafting a markdown policy file
+    for it. This page refreshes automatically; when extraction completes you'll
+    land in the catalog.
+  </p>
+  <div id="inventory-status"
+       hx-get="{% url 'htmx:htmx_inventory_status' %}?run={{ run.pk }}"
+       hx-trigger="every 2s"
+       hx-swap="innerHTML">
+    {% include "onboarding/_inventory_status.html" %}
+  </div>
+</div>
+{% endblock %}

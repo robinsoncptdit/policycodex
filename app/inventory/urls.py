@@ -1,8 +1,8 @@
-"""Inventory URL module (DISC-10 stub; DISC-12 wires the real view)."""
+"""URL routes for the inventory page (DISC-12)."""
 from django.urls import path
 
 from app.inventory import views
 
 urlpatterns = [
-    path("", views.inventory_page_stub, name="inventory"),
+    path("", views.inventory_page, name="inventory"),
 ]
