@@ -37,8 +37,15 @@ def _signature(data: dict) -> str:
     # SHA-256 not Python's hash(): the latter is per-process randomized via
     # PYTHONHASHSEED, so multi-worker gunicorn fingerprints the same PEM
     # differently on each worker and Continue rejects a just-tested form.
-    pem = data.get("private_key_pem", "").encode("utf-8")
-    return f"{data.get('app_id', '')}|{data.get('installation_id', '')}|{hashlib.sha256(pem).hexdigest()[:16]}"
+    # Canonicalize the PEM first: HTMX posts as urlencoded but the parent
+    # form is multipart, so textarea line endings (CRLF vs LF) can differ
+    # between the Test Connection POST and the Continue POST. Same with
+    # leading/trailing whitespace.
+    pem_raw = data.get("private_key_pem", "")
+    pem = pem_raw.replace("\r\n", "\n").replace("\r", "\n").strip().encode("utf-8")
+    app_id = data.get("app_id", "").strip()
+    installation_id = data.get("installation_id", "").strip()
+    return f"{app_id}|{installation_id}|{hashlib.sha256(pem).hexdigest()[:16]}"
 
 
 def _ctx(target, state, form=None, error=None):

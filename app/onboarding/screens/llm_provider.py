@@ -44,8 +44,11 @@ def _signature(data: dict) -> str:
     # SHA-256 not Python's hash(): the latter is per-process randomized via
     # PYTHONHASHSEED, so multi-worker gunicorn fingerprints the same API key
     # differently on each worker and Continue rejects a just-tested form.
-    key = data.get("api_key", "").encode("utf-8")
-    return f"{data.get('provider', '')}|{hashlib.sha256(key).hexdigest()[:16]}"
+    # Strip whitespace so a copy-paste with trailing space doesn't drift the
+    # fingerprint between Test Key and Continue.
+    provider = data.get("provider", "").strip()
+    key = data.get("api_key", "").strip().encode("utf-8")
+    return f"{provider}|{hashlib.sha256(key).hexdigest()[:16]}"
 
 
 def _ctx(target, state, form=None, error=None):
