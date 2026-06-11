@@ -16,6 +16,7 @@ def _autoload_panels():
             return HttpResponse("Stub save.", status=200)
 
     register(_PlaceholderGitHubApp())
+    import app.settings.panels.llm_provider  # noqa: F401
 
 
 _autoload_panels()
