@@ -9,6 +9,8 @@ _PANELS: list[SettingsPanel] = []
 
 
 def register(panel: SettingsPanel) -> SettingsPanel:
+    if any(p.slug == panel.slug for p in _PANELS):
+        raise ValueError(f"Panel slug already registered: {panel.slug!r}")
     _PANELS.append(panel)
     return panel
 

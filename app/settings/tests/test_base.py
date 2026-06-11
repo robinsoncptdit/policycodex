@@ -47,9 +47,14 @@ def test_panel_default_can_access_admin_only():
         def save(self, request): pass
 
     admin = MagicMock(is_superuser=True)
-    normal = MagicMock(is_superuser=False)
+    in_admin_group = MagicMock(is_superuser=False)
+    in_admin_group.groups.filter.return_value.exists.return_value = True
+    not_admin = MagicMock(is_superuser=False)
+    not_admin.groups.filter.return_value.exists.return_value = False
+
     assert P().can_access(admin) is True
-    assert P().can_access(normal) is False
+    assert P().can_access(in_admin_group) is True
+    assert P().can_access(not_admin) is False
 
 
 def test_dataclasses_are_frozen():

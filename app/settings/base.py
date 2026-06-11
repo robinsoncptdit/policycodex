@@ -74,4 +74,6 @@ class SettingsPanel(ABC):
         return []
 
     def can_access(self, user) -> bool:
-        return user.is_superuser
+        if user.is_superuser:
+            return True
+        return user.groups.filter(name="Admin").exists()
