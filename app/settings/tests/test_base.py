@@ -56,6 +56,9 @@ def test_dataclasses_are_frozen():
     from app.settings.base import SetupAction, DangerAction, SaveResult, TestResult, HelpBlock
     for cls in (SetupAction, DangerAction, SaveResult, TestResult, HelpBlock):
         assert is_dataclass(cls)
+    r = SaveResult(ok=True, message="x")
+    with pytest.raises(FrozenInstanceError):
+        r.ok = False  # type: ignore[misc]
 
 
 def test_save_result_carries_state():
