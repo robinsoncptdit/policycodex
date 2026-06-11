@@ -41,3 +41,13 @@ def settings_panel_test(request, slug):
     if result is None:
         raise Http404("Panel has no test endpoint.")
     return result
+
+
+def _nav_groups():
+    """Group panels by nav_group in registration order."""
+    groups: dict[str, list] = {}
+    for p in registry.all_panels():
+        groups.setdefault(p.nav_group, []).append({"slug": p.slug, "title": p.title})
+    # Stable order for the four canonical groups.
+    order = ["Credentials", "Diocese", "Admin", "Danger"]
+    return [(name, groups[name]) for name in order if name in groups]
