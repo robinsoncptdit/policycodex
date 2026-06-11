@@ -1,5 +1,7 @@
 # How To: Set Up GitHub for PolicyCodex
 
+> **2026-06-11 pivot note.** Post-pivot, GitHub App creation is automated through the GitHub App manifest flow inside the Settings GitHub App panel. The manual Part 1 walkthrough below is preserved as a fallback for installs where the manifest flow does not apply, and remains the source of truth for the Team-tier branch-protection setup (which is separate from App creation). Where this guide references "the onboarding wizard," read "the Settings GitHub App panel" until this doc is refreshed against the rebuild.
+
 PolicyCodex stores every policy as a markdown file in a private GitHub repo your
 organization owns. Two pieces of GitHub setup make that work:
 

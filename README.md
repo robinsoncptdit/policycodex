@@ -97,7 +97,7 @@ Four lanes:
 - **App** is the admin web interface. It commits to the diocese's GitHub repo, opens PRs on user actions, and surfaces PR state as gate state.
 - **Publish** is a GitHub Actions workflow that builds and deploys the handbook on every merge.
 
-Run PolicyCodex on a small VM. Connect it to your private GitHub repo. Point it at your filesystems. Configure your conventions through the onboarding wizard. The handbook deploys to a subdomain you control.
+Run PolicyCodex on a small VM. Connect it to your private GitHub repo. Point it at your filesystems. Configure your conventions through the Settings page. The handbook deploys to a subdomain you control.
 
 ## Install
 
@@ -121,17 +121,13 @@ docker run -d \
 open http://localhost:8000
 ```
 
-Both paths land you in the in-browser onboarding wizard. No environment files
-to edit, no credentials on disk, no terminal interaction after the install
-command. The wizard collects everything (admin account, GitHub App credentials,
-LLM API key, repo, configuration, retention policy, your policy documents) and
-opens one pull request to your diocese repo at the end.
+Both paths land you at the in-browser login. Sign in with the seeded `admin` / `admin1234` credentials and change the password on first login. The Settings page collects everything (GitHub App credentials, LLM API key, policy repo, diocese configuration, users and roles) and the Inventory page handles your policy documents. Configuration commits to your diocese repo as it lands.
 
 To wipe an install and start over: `docker compose down -v && docker volume rm policycodex-data`.
 
 ### Before you begin
 
-PolicyCodex needs **API access to a language model, not a consumer chat subscription.** The consumer plans (Claude Pro / Pro Max / Teams, ChatGPT Plus, Google One) have no programmatic access and will not work. Provision an API key before you reach wizard step 6:
+PolicyCodex needs **API access to a language model, not a consumer chat subscription.** The consumer plans (Claude Pro / Pro Max / Teams, ChatGPT Plus, Google One) have no programmatic access and will not work. Provision an API key before you configure the Settings AI provider panel:
 
 - **Anthropic Claude** (default) — an Anthropic API key, not Claude Pro / Pro Max / Teams. The API is pre-paid and billed per token via console.anthropic.com.
 - **OpenAI** — an OpenAI API key, not ChatGPT Plus.
@@ -139,7 +135,7 @@ PolicyCodex needs **API access to a language model, not a consumer chat subscrip
 - **Azure OpenAI** — Azure OpenAI deployment credentials (an Azure subscription with the OpenAI service deployed).
 - **Local Llama** — no third-party key; runs on your own VM.
 
-The wizard's LLM-provider screen links each provider's API-key docs and shows rough monthly cost ranges.
+The Settings AI provider panel links each provider's API-key docs and shows rough monthly cost ranges.
 
 ### Rebuilding the CSS
 
@@ -147,7 +143,7 @@ The compiled stylesheet (`static/css/policycodex.css`) is pre-built and committe
 
 ## Roadmap
 
-**v0.1 (June 2026):** ingest, AI inventory grounded in the diocese's own reference documents, PR-backed approval UI, GitHub Actions handbook publication, seven-screen onboarding wizard, public PolicyCodex repo.
+**v0.1 (ships post-rebuild after the 2026-06-11 pivot):** ingest, AI inventory grounded in the diocese's own reference documents, PR-backed approval UI, GitHub Actions handbook publication, Settings-page configuration (admin account, GitHub App, AI provider, Policy repository, Diocese, Users-and-roles) plus a top-level Inventory page, public PolicyCodex repo.
 
 **v0.2 (post-DISC):** Q&A chatbot over the published handbook (RAG), Google Drive parity, compliance framework library expansion, email notifications for review cadence, rich-text edit mode for non-markdown editors.
 
