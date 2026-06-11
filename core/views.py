@@ -649,6 +649,7 @@ def catalog_sync(request):
         config = load_working_copy_config()
         WorkingCopyManager(config, GitHubProvider()).sync()
         messages.success(request, "Catalog synced from GitHub.")
-    except Exception as exc:  # noqa: BLE001 surfaced to user
+    except Exception as exc:  # noqa: BLE001 — surfaced to user; provider redacts tokens
+        logger.warning("catalog_sync failed user=%s err=%s", request.user.username, exc)
         messages.error(request, f"Could not sync: {exc}")
     return redirect("catalog")
