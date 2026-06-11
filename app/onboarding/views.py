@@ -156,6 +156,10 @@ def onboarding_step(request, step):
         from app.onboarding.screens import llm_provider
         return llm_provider.handle(request, target, state)
 
+    if step == "github-repo":
+        from app.onboarding.screens import github_repo
+        return github_repo.handle(request, target, state)
+
     if step == "configuration":
         # DISC-08 scaffold; remove when screen lands
         try:
@@ -175,7 +179,6 @@ def onboarding_step(request, step):
     if step == "retention-policy":
         return retention_policy.handle(request, target, state)
 
-    # github-repo keeps today's generic-form path until DISC-07 lifts it.
     return _generic_step(request, target, state)
 
 

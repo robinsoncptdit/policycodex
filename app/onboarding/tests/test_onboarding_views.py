@@ -1,4 +1,6 @@
 """Tests for the onboarding wizard views (APP-08 / DISC-03)."""
+from unittest.mock import patch
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -149,10 +151,14 @@ def test_github_repo_invalid_continue_does_not_advance(client, user):
     assert client.get("/onboarding/").url == "/onboarding/github-repo/"
 
 
-def test_github_repo_valid_continue_persists_and_advances(client, user):
+def test_github_repo_valid_continue_persists_and_advances(client, user, tmp_path):
     client.force_login(user)
     _advance_to_github_repo(client)
-    resp = client.post("/onboarding/github-repo/", GITHUB_REPO_CONTINUE)
+    # DISC-07: the new handler clones the working copy on continue; mock both
+    # GitHubProvider (needs config.env) and WorkingCopyManager.sync (needs git).
+    with patch("app.onboarding.screens.github_repo.GitHubProvider"), \
+         patch("app.working_copy.manager.WorkingCopyManager.sync", return_value=tmp_path / "wc"):
+        resp = client.post("/onboarding/github-repo/", GITHUB_REPO_CONTINUE)
     assert resp.status_code == 302
     assert resp.url == "/onboarding/configuration/"
     # The captured value is persisted and pre-populates a return visit.
@@ -186,10 +192,29 @@ def _advance_to_github_repo(client):
 
 
 # Steps 1-5 payloads to land ON retention-policy (step 6).
+# Session-manipulate past github-repo and configuration; posting through
+# github-repo now clones the working copy (DISC-07) which fails without
+# real git credentials. Configuration falls through to _generic_step (DISC-08
+# scaffold) so it can still be posted through with a bare action continue.
 def _advance_to_retention_policy(client):
-    _advance_to_github_repo(client)
-    client.post("/onboarding/github-repo/", GITHUB_REPO_CONTINUE)
-    client.post("/onboarding/configuration/", {"action": "continue"})
+    from app.onboarding.state import SESSION_KEY
+    # Force a first request so Django creates the session.
+    client.get("/onboarding/admin-account/")
+    session = client.session
+    session[SESSION_KEY] = {
+        "current_step": "retention-policy",
+        "completed": ["admin-account", "github-app", "llm-provider", "github-repo", "configuration"],
+        "data": {
+            "github-repo": {
+                "mode": "connect",
+                "repo_url": "https://github.com/acme/policies",
+                "branch": "main",
+                "org": "",
+                "repo_name": "",
+            },
+        },
+    }
+    session.save()
 
 
 FAKE_BUNDLE = {

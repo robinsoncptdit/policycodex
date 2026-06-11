@@ -82,6 +82,30 @@ class GitHubProvider(GitProvider):
             raise RuntimeError(str(exc)) from exc
         return True
 
+    @classmethod
+    def create_repository(cls, *, org: str, repo_name: str, private: bool = True) -> dict:
+        """DISC-07: Create a private repo under an org via the installation access token.
+
+        Returns a dict with at least 'clone_url'. Raises RuntimeError on failure.
+        Mirrors test_credentials's JWT + token-exchange auth pattern.
+        """
+        from app.git_provider.github_config import load_github_config
+        config = load_github_config()
+        try:
+            private_key = config.private_key_path.read_text(encoding="utf-8")
+            app_auth = Auth.AppAuth(config.app_id, private_key)
+            integration = GithubIntegration(auth=app_auth)
+            gh = integration.get_github_for_installation(config.installation_id)
+            github_org = gh.get_organization(org)
+            repo = github_org.create_repo(name=repo_name, private=private, auto_init=True)
+        except Exception as exc:
+            raise RuntimeError(str(exc)) from exc
+        return {
+            "clone_url": repo.clone_url,
+            "html_url": repo.html_url,
+            "full_name": repo.full_name,
+        }
+
     def _installation_token(self) -> str:
         return _build_installation_token(self._config)
 
