@@ -1,6 +1,7 @@
-"""UserProfile + default must_change_password=True for every new user."""
 import pytest
 from django.contrib.auth import get_user_model
+
+from core.models import UserProfile
 
 User = get_user_model()
 
@@ -16,8 +17,7 @@ def test_existing_user_can_be_marked_password_changed():
     user = User.objects.create_user(username="bob", password="x")
     user.profile.must_change_password = False
     user.profile.save()
-    user.refresh_from_db()
-    assert user.profile.must_change_password is False
+    assert UserProfile.objects.get(user=user).must_change_password is False
 
 
 @pytest.mark.django_db
