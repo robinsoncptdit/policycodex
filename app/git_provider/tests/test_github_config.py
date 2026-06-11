@@ -108,6 +108,29 @@ def test_load_config_prefers_env_vars_over_file(tmp_path, monkeypatch):
     assert cfg.private_key_path == tmp_path / "from-env.pem"
 
 
+def test_load_config_hydrates_from_credential_store(tmp_path, monkeypatch):
+    """DISC-02 hydrate_environment runs at Django startup, BEFORE the wizard
+    writes creds. load_github_config() must call hydrate on every call so
+    the wizard's writes flow into env vars before the env-var path checks."""
+    from cryptography.fernet import Fernet
+    from app.credentials import store
+    key_file = tmp_path / ".credential-key"
+    key_file.write_bytes(Fernet.generate_key())
+    monkeypatch.setenv("POLICYCODEX_CREDENTIAL_KEY_FILE", str(key_file))
+    monkeypatch.setenv("POLICYCODEX_CREDENTIAL_STORE_FILE", str(tmp_path / ".credentials"))
+    monkeypatch.setenv("POLICYCODEX_GITHUB_APP_KEY_PATH", str(tmp_path / "gh.pem"))
+    store._reset_cache()
+    store.set("github_app.app_id", "555")
+    store.set("github_app.installation_id", "666")
+    store.set("github_app.private_key_pem", "-----BEGIN-----\nABC\n-----END-----")
+    # Env vars are NOT pre-set — load_github_config must hydrate them itself.
+    cfg = load_github_config()
+    assert cfg.app_id == 555
+    assert cfg.installation_id == 666
+    assert cfg.private_key_path == tmp_path / "gh.pem"
+    assert cfg.private_key_path.read_text().startswith("-----BEGIN-----")
+
+
 def test_load_config_falls_back_to_file_when_env_vars_partial(tmp_path, monkeypatch):
     """If only some POLICYCODEX_GH_* env vars are set (e.g., a partial leak),
     skip the env path and use the file. Prevents a half-configured env from
