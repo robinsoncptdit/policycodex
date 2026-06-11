@@ -13,6 +13,16 @@ def _write_config(tmp_path: Path, lines: list[str]) -> Path:
     return config_file
 
 
+@pytest.fixture(autouse=True)
+def _isolate_gh_env_vars(monkeypatch):
+    """DISC-02's hydrate_environment() writes POLICYCODEX_GH_* via os.environ[...]=
+    in other tests; monkeypatch doesn't undo that. These tests assert file-path
+    behavior, so unset the env vars unless a test sets them explicitly."""
+    monkeypatch.delenv("POLICYCODEX_GH_APP_ID", raising=False)
+    monkeypatch.delenv("POLICYCODEX_GH_INSTALLATION_ID", raising=False)
+    monkeypatch.delenv("POLICYCODEX_GH_PRIVATE_KEY_PATH", raising=False)
+
+
 def test_load_config_reads_required_keys(tmp_path, monkeypatch):
     config_file = _write_config(tmp_path, [
         "POLICYCODEX_GH_APP_ID=12345",
@@ -80,3 +90,36 @@ def test_load_config_raises_on_missing_required_key(tmp_path, monkeypatch):
     monkeypatch.setenv("POLICYCODEX_CONFIG_PATH", str(config_file))
     with pytest.raises(ValueError, match="POLICYCODEX_GH_INSTALLATION_ID"):
         load_github_config()
+
+
+def test_load_config_prefers_env_vars_over_file(tmp_path, monkeypatch):
+    """DISC-02 followup: credential-store hydration writes POLICYCODEX_GH_*
+    env vars at Django startup. load_github_config() must honor them before
+    falling back to the legacy ~/.config/policycodex/config.env file path,
+    which no longer exists after the DISC architecture pivot."""
+    monkeypatch.setenv("POLICYCODEX_GH_APP_ID", "777")
+    monkeypatch.setenv("POLICYCODEX_GH_INSTALLATION_ID", "888")
+    monkeypatch.setenv("POLICYCODEX_GH_PRIVATE_KEY_PATH", str(tmp_path / "from-env.pem"))
+    monkeypatch.setenv("POLICYCODEX_CONFIG_PATH", str(tmp_path / "should-be-ignored.env"))
+    # Note: config.env does NOT exist — env vars win before file is read.
+    cfg = load_github_config()
+    assert cfg.app_id == 777
+    assert cfg.installation_id == 888
+    assert cfg.private_key_path == tmp_path / "from-env.pem"
+
+
+def test_load_config_falls_back_to_file_when_env_vars_partial(tmp_path, monkeypatch):
+    """If only some POLICYCODEX_GH_* env vars are set (e.g., a partial leak),
+    skip the env path and use the file. Prevents a half-configured env from
+    silently overriding a complete config.env."""
+    config_file = _write_config(tmp_path, [
+        "POLICYCODEX_GH_APP_ID=1",
+        "POLICYCODEX_GH_INSTALLATION_ID=2",
+        f"POLICYCODEX_GH_PRIVATE_KEY_PATH={tmp_path}/k.pem",
+    ])
+    monkeypatch.setenv("POLICYCODEX_CONFIG_PATH", str(config_file))
+    monkeypatch.setenv("POLICYCODEX_GH_APP_ID", "999")  # only one of three
+    monkeypatch.delenv("POLICYCODEX_GH_INSTALLATION_ID", raising=False)
+    monkeypatch.delenv("POLICYCODEX_GH_PRIVATE_KEY_PATH", raising=False)
+    cfg = load_github_config()
+    assert cfg.app_id == 1  # came from file, not the partial env
