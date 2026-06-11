@@ -76,6 +76,20 @@ def make_onboarding_branch_name() -> str:
     return f"policycodex/onboarding-{uuid.uuid4().hex[:8]}"
 
 
+def _collect_draft_files(drafts_dir: Path) -> list[Path]:
+    """Return *.md and *.audit.yaml files directly under drafts_dir.
+
+    Only top-level files are collected; foundational bundle directories
+    (which are directories, not flat files) are excluded because the
+    bundle_dir argument already covers the retention bundle.
+    """
+    files: list[Path] = []
+    for p in sorted(drafts_dir.iterdir()):
+        if p.is_file() and (p.suffix == ".md" or p.name.endswith(".audit.yaml")):
+            files.append(p)
+    return files
+
+
 def finalize_onboarding(
     *,
     working_dir: Path,
@@ -86,31 +100,48 @@ def finalize_onboarding(
     author_email: str,
     base_branch: str,
     username: str,
+    drafts_dir: Path | None = None,
 ) -> dict:
     """Write the config file, then funnel through propose_change.
 
-    Commits exactly [config_path, bundle_dir]; never `git add .`. Returns the
-    PR metadata dict. On any failure, propose_change restores a clean
-    default branch (the new config + bundle directory are removed since
-    they are not tracked yet) and re-raises; the caller is responsible for
-    the user-facing degrade. On success the working copy is left back on
-    the default branch (APP-33).
+    Commits config_path + bundle_dir; when drafts_dir is provided, also
+    commits all *.md and *.audit.yaml files found directly under it (the
+    extracted policy drafts from the inventory pass). Never `git add .`.
+    Returns the PR metadata dict. On any failure, propose_change restores a
+    clean default branch and re-raises; the caller is responsible for the
+    user-facing degrade. On success the working copy is left back on the
+    default branch (APP-33).
     """
     config_path = write_config_file(working_dir, config_yaml_text)
     branch_name = make_onboarding_branch_name()
     message = "Initialize diocese configuration and document-retention policy"
+
+    files: list[Path] = [config_path, bundle_dir]
+    draft_files: list[Path] = []
+    if drafts_dir is not None and drafts_dir.is_dir():
+        draft_files = _collect_draft_files(drafts_dir)
+        files.extend(draft_files)
+
+    drafted_section = ""
+    if draft_files:
+        policy_lines = "\n".join(
+            f"  - policies/{f.name}" for f in draft_files if f.suffix == ".md"
+        )
+        drafted_section = f"\nDrafted policies ({len([f for f in draft_files if f.suffix == '.md'])}):\n{policy_lines}\n"
+
     pr_body = (
         f"Opened by PolicyCodex during onboarding on behalf of {username}.\n\n"
         f"Contents:\n"
         f"- {CONFIG_DIR_NAME}/{CONFIG_FILE_NAME} (diocese configuration)\n"
         f"- policies/{bundle_dir.name}/ (document-retention foundational policy)\n"
+        f"{drafted_section}"
     )
     return propose_change(
         provider=provider,
         working_dir=Path(working_dir),
         default_branch=base_branch,
         branch_name=branch_name,
-        files=[config_path, bundle_dir],
+        files=files,
         commit_message=message,
         author_name=author_name,
         author_email=author_email,

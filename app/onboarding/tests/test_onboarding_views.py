@@ -125,11 +125,6 @@ def test_can_revisit_completed_step_without_trapping(client, user):
     assert client.get("/onboarding/github-app/").status_code == 200
 
 
-@pytest.mark.skip(reason="DISC-14: last-step completion + handoff flow reworked")
-def test_last_step_continue_completes_and_redirects_to_complete(client, user, working_copy, stub_extraction, stub_git_provider):
-    pass
-
-
 def test_github_repo_get_renders_form(client, user):
     client.force_login(user)
     _advance_to_github_repo(client)
@@ -264,41 +259,6 @@ def stub_extraction(monkeypatch):
     monkeypatch.setattr(rp, "ClaudeProvider", lambda *a, **k: object())
 
 
-@pytest.fixture
-def stub_git_provider(monkeypatch):
-    """Replace GitHubProvider in the screen-7 handler with a recorder that does
-    no real git/network work and returns a canned PR."""
-    from app.onboarding import retention_policy as rp
-
-    class _RecorderProvider:
-        instances = []
-
-        def __init__(self):
-            self.calls = []
-            _RecorderProvider.instances.append(self)
-
-        def branch(self, name, working_dir):
-            self.calls.append(("branch", name))
-
-        def commit(self, *, message, files, author_name, author_email, working_dir):
-            self.calls.append(("commit", list(files)))
-            return "deadbeef"
-
-        def push(self, branch, working_dir):
-            self.calls.append(("push", branch))
-
-        def open_pr(self, *, title, body, head_branch, base_branch, working_dir):
-            self.calls.append(("open_pr", head_branch))
-            return {
-                "pr_number": 1,
-                "url": "https://github.com/acme/policies/pull/1",
-                "state": "drafted",
-            }
-
-    monkeypatch.setattr(rp, "GitHubProvider", _RecorderProvider)
-    return _RecorderProvider
-
-
 def test_screen7_get_shows_upload_form(client, user, working_copy):
     client.force_login(user)
     _advance_to_retention_policy(client)
@@ -346,11 +306,6 @@ def test_screen7_extract_failure_rerenders_upload_with_error(client, user, worki
     assert "process that document" in body.lower()
 
 
-@pytest.mark.skip(reason="DISC-14: accept redirects to inventory, not onboarding-complete")
-def test_screen7_accept_scaffolds_bundle_and_finishes(client, user, working_copy, stub_extraction, stub_git_provider):
-    pass
-
-
 def test_screen7_reupload_clears_draft(client, user, working_copy, stub_extraction):
     client.force_login(user)
     _advance_to_retention_policy(client)
@@ -359,19 +314,6 @@ def test_screen7_reupload_clears_draft(client, user, working_copy, stub_extracti
     resp = client.post("/onboarding/retention-policy/", {"action": "reupload"})
     assert resp.status_code == 200
     assert 'name="pdf_file"' in resp.content.decode()  # back to upload form
-
-
-@pytest.mark.skip(reason="DISC-14: accept redirects to inventory, not onboarding-complete")
-def test_screen7_accept_commits_config_and_opens_pr(client, user, working_copy, stub_extraction, stub_git_provider):
-    pass
-
-
-@pytest.mark.skip(reason="DISC-14: propose_change / clean-tree failure handling moves to the bulk PR step")
-def test_screen7_accept_provider_failure_rerenders_review_with_clean_tree(client, user, working_copy, stub_extraction, monkeypatch):
-    """DISC-09 removed finalize_onboarding and GitHubProvider from the accept
-    path. The clean-tree guarantee (propose_change restores the default branch on
-    failure) is exercised in DISC-14 when the bulk PR runs."""
-    pass
 
 
 def test_screen7_extract_blocks_scanned_image_only_pdf(client, user, working_copy, monkeypatch):

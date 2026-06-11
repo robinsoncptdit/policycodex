@@ -75,41 +75,6 @@ def stub_extraction(monkeypatch):
     monkeypatch.setattr(rp, "ClaudeProvider", lambda *a, **k: object())
 
 
-@pytest.fixture
-def stub_git_provider(monkeypatch):
-    """Replace GitHubProvider with a recorder that does no real git/network work
-    and returns a canned PR (mirrors test_onboarding_views.py)."""
-    from app.onboarding import retention_policy as rp
-
-    class _RecorderProvider:
-        instances = []
-
-        def __init__(self):
-            self.calls = []
-            _RecorderProvider.instances.append(self)
-
-        def branch(self, name, working_dir):
-            self.calls.append(("branch", name))
-
-        def commit(self, *, message, files, author_name, author_email, working_dir):
-            self.calls.append(("commit", list(files)))
-            return "deadbeef"
-
-        def push(self, branch, working_dir):
-            self.calls.append(("push", branch))
-
-        def open_pr(self, *, title, body, head_branch, base_branch, working_dir):
-            self.calls.append(("open_pr", head_branch))
-            return {
-                "pr_number": 1,
-                "url": "https://github.com/acme/policies/pull/1",
-                "state": "drafted",
-            }
-
-    monkeypatch.setattr(rp, "GitHubProvider", _RecorderProvider)
-    return _RecorderProvider
-
-
 def _advance_to_retention_policy(client):
     """Walk the full-page wizard to screen 6 (retention-policy) so the shared
     session carries the onboarding data the fragment `accept` path serializes
@@ -241,15 +206,9 @@ def test_extraction_outage_renders_reusable_ai_outage_fragment(
 # --- 3. accept success -> 204 + HX-Redirect to policy-documents -----------
 #
 # DISC-09: accept no longer opens a PR. The bundle is staged in the working
-# copy; DISC-14's refactored finalize_onboarding opens one bulk PR at the end
-# of the inventory pass together with the extracted policy drafts.
-
-@pytest.mark.skip(reason="DISC-14: accept redirects to inventory, not onboarding-complete")
-def test_accept_success_returns_204_and_hx_redirect_to_complete(
-    client, user, working_copy, stub_extraction, stub_git_provider
-):
-    """Superseded by test_accept_success_advances_to_policy_documents below."""
-
+# copy; DISC-14's finalize_after_inventory opens one bulk PR at the end of the
+# inventory pass. test_accept_success_returns_204_and_hx_redirect_to_complete
+# was deleted (DISC-14): the old direct-PR-on-accept behavior is gone.
 
 def test_accept_success_advances_to_policy_documents(
     client, user, working_copy, stub_extraction, monkeypatch
@@ -331,17 +290,11 @@ def test_accept_with_no_staged_draft_returns_upload_fragment(client, user, worki
     assert 'name="pdf_file"' in body   # upload form, not a 500
 
 
-# --- 7. finalize failure -> deferred to DISC-14 ---------------------------
+# --- 7. finalize failure -> moved to DISC-14 ------------------------------
 #
-# DISC-09: _do_accept no longer calls finalize_onboarding, so there is no
-# "finalize failure" path here. The bulk PR + error handling moves to DISC-14.
-
-@pytest.mark.skip(reason="DISC-14: finalize_onboarding moved out of _do_accept")
-def test_finalize_failure_rerenders_review_with_error_message(
-    client, user, working_copy, stub_extraction, monkeypatch
-):
-    pass
-
+# DISC-09: _do_accept no longer calls finalize_onboarding. The bulk PR + error
+# handling lives in app/inventory/finalize.py (DISC-14).
+# test_finalize_failure_rerenders_review_with_error_message was deleted (DISC-14).
 
 # --- 8. method + auth guards ---------------------------------------------
 

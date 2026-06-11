@@ -95,3 +95,65 @@ def test_finalize_writes_config_and_funnels_through_propose_change(tmp_path):
     assert tmp_path / ".policycodex" / "config.yaml" in kwargs["files"]
     assert bundle_dir in kwargs["files"]
     assert all(".policycodex-staging" not in str(f) for f in kwargs["files"])
+
+
+def test_finalize_with_drafts_dir_appends_draft_files(tmp_path):
+    """When drafts_dir is supplied, *.md and *.audit.yaml files are appended to
+    the commit payload, and the PR body lists the drafted policies."""
+    bundle_dir = tmp_path / "policies" / "document-retention"
+    bundle_dir.mkdir(parents=True)
+    drafts_dir = tmp_path / "policies"
+    (drafts_dir / "code-of-conduct.md").write_text("# Code\n")
+    (drafts_dir / "code-of-conduct.audit.yaml").write_text("confidence: 0.9\n")
+    fake_pr = {"pr_number": 8, "url": "https://github.com/d/r/pull/8", "state": "drafted"}
+
+    with patch(
+        "app.onboarding.finalize.propose_change", return_value=fake_pr
+    ) as mock_propose:
+        pr = finalize_onboarding(
+            working_dir=tmp_path,
+            config_yaml_text="schema_version: 1\n",
+            bundle_dir=bundle_dir,
+            drafts_dir=drafts_dir,
+            provider=_UnusedProvider(),
+            author_name="A",
+            author_email="a@x",
+            base_branch="main",
+            username="admin",
+        )
+
+    assert pr["pr_number"] == 8
+    kwargs = mock_propose.call_args.kwargs
+    files = kwargs["files"]
+    # Config + bundle + code-of-conduct.md + code-of-conduct.audit.yaml
+    assert drafts_dir / "code-of-conduct.md" in files
+    assert drafts_dir / "code-of-conduct.audit.yaml" in files
+    assert bundle_dir in files
+    # PR body mentions the drafted policy.
+    assert "code-of-conduct" in kwargs["pr_body"]
+    assert "Drafted policies" in kwargs["pr_body"]
+
+
+def test_finalize_without_drafts_dir_unchanged_behavior(tmp_path):
+    """Omitting drafts_dir keeps the original two-file commit (config + bundle)."""
+    bundle_dir = tmp_path / "policies" / "document-retention"
+    bundle_dir.mkdir(parents=True)
+    fake_pr = {"pr_number": 9, "url": "https://github.com/d/r/pull/9", "state": "drafted"}
+
+    with patch(
+        "app.onboarding.finalize.propose_change", return_value=fake_pr
+    ) as mock_propose:
+        finalize_onboarding(
+            working_dir=tmp_path,
+            config_yaml_text="schema_version: 1\n",
+            bundle_dir=bundle_dir,
+            provider=_UnusedProvider(),
+            author_name="A",
+            author_email="a@x",
+            base_branch="main",
+            username="admin",
+        )
+
+    kwargs = mock_propose.call_args.kwargs
+    assert len(kwargs["files"]) == 2
+    assert "Drafted policies" not in kwargs["pr_body"]

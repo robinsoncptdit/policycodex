@@ -10,6 +10,7 @@ from django.template.loader import render_to_string
 
 from app.inventory.models import InventoryRun, InventoryItem
 from app.inventory.runner import start_run
+from app.onboarding.finalize import build_config_yaml
 from app.onboarding.state import WizardState
 
 
@@ -58,20 +59,23 @@ def status_fragment(request):
     if run is None:
         return HttpResponse(status=404)
     if run.status == "completed":
-        # DISC-14 will call finalize_after_inventory here (single bulk PR).
-        # For DISC-13, just redirect to /catalog/.
-        try:
+        # DISC-14: open the single bulk PR on first completion poll.
+        if not run.pr_url and not run.pr_error:
             from app.inventory.finalize import finalize_after_inventory
-            if not run.pr_url and not run.pr_error:
-                try:
-                    finalize_after_inventory(run)
-                except Exception as exc:  # noqa: BLE001
-                    run.pr_error = str(exc)
-                    run.save()
-        except ImportError:
-            # DISC-14 hasn't landed yet; that's fine for DISC-13 — completion
-            # just sends the user to /catalog/.
-            pass
+            try:
+                working_dir = _working_dir_or_fail()
+                state = WizardState(request.session)
+                config_yaml_text = build_config_yaml(state.all_data())
+                bundle_dir = working_dir / "policies" / "document-retention"
+                finalize_after_inventory(
+                    run,
+                    working_dir=working_dir,
+                    config_yaml_text=config_yaml_text,
+                    bundle_dir=bundle_dir,
+                )
+            except Exception as exc:  # noqa: BLE001
+                run.pr_error = str(exc)
+                run.save()
         resp = HttpResponse("")
         resp["HX-Redirect"] = "/catalog/"
         return resp
