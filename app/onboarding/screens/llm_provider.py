@@ -7,6 +7,8 @@ Two endpoints:
 """
 from __future__ import annotations
 
+import hashlib
+
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
@@ -39,7 +41,11 @@ class LLMProviderForm(forms.Form):
 
 
 def _signature(data: dict) -> str:
-    return f"{data.get('provider', '')}|{hash(data.get('api_key', ''))}"
+    # SHA-256 not Python's hash(): the latter is per-process randomized via
+    # PYTHONHASHSEED, so multi-worker gunicorn fingerprints the same API key
+    # differently on each worker and Continue rejects a just-tested form.
+    key = data.get("api_key", "").encode("utf-8")
+    return f"{data.get('provider', '')}|{hashlib.sha256(key).hexdigest()[:16]}"
 
 
 def _ctx(target, state, form=None, error=None):

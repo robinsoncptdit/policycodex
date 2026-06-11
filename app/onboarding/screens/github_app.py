@@ -7,6 +7,8 @@ Two endpoints:
 """
 from __future__ import annotations
 
+import hashlib
+
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
@@ -32,7 +34,11 @@ class GitHubAppForm(forms.Form):
 
 
 def _signature(data: dict) -> str:
-    return f"{data.get('app_id', '')}|{data.get('installation_id', '')}|{hash(data.get('private_key_pem', ''))}"
+    # SHA-256 not Python's hash(): the latter is per-process randomized via
+    # PYTHONHASHSEED, so multi-worker gunicorn fingerprints the same PEM
+    # differently on each worker and Continue rejects a just-tested form.
+    pem = data.get("private_key_pem", "").encode("utf-8")
+    return f"{data.get('app_id', '')}|{data.get('installation_id', '')}|{hashlib.sha256(pem).hexdigest()[:16]}"
 
 
 def _ctx(target, state, form=None, error=None):
