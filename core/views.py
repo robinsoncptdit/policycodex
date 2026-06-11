@@ -5,10 +5,13 @@ from pathlib import Path
 import yaml
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import PasswordChangeView
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST, require_http_methods
 from github import GithubException
+
+from core.lifecycle import lifecycle_state
 
 from app.git_provider.github_provider import GitHubProvider
 from app.git_provider.propose import propose_change
@@ -624,3 +627,14 @@ def publish_policy(request, slug):
         f"Published '{slug}' (PR #{pr_number} merged as {result['sha'][:7]}).",
     )
     return redirect("catalog")
+
+
+class ForcedPasswordChangeView(PasswordChangeView):
+    template_name = "registration/password_change_form.html"
+
+    def get_success_url(self):
+        profile = self.request.user.profile
+        if profile.must_change_password:
+            profile.must_change_password = False
+            profile.save(update_fields=["must_change_password"])
+        return lifecycle_state(self.request).next_url

@@ -9,6 +9,8 @@ User = get_user_model()
 @pytest.fixture
 def logged_in_admin(db):
     admin = User.objects.get(username="admin")
+    admin.profile.must_change_password = False
+    admin.profile.save()
     c = Client()
     c.force_login(admin)
     return c

@@ -20,7 +20,6 @@ def user_changed(db):
     return user
 
 
-@pytest.mark.skip("Task 6 wires password_change URL")
 def test_must_change_user_hitting_catalog_redirects_to_change(client, user_must_change):
     client.force_login(user_must_change)
     response = client.get("/catalog/")
@@ -35,7 +34,6 @@ def test_already_changed_user_passes_through(client, user_changed):
     assert response.status_code != 302 or "/accounts/password/change/" not in response.url
 
 
-@pytest.mark.skip("Task 6 wires password_change URL")
 def test_must_change_user_can_reach_change_page_itself(client, user_must_change):
     client.force_login(user_must_change)
     response = client.get("/accounts/password/change/")

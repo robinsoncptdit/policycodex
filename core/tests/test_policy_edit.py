@@ -14,13 +14,16 @@ User = get_user_model()
 
 @pytest.fixture
 def user(db):
-    return User.objects.create_user(
+    user = User.objects.create_user(
         username="editor",
         password="hunter2hunter2",
         email="editor@example.com",
         first_name="Pat",
         last_name="Editor",
     )
+    user.profile.must_change_password = False
+    user.profile.save()
+    return user
 
 
 def _stub_policy(*, slug, kind="flat", title=None, body="", foundational=False, provides=()):

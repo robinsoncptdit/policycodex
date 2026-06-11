@@ -30,10 +30,13 @@ DATA_YAML = (
 
 @pytest.fixture
 def user(db):
-    return User.objects.create_user(
+    user = User.objects.create_user(
         username="editor", password="hunter2hunter2",
         email="editor@example.com", first_name="Pat", last_name="Editor",
     )
+    user.profile.must_change_password = False
+    user.profile.save()
+    return user
 
 
 def _bundle_on_disk(tmp_path):

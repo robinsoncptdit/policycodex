@@ -10,7 +10,10 @@ User = get_user_model()
 
 @pytest.fixture
 def user(db):
-    return User.objects.create_user(username="reviewer", password="secret")
+    user = User.objects.create_user(username="reviewer", password="secret")
+    user.profile.must_change_password = False
+    user.profile.save()
+    return user
 
 
 def test_approve_pr_url_resolves():

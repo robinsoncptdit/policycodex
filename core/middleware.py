@@ -1,5 +1,5 @@
 from django.shortcuts import redirect
-from django.urls import reverse, NoReverseMatch
+from django.urls import reverse
 
 
 _EXEMPT_PREFIXES = (
@@ -22,11 +22,6 @@ class ForcePasswordChangeMiddleware:
             if not any(request.path.startswith(p) for p in _EXEMPT_PREFIXES):
                 profile = getattr(request.user, "profile", None)
                 if profile is not None and profile.must_change_password:
-                    try:
-                        change_url = reverse("password_change")
-                    except NoReverseMatch:
-                        # URL not registered yet. Remove this guard and the
-                        # NoReverseMatch import once the change view is wired.
-                        return self.get_response(request)
+                    change_url = reverse("password_change")
                     return redirect(f"{change_url}?next={request.path}")
         return self.get_response(request)

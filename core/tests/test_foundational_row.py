@@ -8,6 +8,8 @@ pytestmark = pytest.mark.django_db
 
 def test_foundational_row_classification_returns_indexed_tr(client, django_user_model):
     user = django_user_model.objects.create_user("u", password="p")
+    user.profile.must_change_password = False
+    user.profile.save()
     client.force_login(user)
     url = reverse("htmx:foundational_row", kwargs={"slug": "document-retention"})
     resp = client.post(url, {"formset": "cls", "index": "3"})
@@ -25,6 +27,8 @@ def test_foundational_row_classification_returns_indexed_tr(client, django_user_
 
 def test_foundational_row_retention_returns_indexed_tr(client, django_user_model):
     user = django_user_model.objects.create_user("u", password="p")
+    user.profile.must_change_password = False
+    user.profile.save()
     client.force_login(user)
     url = reverse("htmx:foundational_row", kwargs={"slug": "document-retention"})
     resp = client.post(url, {"formset": "ret", "index": "0"})

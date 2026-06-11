@@ -11,7 +11,10 @@ User = get_user_model()
 
 @pytest.fixture
 def user(db):
-    return User.objects.create_user(username="reviewer", password="secret")
+    user = User.objects.create_user(username="reviewer", password="secret")
+    user.profile.must_change_password = False
+    user.profile.save()
+    return user
 
 
 @pytest.fixture
@@ -185,6 +188,8 @@ def test_root_redirects_to_catalog_on_first_boot(client, db):
 def test_root_redirects_authenticated_admin_to_catalog(client, db):
     """Post-bootstrap: an authenticated admin lands on /catalog/."""
     admin = User.objects.get(username="admin")
+    admin.profile.must_change_password = False
+    admin.profile.save()
     client.force_login(admin)
     response = client.get("/")
     assert response.status_code == 302
