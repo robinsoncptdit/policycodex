@@ -146,12 +146,8 @@ def onboarding_step(request, step):
     # Each try/ImportError block is scaffold debt: remove when the DISC ticket lands.
 
     if step == "admin-account":
-        # DISC-04 scaffold; remove when screen lands
-        try:
-            from app.onboarding.screens import admin_account
-            return admin_account.handle(request, target, state)
-        except ImportError:
-            return _generic_step(request, target, state)
+        from app.onboarding.screens import admin_account
+        return admin_account.handle(request, target, state)
 
     if step == "github-app":
         # DISC-05 scaffold; remove when screen lands

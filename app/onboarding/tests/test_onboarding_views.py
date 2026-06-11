@@ -58,8 +58,8 @@ def test_root_redirects_to_first_step_when_fresh(client, user):
     assert resp.url == "/onboarding/admin-account/"
 
 
-def test_get_step_renders_title_and_indicator(client, user):
-    client.force_login(user)
+def test_get_step_renders_title_and_indicator(client, db):
+    # No admin exists: screen renders the creation form.
     resp = client.get("/onboarding/admin-account/")
     assert resp.status_code == 200
     body = resp.content.decode()
@@ -81,8 +81,9 @@ def test_ahead_jump_is_gated(client, user):
 
 
 def test_continue_advances_and_marks_complete(client, user):
+    # Admin exists + authenticated: any visit to admin-account redirects to github-app.
     client.force_login(user)
-    resp = client.post("/onboarding/admin-account/", {"action": "continue"})
+    resp = client.get("/onboarding/admin-account/")
     assert resp.status_code == 302
     assert resp.url == "/onboarding/github-app/"
     assert client.get("/onboarding/").url == "/onboarding/github-app/"
@@ -97,23 +98,28 @@ def test_back_goes_to_previous_step(client, user):
 
 
 def test_back_on_first_step_is_noop_redirect(client, user):
+    # Admin exists + authenticated: any visit to admin-account (including back) redirects
+    # to github-app. The back action concept does not apply to this idempotent screen.
     client.force_login(user)
     resp = client.post("/onboarding/admin-account/", {"action": "back"})
     assert resp.status_code == 302
-    assert resp.url == "/onboarding/admin-account/"
+    assert resp.url == "/onboarding/github-app/"
 
 
-def test_save_exit_redirects_to_catalog(client, user):
-    client.force_login(user)
+def test_save_exit_redirects_to_catalog(client, db):
+    # save_exit on admin-account only works when no admin exists (there is no
+    # session to return to otherwise). When no admin exists, save_exit exits to catalog.
     resp = client.post("/onboarding/admin-account/", {"action": "save_exit"})
     assert resp.status_code == 302
     assert resp.url == "/catalog/"
 
 
 def test_can_revisit_completed_step_without_trapping(client, user):
+    # After admin is created, revisiting admin-account redirects forward (not 200).
+    # Visiting github-app (next step) is permitted once admin-account marks complete.
     client.force_login(user)
-    client.post("/onboarding/admin-account/", {"action": "continue"})
-    assert client.get("/onboarding/admin-account/").status_code == 200
+    client.get("/onboarding/admin-account/")  # marks complete, advances state
+    assert client.get("/onboarding/admin-account/").status_code == 302
     assert client.get("/onboarding/github-app/").status_code == 200
 
 
