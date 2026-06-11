@@ -13,6 +13,7 @@ def _safe_lifecycle_state(request):
     try:
         return lifecycle_state(request)
     except Exception:
+        # Intentionally broad — render path must never raise.
         return None
 
 
