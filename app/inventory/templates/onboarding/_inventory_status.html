@@ -1,4 +1,9 @@
 <div>
+  {% if run.status == "failed" %}
+    <div class="alert alert-error mb-4">
+      <span>Extraction failed: {{ run.pr_error|default:"see per-item details below" }}</span>
+    </div>
+  {% endif %}
   <div class="text-sm mb-2">{{ run.completed }} of {{ run.total }}</div>
   <progress class="progress progress-primary w-full" value="{{ run.completed }}" max="{{ run.total }}"></progress>
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
