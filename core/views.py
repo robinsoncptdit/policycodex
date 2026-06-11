@@ -119,7 +119,19 @@ def catalog(request):
 
 
 def root_redirect(request):
-    """Send the root URL `/` to `/catalog/`. `catalog` itself handles login_required."""
+    """Route the root URL by lifecycle stage.
+
+    - First boot (no admin yet): send everyone to the wizard's screen 1
+      so the first user can create themselves. Without this carve-out a
+      naive visitor bounces through @login_required to /login/ with no
+      credentials to use.
+    - Post-bootstrap: hand off to /catalog/, which is @login_required and
+      routes unauthenticated visitors to /login/ normally.
+    """
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    if not User.objects.filter(is_superuser=True).exists():
+        return redirect("onboarding_step", step="admin-account")
     return redirect("catalog")
 
 

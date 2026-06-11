@@ -174,22 +174,32 @@ def test_catalog_empty_state_when_policies_dir_missing(client, user):
     assert "No policies yet" in body
 
 
-def test_root_redirects_authenticated_user_to_catalog(client, user):
-    """For an authenticated user, GET / redirects to /catalog/."""
-    client.force_login(user)
+def test_root_redirects_to_onboarding_when_no_admin_yet(client, db):
+    """First boot: no admin exists. GET / must NOT send the visitor to /login/
+    (they would have nothing to log in as). It routes into the wizard's
+    screen 1, which is unauth-reachable so the first user can create
+    themselves."""
+    response = client.get("/")
+    assert response.status_code == 302
+    assert response.url == "/onboarding/admin-account/"
+
+
+def test_root_redirects_authenticated_admin_to_catalog(client, db):
+    """Post-bootstrap: an authenticated admin lands on /catalog/."""
+    admin = User.objects.create_superuser(username="admin", email="a@b.com", password="pw")
+    client.force_login(admin)
     response = client.get("/")
     assert response.status_code == 302
     assert response.url == "/catalog/"
 
 
-def test_root_redirects_unauthenticated_user_to_login(client):
-    """For an unauthenticated user, GET / redirects to /catalog/ first, which then
-    redirects to /login/. We assert the immediate redirect target is /catalog/
-    (the @login_required chain happens at /catalog/, not at /)."""
+def test_root_redirects_unauthenticated_visitor_to_login_after_bootstrap(client, db):
+    """Post-bootstrap with no active session: GET / hands off to /catalog/,
+    which @login_required bounces to /login/."""
+    User.objects.create_superuser(username="admin", email="a@b.com", password="pw")
     response = client.get("/")
     assert response.status_code == 302
     assert response.url == "/catalog/"
-    # Follow the chain.
     response = client.get(response.url)
     assert response.status_code == 302
     assert response.url.startswith("/login/")
