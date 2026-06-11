@@ -73,6 +73,18 @@ def handle(request, target, state):
             except Exception as exc:  # noqa: BLE001
                 return render(request, "onboarding/github_repo.html",
                               _ctx(target, state, form, error=f"Could not clone the repo: {exc}"))
+            # Persist to the credential store so load_working_copy_config()
+            # can find the repo URL on subsequent worker requests. Session
+            # state alone won't reach the gating layer's _working_copy_dir().
+            # Best-effort: skip if the store is unavailable (test contexts
+            # without a /data/.credential-key mount); session state alone
+            # still lets the user advance.
+            try:
+                from app.credentials import store
+                store.set("policy_repo.url", repo_url)
+                store.set("policy_repo.branch", form.cleaned_data["branch"])
+            except RuntimeError:
+                pass
             state.set_data(STEP_SLUG, {
                 "mode": form.cleaned_data["mode"],
                 "repo_url": repo_url,
