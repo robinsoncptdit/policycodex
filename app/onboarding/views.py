@@ -153,12 +153,8 @@ def onboarding_step(request, step):
         return github_app.handle(request, target, state)
 
     if step == "llm-provider":
-        # DISC-06 scaffold; remove when screen lands
-        try:
-            from app.onboarding.screens import llm_provider
-            return llm_provider.handle(request, target, state)
-        except ImportError:
-            return _generic_step(request, target, state)
+        from app.onboarding.screens import llm_provider
+        return llm_provider.handle(request, target, state)
 
     if step == "configuration":
         # DISC-08 scaffold; remove when screen lands

@@ -32,6 +32,23 @@ class ClaudeProvider(LLMProvider):
         self.default_max_tokens = default_max_tokens
         self._client = client or Anthropic()
 
+    @classmethod
+    def test_key(cls, api_key: str) -> bool:
+        """DISC-06: minimum-cost validation. Raises RuntimeError on any non-success."""
+        import anthropic
+        client = anthropic.Anthropic(api_key=api_key)
+        try:
+            client.messages.create(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=5,
+                messages=[{"role": "user", "content": "ok"}],
+            )
+        except anthropic.AuthenticationError as exc:
+            raise RuntimeError(f"401 {exc}") from exc
+        except anthropic.APIError as exc:
+            raise RuntimeError(str(exc)) from exc
+        return True
+
     def complete(self, prompt: str, max_tokens: int) -> CompletionResult:
         response = self._client.messages.create(
             model=self.model,

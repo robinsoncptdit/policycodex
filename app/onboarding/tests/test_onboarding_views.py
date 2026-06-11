@@ -421,26 +421,4 @@ def test_screen7_extract_blocks_empty_text_pdf(client, user, working_copy, monke
     assert ai_calls == []
 
 
-@pytest.mark.skip(reason="DISC-06: llm-provider screen and form reworked; view tests land in DISC-06")
-def test_llm_provider_get_renders_picker(client, user):
-    pass
-
-
-@pytest.mark.skip(reason="DISC-06: llm-provider screen and form reworked")
-def test_llm_provider_valid_continue_persists_and_advances(client, user):
-    pass
-
-
-@pytest.mark.skip(reason="DISC-06: llm-provider screen and form reworked")
-def test_llm_provider_invalid_continue_does_not_advance(client, user):
-    pass
-
-
-@pytest.mark.skip(reason="DISC-06: llm-provider screen and form reworked")
-def test_llm_provider_screen_shows_api_key_prose(client, user):
-    pass
-
-
-@pytest.mark.skip(reason="DISC-06: llm-provider screen and form reworked")
-def test_llm_provider_screen_shows_cost_table_with_caveat(client, user):
-    pass
+# llm-provider view tests live in test_screen_llm_provider.py (DISC-06).
