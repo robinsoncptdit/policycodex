@@ -38,9 +38,9 @@ from app.onboarding.scaffold import scaffold_retention_bundle
 from app.working_copy.config import load_working_copy_config
 from ingest.extractors import extract as extract_text
 from ingest.extractors import pdf_has_embedded_images
-from app.git_provider.github_provider import GitHubProvider
-from app.onboarding.finalize import build_config_yaml, finalize_onboarding
-from core.git_identity import get_git_author
+# finalize_onboarding is called by DISC-14 (inventory runner), not here.
+# GitHubProvider, build_config_yaml, get_git_author removed from this module
+# in DISC-09; they live in finalize.py and are re-used there by DISC-14.
 
 logger = logging.getLogger(__name__)
 
@@ -96,13 +96,20 @@ def _load_draft(staging: Path):
 
 
 def handle(request, target, state):
-    policies_dir, staging = _paths()
+    # DISC-09: _paths() is now lazy. GET renders the upload form even before
+    # screen 4 has cloned a working copy; the §5.5 gating redirects pre-screen-4
+    # visitors away first. POST actions that don't need a working copy (back,
+    # save_exit) run without it too; actions that do wrap in try/except.
 
     if request.method == "GET":
         # Same ahead-jump gating as the generic view.
         furthest = state.furthest_step()
         if wizard.index_of(STEP_SLUG) > wizard.index_of(furthest):
             return redirect("onboarding_step", step=furthest)
+        try:
+            _, staging = _paths()
+        except RuntimeError:
+            return _render_upload(request, target, state)
         draft = _load_draft(staging)
         if draft is not None:
             return _render_review(request, target, state, draft)
@@ -115,6 +122,15 @@ def handle(request, target, state):
     if action == "save_exit":
         messages.info(request, "Your progress is saved. Resume onboarding any time.")
         return redirect("catalog")
+
+    # Actions below need a working copy. If missing here, surface a friendly error.
+    try:
+        policies_dir, staging = _paths()
+    except RuntimeError:
+        return _render_upload(
+            request, target, state,
+            error="Finish the GitHub repository step first (Step 4).",
+        )
 
     if action == "extract":
         form = RetentionPolicyUploadForm(request.POST, request.FILES)
@@ -181,7 +197,7 @@ def handle(request, target, state):
         draft = _load_draft(staging)
         if draft is None:
             return _render_upload(request, target, state)
-        bundle_dir = scaffold_retention_bundle(
+        scaffold_retention_bundle(
             policies_dir,
             title=draft["title"],
             owner=draft["owner"],
@@ -189,32 +205,13 @@ def handle(request, target, state):
             data_yaml_text=draft["data_yaml"],
             source_pdf=staging / "source.pdf" if (staging / "source.pdf").is_file() else None,
         )
-        config = load_working_copy_config()
-        author_name, author_email = get_git_author(request.user)
-        config_yaml_text = build_config_yaml(state.all_data())
-        try:
-            pr = finalize_onboarding(
-                working_dir=config.working_dir,
-                config_yaml_text=config_yaml_text,
-                bundle_dir=bundle_dir,
-                provider=GitHubProvider(),
-                author_name=author_name,
-                author_email=author_email,
-                base_branch=config.branch,
-                username=request.user.get_username(),
-            )
-        except Exception as exc:
-            logger.error("APP-16 onboarding finalize failed: %s", exc)
-            messages.error(
-                request,
-                "Couldn't publish your configuration to the policy repository. "
-                "Please try again.",
-            )
-            return _render_review(request, target, state, draft)
-        shutil.rmtree(staging.parent, ignore_errors=True)
+        # DISC-09: NO finalize_onboarding here. The PR is opened ONCE at the
+        # end of the inventory pass (DISC-14). The bundle stays staged in the
+        # working copy until that finalize commit.
         state.mark_complete(STEP_SLUG)
-        request.session["onboarding_pr_url"] = pr.get("url", "")
-        return redirect("onboarding-complete")
+        nxt = wizard.next_step(STEP_SLUG)
+        state.set_current(nxt.slug)
+        return redirect("onboarding_step", step=nxt.slug)
 
     # Unknown action: re-render current state defensively.
     draft = _load_draft(staging)
@@ -309,7 +306,7 @@ def _do_accept(request, state, policies_dir, staging):
     draft = _load_draft(staging)
     if draft is None:
         return _render_body(request, mode="upload")
-    bundle_dir = scaffold_retention_bundle(
+    scaffold_retention_bundle(
         policies_dir,
         title=draft["title"],
         owner=draft["owner"],
@@ -317,36 +314,13 @@ def _do_accept(request, state, policies_dir, staging):
         data_yaml_text=draft["data_yaml"],
         source_pdf=staging / "source.pdf" if (staging / "source.pdf").is_file() else None,
     )
-    config = load_working_copy_config()
-    author_name, author_email = get_git_author(request.user)
-    config_yaml_text = build_config_yaml(state.all_data())
-    try:
-        pr = finalize_onboarding(
-            working_dir=config.working_dir,
-            config_yaml_text=config_yaml_text,
-            bundle_dir=bundle_dir,
-            provider=GitHubProvider(),
-            author_name=author_name,
-            author_email=author_email,
-            base_branch=config.branch,
-            username=request.user.get_username(),
-        )
-    except Exception as exc:
-        logger.error("APP-16 onboarding finalize failed: %s", exc)
-        messages.error(
-            request,
-            "Couldn't publish your configuration to the policy repository. "
-            "Please try again.",
-        )
-        return _render_body(
-            request, mode="review",
-            classifications=draft.get("classifications", []),
-            retention_schedule=draft.get("retention_schedule", []),
-        )
-    shutil.rmtree(staging.parent, ignore_errors=True)
+    # DISC-09: NO finalize_onboarding here. The PR is opened ONCE at the
+    # end of the inventory pass (DISC-14). The bundle stays staged in the
+    # working copy until that finalize commit.
     state.mark_complete(STEP_SLUG)
-    request.session["onboarding_pr_url"] = pr.get("url", "")
-    return _hx_redirect(reverse("onboarding-complete"))
+    nxt = wizard.next_step(STEP_SLUG)
+    state.set_current(nxt.slug)
+    return _hx_redirect(reverse("onboarding_step", kwargs={"step": nxt.slug}))
 
 
 @login_required
@@ -356,9 +330,9 @@ def screen7_fragment(request):
     fragment swap, except navigation (back/save_exit) and a finished accept,
     which return an HX-Redirect so the browser performs a real page change."""
     state = WizardState(request.session)
-    policies_dir, staging = _paths()
     action = request.POST.get("action")
 
+    # DISC-09: _paths() is lazy. back/save_exit don't need the working copy.
     if action == "back":
         prev = wizard.prev_step(STEP_SLUG)
         target_slug = prev.slug if prev else STEP_SLUG
@@ -366,6 +340,16 @@ def screen7_fragment(request):
     if action == "save_exit":
         messages.info(request, "Your progress is saved. Resume onboarding any time.")
         return _hx_redirect(reverse("catalog"))
+
+    # Actions below need a working copy.
+    try:
+        policies_dir, staging = _paths()
+    except RuntimeError:
+        return _render_body(
+            request, mode="upload",
+            error="Finish the GitHub repository step first (Step 4).",
+        )
+
     if action == "extract":
         return _do_extract(request, staging)
     if action == "reupload":

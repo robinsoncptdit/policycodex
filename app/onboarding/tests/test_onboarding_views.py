@@ -366,31 +366,12 @@ def test_screen7_accept_commits_config_and_opens_pr(client, user, working_copy, 
     pass
 
 
+@pytest.mark.skip(reason="DISC-14: propose_change / clean-tree failure handling moves to the bulk PR step")
 def test_screen7_accept_provider_failure_rerenders_review_with_clean_tree(client, user, working_copy, stub_extraction, monkeypatch):
-    """propose_change (APP-33) restores a clean default branch on failure:
-    the staged bundle dir and `.policycodex/config.yaml` are removed, so the
-    next `WorkingCopyManager.sync()` pull cannot wedge on a dirty tree. The
-    user retries from the review fragment (the staging draft is still on disk
-    so re-clicking accept re-scaffolds the bundle)."""
-    from app.onboarding import retention_policy as rp
-
-    class _BoomProvider:
-        def branch(self, name, working_dir):
-            raise RuntimeError("push rejected by branch protection")
-
-    monkeypatch.setattr(rp, "GitHubProvider", _BoomProvider)
-
-    client.force_login(user)
-    _advance_to_retention_policy(client)
-    upload = SimpleUploadedFile("retention.pdf", b"%PDF-1.4", content_type="application/pdf")
-    client.post("/onboarding/retention-policy/", {"action": "extract", "pdf_file": upload})
-    resp = client.post("/onboarding/retention-policy/", {"action": "accept"})
-
-    assert resp.status_code == 200
-    assert "Administrative" in resp.content.decode()  # back on review fragment
-    # Clean-tree guarantee: bundle dir and config file are gone, not stranded.
-    assert not (working_copy / "document-retention").exists()
-    assert not (working_copy.parent / ".policycodex" / "config.yaml").exists()
+    """DISC-09 removed finalize_onboarding and GitHubProvider from the accept
+    path. The clean-tree guarantee (propose_change restores the default branch on
+    failure) is exercised in DISC-14 when the bulk PR runs."""
+    pass
 
 
 def test_screen7_extract_blocks_scanned_image_only_pdf(client, user, working_copy, monkeypatch):

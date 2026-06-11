@@ -238,13 +238,53 @@ def test_extraction_outage_renders_reusable_ai_outage_fragment(
     assert not (working_copy.parent / ".policycodex-staging" / "retention-policy" / "draft.yaml").exists()
 
 
-# --- 3. accept success -> 204 + HX-Redirect to the completion screen ------
+# --- 3. accept success -> 204 + HX-Redirect to policy-documents -----------
+#
+# DISC-09: accept no longer opens a PR. The bundle is staged in the working
+# copy; DISC-14's refactored finalize_onboarding opens one bulk PR at the end
+# of the inventory pass together with the extracted policy drafts.
 
 @pytest.mark.skip(reason="DISC-14: accept redirects to inventory, not onboarding-complete")
 def test_accept_success_returns_204_and_hx_redirect_to_complete(
     client, user, working_copy, stub_extraction, stub_git_provider
 ):
-    pass
+    """Superseded by test_accept_success_advances_to_policy_documents below."""
+
+
+def test_accept_success_advances_to_policy_documents(
+    client, user, working_copy, stub_extraction, monkeypatch
+):
+    """DISC-09: accept scaffolds the bundle and redirects to policy-documents
+    (no PR opened; that is deferred to DISC-14)."""
+    from app.onboarding import retention_policy as rp
+    from django.urls import reverse as dj_reverse
+
+    # finalize_onboarding was removed from this module in DISC-09; verify it
+    # cannot be called by asserting it is not an attribute.
+    assert not hasattr(rp, "finalize_onboarding"), (
+        "finalize_onboarding must not be imported in retention_policy after DISC-09"
+    )
+    monkeypatch.setattr(rp, "scaffold_retention_bundle",
+                        lambda *a, **kw: working_copy / "document-retention")
+    client.force_login(user)
+    _advance_to_retention_policy(client)
+    # Stage a draft so accept has something to scaffold.
+    wc_dir = working_copy.parent
+    staging = wc_dir / ".policycodex-staging" / "retention-policy"
+    staging.mkdir(parents=True, exist_ok=True)
+    import yaml
+    (staging / "draft.yaml").write_text(
+        yaml.safe_dump({
+            "title": "Document Retention Policy",
+            "owner": "CFO",
+            "classifications": [],
+            "retention_schedule": [],
+            "data_yaml": "foo: bar\n",
+        }), encoding="utf-8")
+    resp = client.post(reverse("htmx:onboarding_screen7"), {"action": "accept"})
+    assert resp.status_code == 204
+    assert "HX-Redirect" in resp
+    assert resp["HX-Redirect"] == dj_reverse("onboarding_step", kwargs={"step": "policy-documents"})
 
 
 # --- 4. back and save_exit -> 204 + HX-Redirect --------------------------
@@ -291,32 +331,16 @@ def test_accept_with_no_staged_draft_returns_upload_fragment(client, user, worki
     assert 'name="pdf_file"' in body   # upload form, not a 500
 
 
-# --- 7. finalize failure -> review fragment + queued error message -------
+# --- 7. finalize failure -> deferred to DISC-14 ---------------------------
+#
+# DISC-09: _do_accept no longer calls finalize_onboarding, so there is no
+# "finalize failure" path here. The bulk PR + error handling moves to DISC-14.
 
+@pytest.mark.skip(reason="DISC-14: finalize_onboarding moved out of _do_accept")
 def test_finalize_failure_rerenders_review_with_error_message(
     client, user, working_copy, stub_extraction, monkeypatch
 ):
-    from app.onboarding import retention_policy as rp
-
-    class _BoomProvider:
-        def branch(self, name, working_dir):
-            raise RuntimeError("push rejected by branch protection")
-
-    monkeypatch.setattr(rp, "GitHubProvider", _BoomProvider)
-
-    client.force_login(user)
-    _advance_to_retention_policy(client)
-    client.post(
-        reverse("htmx:onboarding_screen7"),
-        {"action": "extract", "pdf_file": _pdf_upload()},
-    )
-    resp = client.post(reverse("htmx:onboarding_screen7"), {"action": "accept"})
-    assert resp.status_code == 200
-    body = resp.content.decode()
-    assert "screen7-body" in body
-    assert "2 classifications" in body   # back on the review fragment
-    msgs = [str(m) for m in get_messages(resp.wsgi_request)]
-    assert any("Couldn't publish" in m for m in msgs)
+    pass
 
 
 # --- 8. method + auth guards ---------------------------------------------
