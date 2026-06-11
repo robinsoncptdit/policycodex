@@ -24,9 +24,9 @@ class WorkingCopyConfig:
 
 
 def _from_credential_store() -> tuple[str, str] | None:
-    """DISC followup: the wizard writes the repo URL + branch to the in-app
-    credential store at screen 4 (DISC-07). Read from there before falling
-    back to Django settings, which only see env vars set at container boot."""
+    """DISC followup: the Settings Policy Repository panel writes the repo URL + branch
+    to the in-app credential store. Read from there before falling back to Django
+    settings, which only see env vars set at container boot."""
     try:
         from app.credentials import store
         if store.has("policy_repo.url") and store.has("policy_repo.branch"):
@@ -46,7 +46,7 @@ def load_working_copy_config() -> WorkingCopyConfig:
     if not repo_url:
         raise RuntimeError(
             "POLICYCODEX_POLICY_REPO_URL is not set. Configure the diocese's policy repo URL "
-            "(e.g., https://github.com/<org>/<repo>.git) via Django settings, env var, or the wizard."
+            "(e.g., https://github.com/<org>/<repo>.git) via Django settings, env var, or the Settings page."
         )
     root_raw = getattr(settings, "POLICYCODEX_WORKING_COPY_ROOT", "")
     if not root_raw:

@@ -219,7 +219,7 @@ def test_unset_repo_url_during_onboarding_returns_warning():
     assert isinstance(results[0], Warning)
     assert results[0].id == "policycodex.W001"
     assert "POLICYCODEX_POLICY_REPO_URL" in results[0].msg
-    assert "onboarding" in results[0].hint.lower()
+    assert "settings" in results[0].hint.lower()
 
 
 def test_unset_repo_url_post_onboarding_returns_error():

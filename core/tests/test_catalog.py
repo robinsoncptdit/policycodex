@@ -174,14 +174,13 @@ def test_catalog_empty_state_when_policies_dir_missing(client, user):
     assert "No policies yet" in body
 
 
-def test_root_redirects_to_onboarding_when_no_admin_yet(client, db):
-    """First boot: no admin exists. GET / must NOT send the visitor to /login/
-    (they would have nothing to log in as). It routes into the wizard's
-    screen 1, which is unauth-reachable so the first user can create
-    themselves."""
+def test_root_redirects_to_catalog_on_first_boot(client, db):
+    """First boot: a seeded admin exists (Task 3 of the Settings-page rebuild).
+    GET / redirects to /catalog/ regardless; unauthenticated visitors bounce
+    to /login/ via @login_required on the catalog view."""
     response = client.get("/")
     assert response.status_code == 302
-    assert response.url == "/onboarding/admin-account/"
+    assert response.url == "/catalog/"
 
 
 def test_root_redirects_authenticated_admin_to_catalog(client, db):

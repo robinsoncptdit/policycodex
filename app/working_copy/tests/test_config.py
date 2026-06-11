@@ -38,10 +38,10 @@ def test_load_raises_when_repo_url_unset():
 
 
 def test_load_falls_back_to_credential_store_when_settings_empty(tmp_path, monkeypatch):
-    """DISC followup: the wizard's screen 4 writes policy_repo.url + branch
+    """DISC followup: the Settings Policy Repository panel writes policy_repo.url + branch
     to the credential store. load_working_copy_config() must read those
     when Django settings are empty (the common production state — env vars
-    set only at container boot, before the wizard ran)."""
+    set only at container boot, before Settings are configured)."""
     from cryptography.fernet import Fernet
     from app.credentials import store
     key_file = tmp_path / ".credential-key"

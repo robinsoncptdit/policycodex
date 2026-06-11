@@ -12,7 +12,7 @@
        hx-get="{% url 'htmx:htmx_inventory_status' %}?run={{ run.pk }}"
        hx-trigger="every 2s"
        hx-swap="innerHTML">
-    {% include "onboarding/_inventory_status.html" %}
+    {% include "inventory/_inventory_status.html" %}
   </div>
 </div>
 {% endblock %}

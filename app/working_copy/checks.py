@@ -5,8 +5,8 @@ exactly one published foundational policy in the local working copy.
 
 Failure severity is gated by the POLICYCODEX_ONBOARDING_COMPLETE setting:
 - False (default): missing working copy or unset repo URL returns Warning,
-  letting `manage.py runserver` start during the seven-screen onboarding
-  wizard. Bundle-validity failures (broken data.yaml, missing or duplicate
+  letting `manage.py runserver` start before configuration is complete.
+  Bundle-validity failures (broken data.yaml, missing or duplicate
   capability provider) are always Error.
 - True: all failures are Error and the app refuses to serve.
 """
@@ -43,7 +43,7 @@ def foundational_policy_check(app_configs, **kwargs) -> Sequence:
             )]
         return [Warning(
             f"Working copy not yet configured: {exc}",
-            hint="Complete the onboarding wizard to set POLICYCODEX_POLICY_REPO_URL.",
+            hint="Configure the policy repository in Settings to set POLICYCODEX_POLICY_REPO_URL.",
             id="policycodex.W001",
         )]
 
@@ -57,7 +57,7 @@ def foundational_policy_check(app_configs, **kwargs) -> Sequence:
             )]
         return [Warning(
             f"Policies directory not yet present: {policies_dir}",
-            hint="The onboarding wizard will run `pull_working_copy` to create it.",
+            hint="Configure the policy repository in Settings and run `pull_working_copy` to create it.",
             id="policycodex.W002",
         )]
 

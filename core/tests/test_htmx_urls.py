@@ -11,8 +11,8 @@ def test_htmx_urls_module_is_namespaced():
 
 
 def test_foundational_row_route_is_registered():
-    # Some entries are URLResolvers (the onboarding /htmx/onboarding/ include)
-    # with no .name, so read names defensively.
+    # Some entries are URLResolvers (e.g. the inventory include) with no .name,
+    # so read names defensively.
     names = [getattr(p, "name", None) for p in htmx_urls.urlpatterns]
     assert "foundational_row" in names
 
@@ -29,4 +29,3 @@ def test_htmx_endpoints_reverse_under_the_namespace():
         reverse("htmx:foundational_row", kwargs={"slug": "x"})
         == "/htmx/foundational/x/row/"
     )
-    assert reverse("htmx:onboarding_screen7") == "/htmx/onboarding/screen7/"

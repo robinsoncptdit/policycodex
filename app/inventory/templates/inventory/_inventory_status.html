@@ -8,7 +8,7 @@
   <progress class="progress progress-primary w-full" value="{{ run.completed }}" max="{{ run.total }}"></progress>
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
     {% for item in run.items.all %}
-      {% include "onboarding/_inventory_card.html" with item=item %}
+      {% include "inventory/_inventory_card.html" with item=item %}
     {% endfor %}
   </div>
 </div>

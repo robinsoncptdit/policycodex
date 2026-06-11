@@ -53,7 +53,7 @@ def _from_env() -> GitHubConfig | None:
 
     DISC-02's app.credentials.hydrate_environment() writes these three env
     vars on every Django startup when the credential store has them, so
-    the in-app wizard is the authoritative source in production.
+    the Settings GitHub App panel is the authoritative source in production.
     """
     if not all(os.environ.get(k) for k in _REQUIRED_KEYS):
         return None
@@ -67,8 +67,8 @@ def _from_env() -> GitHubConfig | None:
 def load_github_config(path: Path | None = None) -> GitHubConfig:
     if path is None:
         # DISC-02 hydrate_environment runs once at Django settings import,
-        # but the wizard writes the GH App creds AFTER that — workers booted
-        # before the user finished screen 2 see no POLICYCODEX_GH_* env vars.
+        # but Settings panel writes GH App creds AFTER that — workers booted
+        # before the admin saved Settings see no POLICYCODEX_GH_* env vars.
         # Re-hydrate on every call so freshly-stored creds are picked up.
         # Cheap: it's a single file read + Fernet decrypt of a small JSON.
         try:

@@ -109,9 +109,9 @@ def test_load_config_prefers_env_vars_over_file(tmp_path, monkeypatch):
 
 
 def test_load_config_hydrates_from_credential_store(tmp_path, monkeypatch):
-    """DISC-02 hydrate_environment runs at Django startup, BEFORE the wizard
-    writes creds. load_github_config() must call hydrate on every call so
-    the wizard's writes flow into env vars before the env-var path checks."""
+    """DISC-02 hydrate_environment runs at Django startup, BEFORE the Settings
+    panel writes creds. load_github_config() must call hydrate on every call so
+    Settings panel writes flow into env vars before the env-var path checks."""
     from cryptography.fernet import Fernet
     from app.credentials import store
     key_file = tmp_path / ".credential-key"
