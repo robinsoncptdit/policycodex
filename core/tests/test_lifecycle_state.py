@@ -53,9 +53,8 @@ def test_everything_set_returns_catalog(credential_env):
     store.set("llm.provider", "claude")
     store.set("policy_repo.url", "https://github.com/diocese/policies")
     state = lifecycle_state(None)
-    assert state.state in (ConfigureState.REPO_EMPTY, ConfigureState.READY)
-    # REPO_EMPTY requires a GitHub call to detect; v0.1 keeps it READY until
-    # that check is wired (post-pivot follow-up if needed).
+    # REPO_EMPTY detection (a GitHub call) is deferred; until then this is READY.
+    assert state.state is ConfigureState.READY
     assert state.next_url == "/catalog/"
 
 

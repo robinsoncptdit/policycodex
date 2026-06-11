@@ -34,12 +34,12 @@ _DESTINATIONS = {
 
 _BANNER_MESSAGES = {
     ConfigureState.NO_GITHUB_APP:
-        "Set up GitHub access in Settings -> GitHub App. One click and "
+        "Set up GitHub access in Settings → GitHub App. One click and "
         "PolicyCodex creates the App for you.",
     ConfigureState.NO_LLM:
-        "Connect your AI provider in Settings -> AI provider.",
+        "Connect your AI provider in Settings → AI provider.",
     ConfigureState.NO_REPO:
-        "Choose your policy repository in Settings -> Policy repository.",
+        "Choose your policy repository in Settings → Policy repository.",
     ConfigureState.REPO_EMPTY:
         "Initialize your policy repo from the Policy repository panel.",
     ConfigureState.READY: None,
