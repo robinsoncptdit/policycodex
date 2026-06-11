@@ -8,3 +8,4 @@ pyyaml>=6.0
 cryptography>=42
 gunicorn>=21.0
 whitenoise>=6.0
+django-zxcvbn-password>=2.1
