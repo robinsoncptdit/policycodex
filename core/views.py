@@ -5,6 +5,8 @@ from pathlib import Path
 import yaml
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+
+from core.permissions import require_role
 from django.contrib.auth.views import PasswordChangeView
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
@@ -71,7 +73,7 @@ def _build_gate_lookup(working_dir: Path) -> dict[str, str]:
     return lookup
 
 
-@login_required
+@require_role("Viewer")
 def catalog(request):
     """Render the policy inventory from the local working copy.
 
@@ -151,7 +153,7 @@ def _find_policy(slug: str):
     return None
 
 
-@login_required
+@require_role("Viewer")
 def policy_detail(request, slug):
     """Read-only detail view for a single policy (APP-23).
 
@@ -180,7 +182,7 @@ def _make_branch_name(slug: str) -> str:
     return f"policycodex/edit-{slug}-{uuid.uuid4().hex[:8]}"
 
 
-@login_required
+@require_role("Editor")
 def policy_edit(request, slug):
     """GET pre-populates an edit form; POST writes the file, branches,
     commits authored by the user, pushes, and opens a PR back to the
@@ -307,7 +309,7 @@ def _retention_initial(data: dict) -> list[dict]:
     return rows
 
 
-@login_required
+@require_role("Editor")
 def foundational_edit(request, slug):
     """Typed-table editor for a foundational bundle's data.yaml (APP-25).
 
@@ -465,7 +467,7 @@ def foundational_row(request, slug):
     })
 
 
-@login_required
+@require_role("Editor")
 @require_POST
 def approve_pr(request):
     """Approve an open PR on behalf of the authenticated reviewer.
@@ -543,7 +545,7 @@ def approve_pr(request):
     return redirect("catalog")
 
 
-@login_required
+@require_role("Editor")
 @require_http_methods(["POST"])
 def publish_policy(request, slug):
     """Merge the open PR for `slug`, transitioning the gate to Published.

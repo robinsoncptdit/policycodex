@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import pytest
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.test import override_settings
 from django.urls import reverse
 
@@ -23,6 +24,7 @@ def user(db):
     )
     user.profile.must_change_password = False
     user.profile.save()
+    user.groups.add(Group.objects.get(name="Editor"))
     return user
 
 

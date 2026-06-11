@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.urls import reverse
 
 User = get_user_model()
@@ -13,6 +14,7 @@ def user(db):
     user = User.objects.create_user(username="reviewer", password="secret")
     user.profile.must_change_password = False
     user.profile.save()
+    user.groups.add(Group.objects.get(name="Editor"))
     return user
 
 
