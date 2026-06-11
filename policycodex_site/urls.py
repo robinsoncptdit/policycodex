@@ -21,4 +21,6 @@ urlpatterns = [
         name='logout',
     ),
     path('', include('core.urls')),
+    path("settings/", include("app.settings.urls")),
+    path("htmx/settings/", include("app.settings.htmx_urls")),
 ]
