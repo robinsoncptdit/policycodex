@@ -82,6 +82,7 @@ INSTALLED_APPS = [
     'core',
     'app.working_copy.apps.WorkingCopyAppConfig',
     'app.inventory.apps.InventoryConfig',
+    'app.settings.apps.SettingsAppConfig',
 ]
 
 MIDDLEWARE = [
