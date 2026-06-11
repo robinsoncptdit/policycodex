@@ -165,12 +165,8 @@ def onboarding_step(request, step):
         return configuration.handle(request, target, state)
 
     if step == "policy-documents":
-        # DISC-10 scaffold; remove when screen lands
-        try:
-            from app.onboarding.screens import policy_documents
-            return policy_documents.handle(request, target, state)
-        except ImportError:
-            return _generic_step(request, target, state)
+        from app.onboarding.screens import policy_documents
+        return policy_documents.handle(request, target, state)
 
     if step == "retention-policy":
         return retention_policy.handle(request, target, state)
