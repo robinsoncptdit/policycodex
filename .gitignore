@@ -20,6 +20,8 @@ spike/outputs-ai06/
 spike/venv/
 # Source policy documents are diocese-confidential. Keep them out of the repo.
 *.pdf
+# Exception: synthetic AGPL-compatible test fixtures (no diocese content).
+!tests/fixtures/disc-smoke-corpus/*.pdf
 docs/superpowers/.cache/
 internal/superpowers/.cache/
 .claude/

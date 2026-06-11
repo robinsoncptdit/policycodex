@@ -1,0 +1,66 @@
+name: DISC smoke
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Secrets are only available on PRs from the same repo (not forks).
+# For PolicyCodex v0.1 this is acceptable: only the maintainer opens PRs to main.
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Start stack
+        run: docker compose up --build -d
+
+      - name: Wait for health
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8000/health/ >/dev/null 2>&1; then
+              echo "ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Stack did not become healthy in 60 s"
+          docker compose logs
+          exit 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install smoke-test dependencies
+        run: pip install -r tests/disc_smoke/requirements.txt
+
+      - name: Install Playwright browser
+        run: playwright install --with-deps chromium
+
+      - name: Run smoke test
+        env:
+          DISC_SMOKE_GH_APP_ID: ${{ secrets.DISC_SMOKE_GH_APP_ID }}
+          DISC_SMOKE_GH_INSTALLATION_ID: ${{ secrets.DISC_SMOKE_GH_INSTALLATION_ID }}
+          DISC_SMOKE_GH_PRIVATE_KEY: ${{ secrets.DISC_SMOKE_GH_PRIVATE_KEY }}
+          DISC_SMOKE_ANTHROPIC_KEY: ${{ secrets.DISC_SMOKE_ANTHROPIC_KEY }}
+          DISC_SMOKE_TEST_ORG: ${{ secrets.DISC_SMOKE_TEST_ORG }}
+        run: python tests/disc_smoke/playwright_smoke.py
+
+      - name: Teardown test repo
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.DISC_SMOKE_TEARDOWN_TOKEN }}
+        run: |
+          REPO="disc-smoke-${GITHUB_SHA:0:7}"
+          gh api -X DELETE "/repos/${{ secrets.DISC_SMOKE_TEST_ORG }}/$REPO" || true
+
+      - name: Teardown container
+        if: always()
+        run: docker compose down -v
