@@ -2,12 +2,11 @@
 from django.urls import include, path
 
 from . import views
-from core.views import ForcedPasswordChangeView
 
 
 urlpatterns = [
     path("", views.root_redirect, name="root"),
-    path("accounts/password/change/", ForcedPasswordChangeView.as_view(), name="password_change"),
+    path("accounts/password/change/", views.ForcedPasswordChangeView.as_view(), name="password_change"),
     path("health/", views.health, name="health"),
     # APP-27: HTMX fragment endpoints are segregated under /htmx/ (namespace
     # `htmx`). Empty for now; APP-28c adds the first fragment views.

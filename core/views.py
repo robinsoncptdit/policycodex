@@ -634,7 +634,6 @@ class ForcedPasswordChangeView(PasswordChangeView):
 
     def get_success_url(self):
         profile = self.request.user.profile
-        if profile.must_change_password:
-            profile.must_change_password = False
-            profile.save(update_fields=["must_change_password"])
+        profile.must_change_password = False
+        profile.save(update_fields=["must_change_password"])
         return lifecycle_state(self.request).next_url
