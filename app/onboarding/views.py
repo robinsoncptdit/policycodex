@@ -50,11 +50,15 @@ def _working_copy_dir() -> Path:
 
 def _gate_for(step: str, request, state) -> object | None:
     """Run gating signals in order; return a redirect Response if blocked, else None."""
-    # Signal 1: admin presence.
+    # Signal 1: admin presence. Pre-bootstrap, admin-account is reachable
+    # unauthenticated so the first user can create themselves.
     if not _admin_exists():
         if step != "admin-account":
             return redirect("onboarding_step", step="admin-account")
         return None
+    # Signal 1b: once an admin exists, all wizard screens require login.
+    if not request.user.is_authenticated:
+        return redirect(f"{reverse('login')}?next={request.path}")
     # Signal 2: working-copy presence (only required for screen 6 onward).
     requires_working_copy = step in ("retention-policy", "policy-documents")
     if requires_working_copy and not _working_copy_dir().exists():
@@ -73,7 +77,7 @@ def _resume_target(state) -> str:
         from app.inventory.models import InventoryRun
         if InventoryRun.objects.filter(status="running").exists():
             return reverse("inventory")
-    except (ImportError, Exception):
+    except Exception:
         pass
     return reverse("onboarding_step", kwargs={"step": state.current_step})
 
@@ -128,7 +132,6 @@ def _generic_step(request, target, state):
     return render(request, "onboarding/step.html", _step_context(target, state, form))
 
 
-@login_required
 def onboarding_step(request, step):
     target = wizard.get_step(step)
     if target is None:

@@ -40,6 +40,30 @@ def test_logged_in_admin_with_no_working_copy_stuck_before_screen_6(tmp_path):
     assert response.url.endswith("/onboarding/github-repo/")
 
 
+@pytest.mark.django_db
+def test_unauthenticated_can_reach_admin_account_before_bootstrap():
+    """First boot has no admin and no users. Hitting /onboarding/admin-account/
+    must NOT bounce to /login/ — there is nobody to log in as. The user creates
+    the first admin on this very screen (DISC-04)."""
+    client = Client()
+    response = client.get("/onboarding/admin-account/", follow=False)
+    # 200 means the dispatch reached the screen (today's fallthrough to
+    # _generic_step renders the empty step.html). A 302 to /login/ would
+    # break the first-boot loop.
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_unauthenticated_blocked_from_other_screens_after_bootstrap():
+    """After an admin exists, every non-admin-account wizard URL must require
+    a login — otherwise a public visitor could navigate the wizard."""
+    User.objects.create_superuser("admin", "a@b.com", "pw")
+    client = Client()
+    response = client.get("/onboarding/github-app/", follow=False)
+    assert response.status_code == 302
+    assert "/login/" in response.url
+
+
 @pytest.mark.skip(reason="DISC-11 lands the InventoryRun model")
 @pytest.mark.django_db
 def test_running_inventory_routes_to_inventory_page(tmp_path):
