@@ -45,12 +45,10 @@ def test_no_group_user_gets_403_on_catalog(client, random_user):
 
 
 def test_viewer_cannot_hit_policy_edit(client, viewer):
-    """Editor+ only."""
+    """Editor+ only; the gate fires before the slug lookup so this is 403, not 404."""
     client.force_login(viewer)
     response = client.get("/policies/some-slug/edit/")
-    # 403 from the decorator; 404 from the missing policy is also OK — we
-    # care that it's NOT 200.
-    assert response.status_code in (403, 404)
+    assert response.status_code == 403
 
 
 def test_editor_can_hit_policy_edit_or_404(client, editor):

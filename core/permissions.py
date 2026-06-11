@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 
 
-_ROLE_ORDER = ["Viewer", "Editor", "Admin"]
+_ROLE_ORDER = ("Viewer", "Editor", "Admin")
 
 
 def _user_role_index(user):
