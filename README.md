@@ -99,61 +99,47 @@ Four lanes:
 
 Run PolicyCodex on a small VM. Connect it to your private GitHub repo. Point it at your filesystems. Configure your conventions through the onboarding wizard. The handbook deploys to a subdomain you control.
 
-## Quick Start
+## Install
+
+**Profile A — source clone (developers, AGPL transparency):**
+
+```
+git clone https://github.com/robinsoncptdit/policycodex.git
+cd policycodex
+./install.sh
+```
+
+**Profile B — pre-built image (most dioceses):**
+
+```
+docker run -d \
+  -p 8000:8000 \
+  -v policycodex-data:/data \
+  --name policycodex \
+  ghcr.io/robinsoncptdit/policycodex:latest
+
+open http://localhost:8000
+```
+
+Both paths land you in the in-browser onboarding wizard. No environment files
+to edit, no credentials on disk, no terminal interaction after the install
+command. The wizard collects everything (admin account, GitHub App credentials,
+LLM API key, repo, configuration, retention policy, your policy documents) and
+opens one pull request to your diocese repo at the end.
+
+To wipe an install and start over: `docker compose down -v && docker volume rm policycodex-data`.
 
 ### Before you begin
 
 PolicyCodex needs **API access to a language model, not a consumer chat subscription.** The consumer plans (Claude Pro / Pro Max / Teams, ChatGPT Plus, Google One) have no programmatic access and will not work. Provision an API key before you reach wizard step 6:
 
-- **Anthropic Claude** (default) — an Anthropic API key, not Claude Pro / Pro Max / Teams. The API is pre-paid and billed per token via console.anthropic.com, so you arrive at the wizard already provisioned.
+- **Anthropic Claude** (default) — an Anthropic API key, not Claude Pro / Pro Max / Teams. The API is pre-paid and billed per token via console.anthropic.com.
 - **OpenAI** — an OpenAI API key, not ChatGPT Plus.
 - **Google Gemini** — a Gemini API key or Vertex AI credentials, not Google One.
 - **Azure OpenAI** — Azure OpenAI deployment credentials (an Azure subscription with the OpenAI service deployed).
 - **Local Llama** — no third-party key; runs on your own VM.
 
 The wizard's LLM-provider screen links each provider's API-key docs and shows rough monthly cost ranges.
-
-PolicyCodex runs on Python 3.12+ (the floor set by Django 6.0).
-
-```bash
-# Clone the repo
-git clone https://github.com/<org>/policycodex.git
-cd policycodex
-
-# Install into a virtual environment
-python3 -m venv .venv
-.venv/bin/pip install -r ai/requirements.txt -r app/requirements.txt
-
-# Initialize the database, create an admin account, and run
-.venv/bin/python manage.py migrate
-.venv/bin/python manage.py createsuperuser
-.venv/bin/python manage.py runserver
-```
-
-Open `http://localhost:8000/login/`, sign in with the admin account you just created, then complete the seven-screen onboarding wizard at `/onboarding/`:
-
-1. Connect or create a private GitHub repo for your policies (PolicyCodex uses a GitHub App)
-2. Pick an address scheme (LA chapter-section-item or Catholic healthcare department code)
-3. Pick a versioning convention (semver default)
-4. Set reviewer roles and required approvers (writes branch protection rules)
-5. Set retention defaults
-6. Pick an LLM provider (Claude default; the screen links API-key docs and shows rough cost ranges)
-7. Point PolicyCodex at any source-of-truth reference documents you already have (Document Retention Policy, by-laws, etc.). The AI extractor uses them as ground truth rather than guessing.
-
-### Docker (recommended for non-developers)
-
-PolicyCodex ships as a container. From the repo root:
-
-```bash
-cp .env.example .env          # set DJANGO_SECRET_KEY, your hostnames, and DJANGO_SUPERUSER_USERNAME / _EMAIL / _PASSWORD
-./install.sh                  # builds the image and starts the stack
-```
-
-Open `http://localhost:8000/login/`, sign in with the admin account, then complete the onboarding wizard at `/onboarding/`. The container auto-creates the admin from the `DJANGO_SUPERUSER_*` env vars on first boot. (Alternative: leave those env vars blank in `.env` and run `docker compose exec app python manage.py createsuperuser` after `./install.sh` finishes to create the admin interactively instead.)
-
-- **State** (the SQLite database and cloned policy working copies) persists in the `policycodex-data` Docker volume.
-- **Credentials** (the GitHub App private key and your LLM API key) stay on the host in `~/.config/policycodex/`, bind-mounted read-only into the container. They never enter the image or any committed file. Copy the shipped template into place and fill it in: `mkdir -p ~/.config/policycodex && cp config.env.example ~/.config/policycodex/config.env`. Then edit that copy with your GitHub App ID, installation ID, private-key path (default `/secrets/github-app-private-key.pem`), and your LLM API key.
-- A pre-built published image (no local build) is coming post-DISC; `docker-compose.pull.yml` is the placeholder for that path.
 
 ### Rebuilding the CSS
 

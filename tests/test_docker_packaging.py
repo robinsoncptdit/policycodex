@@ -55,23 +55,21 @@ def test_dockerignore_excludes_env_files():
     assert ".env.*" in lines, ".env.* must be excluded from the Docker build context"
 
 
-def test_env_example_documents_required_keys():
+def test_env_example_documents_optional_overrides():
+    # DISC-15: .env.example is stripped to non-secret knobs only.
+    # All credentials and Django config live in the in-app credential store now.
     text = _read(".env.example")
-    for key in (
-        "DJANGO_SECRET_KEY",
-        "DJANGO_ALLOWED_HOSTS",
-        "POLICYCODEX_DB_PATH",
-        "POLICYCODEX_CONFIG_PATH",
-        "POLICYCODEX_SOURCE_URL",
-    ):
-        assert key in text, f"{key} not documented in .env.example"
+    assert "POLICYCODEX_SOURCE_URL" in text, "POLICYCODEX_SOURCE_URL not in .env.example"
+    assert "POLICYCODEX_PORT" in text, "POLICYCODEX_PORT not in .env.example"
 
 
-def test_env_example_holds_no_real_secret_values():
-    # Keys are present but must ship empty (no leaked credential).
-    for line in _read(".env.example").splitlines():
-        if line.startswith("DJANGO_SECRET_KEY="):
-            assert line.strip() == "DJANGO_SECRET_KEY="
+def test_env_example_holds_no_credentials():
+    # The new .env.example must not contain any Django secret/superuser knobs.
+    text = _read(".env.example")
+    for banned in ("DJANGO_SECRET_KEY", "DJANGO_SUPERUSER", "POLICYCODEX_GH_"):
+        assert banned not in text, (
+            f".env.example contains {banned}; credentials must not be in .env.example"
+        )
 
 
 def test_dockerfile_does_not_copy_load_secrets_helper():

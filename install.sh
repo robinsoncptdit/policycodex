@@ -1,39 +1,31 @@
-#!/usr/bin/env bash
-# PolicyCodex one-command install (REPO-05). Builds and starts the stack
-# from source (Profile A). Run from the repo root: ./install.sh
-#
-# CSS is pre-compiled and committed (static/css/policycodex.css). To regenerate
-# after editing templates or theme vars, run: scripts/build-css.sh
-set -euo pipefail
+#!/usr/bin/env sh
+# DISC-15: PolicyCodex installer for Profile A (source clone).
+# Builds the container image, starts it detached, waits for /health/,
+# then opens the host's default browser at http://localhost:8000.
+set -e
+
+PORT="${POLICYCODEX_PORT:-8000}"
 
 if ! command -v docker >/dev/null 2>&1; then
-    echo "Error: docker is not installed. Install Docker first: https://docs.docker.com/get-docker/" >&2
+    echo "Docker is required. Install Docker Desktop or Engine and re-run."
     exit 1
 fi
 
-if ! docker compose version >/dev/null 2>&1; then
-    echo "Error: 'docker compose' (v2) is required." >&2
-    exit 1
-fi
-
-if [ ! -f .env ]; then
-    cp .env.example .env
-    echo "Created .env from .env.example. Edit it to set DJANGO_SECRET_KEY and your"
-    echo "diocese values, then re-run ./install.sh. Secrets stay in ~/.config/policycodex/."
-    exit 0
-fi
-
-if grep -q '^DJANGO_SECRET_KEY=$' .env; then
-    echo "Error: DJANGO_SECRET_KEY is still empty in .env. Set it (and your other" >&2
-    echo "values) before starting, or the container will fail to boot. Generate one:" >&2
-    echo "  python3 -c \"import secrets,string; a=string.ascii_letters+string.digits+'!@%^&*(-_=+)'; print(''.join(secrets.choice(a) for _ in range(50)))\"" >&2
-    exit 1
-fi
-
-echo "Building and starting PolicyCodex (this may take a few minutes the first time)..."
 docker compose up --build -d
 
-echo
-echo "PolicyCodex is starting at http://localhost:8000"
-echo "Complete the onboarding wizard in your browser, or run the AI inventory pass."
-echo "Logs: docker compose logs -f"
+echo "Waiting for PolicyCodex to come up..."
+for i in $(seq 1 30); do
+    if curl -fsS "http://localhost:${PORT}/health/" >/dev/null 2>&1; then
+        break
+    fi
+    sleep 2
+done
+
+URL="http://localhost:${PORT}/"
+case "$(uname -s)" in
+    Darwin*) open "$URL" ;;
+    Linux*)  xdg-open "$URL" 2>/dev/null || true ;;
+    *)       echo "Open ${URL} in your browser." ;;
+esac
+
+echo "PolicyCodex is running at ${URL}"

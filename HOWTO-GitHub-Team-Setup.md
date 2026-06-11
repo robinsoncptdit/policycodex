@@ -31,8 +31,8 @@ the **Owner** role on the organization.
 Each diocese registers its own GitHub App. The App stays on your org, owns its
 own private key, and only ever sees the one repo you install it on. PolicyCodex
 authenticates as the App using the credentials you save in Phase 5 of the
-install (see `INSTALL-WITH-CLAUDE.md`): an **App ID**, an **Installation ID**,
-and a **private key** `.pem` file.
+install: an **App ID**, an **Installation ID**, and a **private key** `.pem`
+file. The onboarding wizard prompts for all three.
 
 You can do Part 1 on either a **Free** or a **Team** org; nothing about App
 creation requires Team. The downstream parts (branch protection, Pages) are
@@ -75,17 +75,17 @@ where the Team plan matters.
 
 6. Click **Create GitHub App**.
 
-7. On the App's settings page, capture the values you need for Phase 5 of the
-   install:
+7. On the App's settings page, capture the values you need for the onboarding
+   wizard (screen 2 — GitHub App):
 
-   - The **App ID** is shown near the top (a numeric value). Copy it. This is
-     `POLICYCODEX_GH_APP_ID` in `~/.config/policycodex/config.env`.
+   - The **App ID** is shown near the top (a numeric value). Copy it; the
+     wizard calls this the "App ID."
    - Scroll to **Private keys** and click **Generate a private key**. Your
-     browser downloads a `.pem` file. **Save that file straight to
-     `~/.config/policycodex/github-app-private-key.pem` on the VM that will
-     run PolicyCodex.** Do not paste the contents into chat or any other
-     surface. `chmod 600` the file. The absolute path you saved it at is
-     `POLICYCODEX_GH_PRIVATE_KEY_PATH`.
+     browser downloads a `.pem` file. **Save that file somewhere safe on the
+     VM that will run PolicyCodex** (for example,
+     `~/.config/policycodex/github-app-private-key.pem`). Do not paste the
+     contents into chat or any other surface. `chmod 600` the file. The wizard
+     will ask for the absolute path to this file.
 
 8. Install the App on your policy repo:
 
@@ -97,11 +97,10 @@ where the Team plan matters.
 
 9. Capture the **Installation ID**. After install, your browser is on
    `https://github.com/organizations/<your-org>/settings/installations/<installation-id>`.
-   The trailing number is the Installation ID. Copy it. This is
-   `POLICYCODEX_GH_INSTALLATION_ID` in `~/.config/policycodex/config.env`.
+   The trailing number is the Installation ID. Copy it.
 
-You now have all three values Phase 5 needs. Return to the install prompt to
-finish wiring them up.
+You now have all three values the onboarding wizard (screen 2) needs: App ID,
+Installation ID, and the path to your private key file.
 
 ## Part 2: Upgrade the organization to the Team plan
 
