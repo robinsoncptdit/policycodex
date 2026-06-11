@@ -9,7 +9,7 @@ User = get_user_model()
 def test_minimum_length_12():
     with pytest.raises(ValidationError) as exc:
         validate_password("Strong5!")  # 8 chars
-    assert "12 character" in str(exc.value).lower() or "too short" in str(exc.value).lower()
+    assert "too short" in str(exc.value).lower()
 
 
 def test_common_password_rejected():
