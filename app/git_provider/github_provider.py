@@ -70,6 +70,18 @@ class GitHubProvider(GitProvider):
             # get_github_for_installation returns a Github instance directly
             self._client = install_auth
 
+    @classmethod
+    def test_credentials(cls, app_id: str, installation_id: str, private_key_pem: str) -> bool:
+        """DISC-05: dry-run authentication. Returns True if the App can mint an
+        installation token; raises RuntimeError with the GitHub message otherwise."""
+        try:
+            app_auth = Auth.AppAuth(int(app_id), private_key_pem)
+            integration = GithubIntegration(auth=app_auth)
+            integration.get_access_token(int(installation_id))
+        except Exception as exc:
+            raise RuntimeError(str(exc)) from exc
+        return True
+
     def _installation_token(self) -> str:
         return _build_installation_token(self._config)
 

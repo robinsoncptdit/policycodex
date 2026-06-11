@@ -170,9 +170,19 @@ def test_no_form_step_still_advances_on_bare_continue(client, user):
 
 
 # Advance through steps 1-3 to land on github-repo (step 4).
+# Screens 1-3 are now real handlers with credential requirements; bypass them
+# via session manipulation so these integration helpers stay credential-free.
 def _advance_to_github_repo(client):
-    for slug in ["admin-account", "github-app", "llm-provider"]:
-        client.post(f"/onboarding/{slug}/", {"action": "continue"})
+    from app.onboarding.state import SESSION_KEY
+    # Force a first request so Django creates the session.
+    client.get("/onboarding/admin-account/")
+    session = client.session
+    session[SESSION_KEY] = {
+        "current_step": "github-repo",
+        "completed": ["admin-account", "github-app", "llm-provider"],
+        "data": {},
+    }
+    session.save()
 
 
 # Steps 1-5 payloads to land ON retention-policy (step 6).

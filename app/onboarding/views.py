@@ -149,12 +149,8 @@ def onboarding_step(request, step):
         return admin_account.handle(request, target, state)
 
     if step == "github-app":
-        # DISC-05 scaffold; remove when screen lands
-        try:
-            from app.onboarding.screens import github_app
-            return github_app.handle(request, target, state)
-        except ImportError:
-            return _generic_step(request, target, state)
+        from app.onboarding.screens import github_app
+        return github_app.handle(request, target, state)
 
     if step == "llm-provider":
         # DISC-06 scaffold; remove when screen lands
