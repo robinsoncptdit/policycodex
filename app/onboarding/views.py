@@ -161,12 +161,8 @@ def onboarding_step(request, step):
         return github_repo.handle(request, target, state)
 
     if step == "configuration":
-        # DISC-08 scaffold; remove when screen lands
-        try:
-            from app.onboarding.screens import configuration
-            return configuration.handle(request, target, state)
-        except ImportError:
-            return _generic_step(request, target, state)
+        from app.onboarding.screens import configuration
+        return configuration.handle(request, target, state)
 
     if step == "policy-documents":
         # DISC-10 scaffold; remove when screen lands

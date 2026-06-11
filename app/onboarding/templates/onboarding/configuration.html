@@ -1,0 +1,56 @@
+{% extends "onboarding/base_wizard.html" %}
+{% block step_content %}
+<h1 class="text-2xl font-semibold mb-4">Configuration</h1>
+<p class="mb-6 text-base-content/80">
+  We've prefilled the LA Archdiocese defaults. Open any section to change them.
+</p>
+<div class="space-y-4">
+  <details class="collapse collapse-arrow bg-base-200">
+    <summary class="collapse-title text-sm font-medium">Address scheme: <span class="font-mono">{{ form.address_scheme.value|default:'chapter-section-item' }}</span></summary>
+    <div class="collapse-content">
+      {% for value, label in form.fields.address_scheme.choices %}
+        <label class="cursor-pointer flex items-center gap-2 py-1">
+          <input type="radio" name="address_scheme" value="{{ value }}"
+                 {% if form.address_scheme.value == value or not form.address_scheme.value and forloop.first %}checked{% endif %}
+                 class="radio radio-sm">
+          <span>{{ label }}</span>
+        </label>
+      {% endfor %}
+    </div>
+  </details>
+  <details class="collapse collapse-arrow bg-base-200">
+    <summary class="collapse-title text-sm font-medium">Versioning: <span class="font-mono">{{ form.versioning.value|default:'semver' }}</span></summary>
+    <div class="collapse-content">
+      {% for value, label in form.fields.versioning.choices %}
+        <label class="cursor-pointer flex items-center gap-2 py-1">
+          <input type="radio" name="versioning" value="{{ value }}"
+                 {% if form.versioning.value == value or not form.versioning.value and forloop.first %}checked{% endif %}
+                 class="radio radio-sm">
+          <span>{{ label }}</span>
+        </label>
+      {% endfor %}
+    </div>
+  </details>
+  <details class="collapse collapse-arrow bg-base-200">
+    <summary class="collapse-title text-sm font-medium">Reviewer roles</summary>
+    <div class="collapse-content">
+      <input name="reviewer_roles" type="text" class="input input-bordered w-full"
+             value="{{ form.reviewer_roles.value|default:'CFO,HR Director,General Counsel' }}">
+      <p class="label-text-alt text-base-content/60 mt-1">Comma-separated.</p>
+    </div>
+  </details>
+  <details class="collapse collapse-arrow bg-base-200">
+    <summary class="collapse-title text-sm font-medium">Retention defaults: <span class="font-mono">admin {{ form.retention_admin_years.value|default:'7' }}y · operational {{ form.retention_operational_years.value|default:'3' }}y</span></summary>
+    <div class="collapse-content space-y-2">
+      <div class="form-control">
+        <label class="label"><span class="label-text">Admin records (years)</span></label>
+        <input name="retention_admin_years" type="number" min="1" max="99" class="input input-bordered" value="{{ form.retention_admin_years.value|default:'7' }}">
+      </div>
+      <div class="form-control">
+        <label class="label"><span class="label-text">Operational records (years)</span></label>
+        <input name="retention_operational_years" type="number" min="1" max="99" class="input input-bordered" value="{{ form.retention_operational_years.value|default:'3' }}">
+      </div>
+    </div>
+  </details>
+</div>
+{% endblock %}
