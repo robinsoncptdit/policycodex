@@ -11,11 +11,21 @@
   </head>
   <body class="min-h-screen bg-base-200 text-base-content flex flex-col">
     <header class="navbar bg-base-100 border-b border-base-300 px-6">
-      <div class="flex-1 flex items-center gap-2">
+      <div class="flex items-center gap-2">
         <span class="w-7 h-7 rounded bg-primary text-primary-content flex items-center justify-center text-xs font-semibold">PC</span>
         <a href="{% url 'catalog' %}" class="font-semibold text-base-content">PolicyCodex</a>
       </div>
       {% if user.is_authenticated %}
+        <nav class="flex-1 flex items-center gap-1 ml-6">
+          <a href="{% url 'catalog' %}"
+             class="btn btn-ghost btn-sm{% if request.path == '/catalog/' or request.path|slice:':10' == '/policies/' %} btn-active{% endif %}">Catalog</a>
+          <a href="{% url 'inventory' %}"
+             class="btn btn-ghost btn-sm{% if request.path|slice:':11' == '/inventory/' %} btn-active{% endif %}">Inventory</a>
+          {% if user.is_superuser or user.groups.all|length and 'Admin' in user.groups.values_list|join:',' %}
+            <a href="{% url 'settings_root' %}"
+               class="btn btn-ghost btn-sm{% if request.path|slice:':10' == '/settings/' %} btn-active{% endif %}">Settings</a>
+          {% endif %}
+        </nav>
         <div class="flex items-center gap-4">
           <span class="text-xs text-slate-500">Signed in as {{ user.username }}</span>
           <form method="post" action="{% url 'logout' %}">
