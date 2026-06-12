@@ -1,7 +1,7 @@
 {% if lifecycle == "failed" %}
   <div class="alert alert-error mb-4">
     <span>Extraction failed: {{ run.pr_error|default:"see per-item details" }}</span>
-    <form method="post" action="{% url 'inventory_upload' %}" class="ml-auto">
+    <form method="post" action="{% url 'inventory_retry_run' run.pk %}" class="ml-auto">
       {% csrf_token %}
       <button type="submit" class="btn btn-sm">Retry whole run</button>
     </form>

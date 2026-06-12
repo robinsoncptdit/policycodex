@@ -9,7 +9,11 @@
       <div class="text-xs">Extracting&hellip;</div>
     {% elif item.status == "failed" %}
       <div class="badge badge-error">Failed</div>
-      <div class="text-xs">{{ item.error_message }}</div>
+      <div class="text-xs mb-2">{{ item.error_message }}</div>
+      <form method="post" action="{% url 'inventory_retry_item' item.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-xs btn-outline">Retry</button>
+      </form>
     {% else %}
       <div class="text-xs text-base-content/60">Pending</div>
     {% endif %}
