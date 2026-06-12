@@ -1,7 +1,8 @@
 {% extends "settings/base_settings.html" %}
 {% block panel_content %}
 <p class="mb-4 text-base-content/80">
-  PolicyCodex uses a GitHub App to create branches, commit files, and open pull requests in your diocese's policy repository. Paste your App ID, Installation ID, and private key below.
+  PolicyCodex needs a GitHub App so it can commit policy changes and
+  open pull requests on your diocese's behalf.
 </p>
 {% if message %}<div class="alert alert-success mb-4">{{ message }}</div>{% endif %}
 {% if error %}<div class="alert alert-warning mb-4">{{ error }}</div>{% endif %}

@@ -78,3 +78,16 @@ def test_revoke_clears_pem(client, admin):
     })
     # PEM is cleared by overwriting with empty (store has no delete).
     assert store.get("github_app.private_key_pem") == ""
+
+
+def test_intro_does_not_contradict_setup_action(client, admin):
+    """The setup-action card says 'three clicks' — the intro must not
+    tell the user to paste credentials when no credentials are saved."""
+    client.force_login(admin)
+    response = client.get("/settings/github-app/")
+    body = response.content.decode()
+    # When no App is configured (no credentials in store), the
+    # recommended path is the manifest flow. The intro should not
+    # contradict that by telling the user to paste.
+    assert "Paste your App ID" not in body
+    assert "Paste your" not in body or "Paste a new" in body
