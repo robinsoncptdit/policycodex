@@ -44,6 +44,11 @@ jobs:
       - name: Install Playwright browser
         run: playwright install --with-deps chromium
 
+      - name: Compute test repo name
+        # Predictable per-run name lets the teardown step reach the same repo
+        # the Playwright script creates via the Policy Repository panel.
+        run: echo "DISC_SMOKE_REPO_NAME=policycodex-smoke-${GITHUB_SHA::8}" >> "$GITHUB_ENV"
+
       - name: Run smoke test
         env:
           DISC_SMOKE_GH_APP_ID: ${{ secrets.DISC_SMOKE_GH_APP_ID }}
@@ -58,8 +63,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.DISC_SMOKE_TEARDOWN_TOKEN }}
         run: |
-          REPO="disc-smoke-${GITHUB_SHA:0:7}"
-          gh api -X DELETE "/repos/${{ secrets.DISC_SMOKE_TEST_ORG }}/$REPO" || true
+          gh api -X DELETE "/repos/${{ secrets.DISC_SMOKE_TEST_ORG }}/$DISC_SMOKE_REPO_NAME" || true
 
       - name: Teardown container
         if: always()
