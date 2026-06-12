@@ -37,6 +37,7 @@ def _set_role(user, role: str) -> None:
     user.groups.clear()
     if role == "Admin":
         user.is_superuser = True
+        # is_staff grants Django /admin/ access; intentional for v0.1.
         user.is_staff = True
         user.save()
         return
