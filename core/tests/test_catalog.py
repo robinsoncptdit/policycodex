@@ -58,8 +58,9 @@ def test_catalog_empty_state_when_repo_url_unset(client, user):
     assert response.status_code == 200
     body = response.content.decode()
     assert "No policies yet" in body
-    # Onboarding hint should appear in the empty state.
-    assert "pull_working_copy" in body or "onboarding" in body.lower()
+    # Empty state should point the user at the panel, not at the shell.
+    assert "Settings" in body or "Policy repository" in body
+    assert "manage.py pull_working_copy" not in body
 
 
 def _stub_policy(*, slug, kind="flat", title=None, foundational=False, provides=(), category=None):

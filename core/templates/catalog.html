@@ -12,15 +12,16 @@
   </div>
 
   {% if is_empty_onboarding %}
-    <div class="card bg-base-100 border border-base-300">
-      <div class="card-body items-center text-center py-12">
-        <h3 class="text-lg font-medium text-slate-900">No policies yet</h3>
-        <p class="text-sm text-slate-500 max-w-md">
-          Configure the policy repository in Settings, then sync the diocese's policy repo by running
-          <code class="text-xs">python manage.py pull_working_copy</code> on the server.
-        </p>
-      </div>
-    </div>
+<div class="alert alert-info">
+  <div>
+    <h3 class="font-semibold">No policies yet</h3>
+    <p class="mt-1 text-sm">
+      Configure your policy repository in
+      <a href="{% url 'settings_panel' slug='policy-repo' %}" class="link link-primary">Settings → Policy repository</a>,
+      then click <strong>Sync from GitHub</strong> above to pull your diocese's policies.
+    </p>
+  </div>
+</div>
   {% else %}
     {% if gap_count %}
       <div class="alert alert-warning text-sm mb-4">
