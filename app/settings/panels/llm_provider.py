@@ -42,7 +42,7 @@ class LLMProviderPanel(SettingsPanel):
     title = "AI provider"
     nav_group = "Credentials"
 
-    def render(self, request, *, form=None, error=None):
+    def render(self, request, *, form=None, error=None, success=None):
         from app.settings.views import _nav_groups
         ctx = {
             "active_slug": self.slug,
@@ -50,6 +50,7 @@ class LLMProviderPanel(SettingsPanel):
             "nav_groups": _nav_groups(),
             "form": form or _Form(initial={"provider": "claude"}),
             "error": error,
+            "success": success,
         }
         return render(request, "settings/panels/llm_provider.html", ctx)
 
@@ -60,7 +61,7 @@ class LLMProviderPanel(SettingsPanel):
         provider = form.cleaned_data["provider"]
         if provider == "local-llama":
             store.set("llm.provider", provider)
-            return self.render(request, form=form)
+            return self.render(request, form=form, success="Saved.")
         api_key = form.cleaned_data["api_key"]
         if not api_key:
             return self.render(request, form=form, error="Paste your API key.")
@@ -69,11 +70,16 @@ class LLMProviderPanel(SettingsPanel):
             return self.render(request, form=form, error="Test the key first.")
         store.set("llm.provider", provider)
         store.set(f"llm.{provider}.api_key", api_key)
-        return self.render(request, form=form)
+        return self.render(request, form=form, success="Saved.")
 
     def test(self, request):
-        provider = request.POST.get("provider", "")
-        api_key = request.POST.get("api_key", "")
+        form = _Form(request.POST)
+        if not form.is_valid():
+            return HttpResponse(render_to_string("settings/_test_result.html", {
+                "result": {"state": "error", "message": "Invalid input."},
+            }))
+        provider = form.cleaned_data["provider"]
+        api_key = form.cleaned_data["api_key"]
         if provider == "local-llama":
             return HttpResponse(render_to_string("settings/_test_result.html", {
                 "result": {"state": "ok", "message": "Local Llama needs no test."},
