@@ -1,0 +1,27 @@
+{% if lifecycle == "failed" %}
+  <div class="alert alert-error mb-4">
+    <span>Extraction failed: {{ run.pr_error|default:"see per-item details" }}</span>
+    <form method="post" action="{% url 'inventory_upload' %}" class="ml-auto">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm">Retry whole run</button>
+    </form>
+  </div>
+{% elif lifecycle == "completed" or lifecycle == "completed_with_failures" %}
+  <div class="alert alert-success mb-4">
+    <span>Most recent extraction: {{ run.completed }} of {{ run.total }} succeeded.</span>
+    {% if run.pr_url %}<a href="{{ run.pr_url }}" class="btn btn-sm btn-outline ml-auto">View PR</a>{% endif %}
+  </div>
+{% elif lifecycle == "active" %}
+  <div class="alert alert-info mb-4">
+    <span>{{ run.completed }} of {{ run.total }} — extraction in progress.</span>
+    <progress class="progress progress-primary w-32" value="{{ run.completed }}" max="{{ run.total }}"></progress>
+  </div>
+{% endif %}
+
+{% if run.items.exists %}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+  {% for item in run.items.all %}
+    {% include "inventory/_card.html" with item=item %}
+  {% endfor %}
+</div>
+{% endif %}

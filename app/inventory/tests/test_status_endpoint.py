@@ -1,4 +1,4 @@
-"""DISC-13: HTMX polling endpoint returns the cards fragment; completion triggers redirect."""
+"""HTMX polling endpoint returns the status fragment for all lifecycle states."""
 import pytest
 from django.contrib.auth import get_user_model
 from django.test import Client
@@ -29,12 +29,13 @@ def test_status_fragment_returns_html(logged_in_admin):
 
 
 @pytest.mark.django_db
-def test_completed_run_returns_hx_redirect(logged_in_admin):
+def test_completed_run_renders_success_banner(logged_in_admin):
     from app.inventory.models import InventoryRun
     run = InventoryRun.objects.create(status="completed", total=2, completed=2, pr_url="https://github.com/x/y/pull/1")
     r = logged_in_admin.get(f"/htmx/inventory/status/?run={run.pk}")
     assert r.status_code == 200
-    assert r["HX-Redirect"] == "/catalog/"
+    assert b"Most recent extraction" in r.content
+    assert b"pull/1" in r.content
 
 
 @pytest.mark.django_db

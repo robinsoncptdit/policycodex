@@ -1,97 +1,123 @@
-"""DISC-12: inventory progress page. DISC-13: HTMX polling status endpoint."""
+"""Inventory page: 5-state lifecycle + drop bucket + cards grid."""
 from __future__ import annotations
 
-import os
 from pathlib import Path
+import os
+import uuid
 
-from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
+from django.views.decorators.http import require_POST
 
 from app.inventory.models import InventoryRun, InventoryItem
 from app.inventory.runner import start_run
+from app.working_copy.config import load_working_copy_config
+from core.permissions import require_role
 
 
-@login_required
+_ALLOWED_EXT = {".pdf", ".docx", ".md", ".txt"}
+_MAX_FILE_BYTES = 25 * 1024 * 1024
+_MAX_TOTAL_BYTES = 500 * 1024 * 1024
+
+
+def _staging_root() -> Path:
+    raw = os.environ.get("POLICYCODEX_INGEST_STAGING_ROOT", "")
+    return Path(raw) if raw else Path("/data/ingest-staging")
+
+
+def _latest_run() -> InventoryRun | None:
+    return InventoryRun.objects.order_by("-started_at").first()
+
+
+def _lifecycle(run: InventoryRun | None) -> str:
+    if run is None:
+        return "empty"
+    if run.status in ("pending", "running"):
+        return "active"
+    if run.status == "failed":
+        return "failed"
+    if run.failed > 0:
+        return "completed_with_failures"
+    return "completed"
+
+
+@require_role("Editor")
 def inventory_page(request):
-    # The inventory page now requires a configured working copy. If none
-    # exists, redirect to catalog (which shows the "configure Settings"
-    # banner). Task 28 will replace this with the top-level /inventory/
-    # page from the Settings-page rebuild plan.
+    run = _latest_run()
+    return render(request, "inventory/inventory.html", {
+        "run": run,
+        "lifecycle": _lifecycle(run),
+    })
+
+
+@require_role("Editor")
+@require_POST
+def inventory_upload(request):
+    files = request.FILES.getlist("files")
+    if not files:
+        return render(request, "inventory/inventory.html", {
+            "run": _latest_run(),
+            "lifecycle": _lifecycle(_latest_run()),
+            "error": "Drop at least one document.",
+        })
+    err = _validate(files)
+    if err:
+        return render(request, "inventory/inventory.html", {
+            "run": _latest_run(),
+            "lifecycle": _lifecycle(_latest_run()),
+            "error": err,
+        })
+    # Reject if a run is already active.
+    if _latest_run() and _latest_run().status in ("pending", "running"):
+        return render(request, "inventory/inventory.html", {
+            "run": _latest_run(),
+            "lifecycle": "active",
+            "error": "A run is already in progress.",
+        })
+    run_id = uuid.uuid4().hex[:12]
+    stage_dir = _staging_root() / run_id
+    stage_dir.mkdir(parents=True, exist_ok=True)
+    for f in files:
+        with (stage_dir / f.name).open("wb") as fh:
+            for chunk in f.chunks():
+                fh.write(chunk)
+    run = InventoryRun.objects.create(status="pending", total=len(files))
+    for f in files:
+        InventoryItem.objects.create(run=run, source_filename=f.name, status="pending")
     try:
-        working_dir = _working_dir_or_fail()
+        working_dir = load_working_copy_config().working_dir
     except RuntimeError:
-        return redirect("catalog")
-
-    # Find or create the run.
-    run = InventoryRun.objects.filter(status__in=("pending", "running")).first()
-    if run is None and not InventoryRun.objects.filter(status="completed").exists():
-        stage_dir = _stage_dir_or_fail()
-        if stage_dir is None:
-            return redirect("catalog")
-        files = sorted(p for p in stage_dir.iterdir() if p.is_file() and p.name != "manifest.json")
-        run = InventoryRun.objects.create(status="pending", total=len(files))
-        for f in files:
-            InventoryItem.objects.create(run=run, source_filename=f.name, status="pending")
-        start_run(run, stage_dir, working_dir)
-    elif run is None:
-        # Run already completed — go straight to catalog.
-        return redirect("catalog")
-
-    return render(request, "inventory/inventory.html", {"run": run})
+        run.status = "failed"
+        run.pr_error = "Policy repository not configured."
+        run.save()
+        return redirect("inventory")
+    start_run(run, stage_dir, working_dir)
+    return redirect("inventory")
 
 
-def _working_dir_or_fail() -> Path:
-    """Return the working-copy directory. Should always be present at this point."""
-    from app.working_copy.config import load_working_copy_config
-    return load_working_copy_config().working_dir
+def _validate(files):
+    total = 0
+    for f in files:
+        ext = Path(f.name).suffix.lower()
+        if ext not in _ALLOWED_EXT:
+            return f"Unsupported file type: {f.name}"
+        if f.size > _MAX_FILE_BYTES:
+            return f"File too large: {f.name} (limit 25 MB)"
+        total += f.size
+    if total > _MAX_TOTAL_BYTES:
+        return "Total upload too large (limit 500 MB)."
+    return None
 
 
-def _stage_dir_or_fail():
-    """Return the ingest staging directory if configured, else None."""
-    root = os.environ.get("POLICYCODEX_INGEST_STAGING_ROOT")
-    if not root:
-        return None
-    stage_root = Path(root)
-    dirs = sorted(p for p in stage_root.iterdir() if p.is_dir()) if stage_root.exists() else []
-    return dirs[-1] if dirs else None
-
-
-@login_required
+@require_role("Editor")
 def status_fragment(request):
-    """DISC-13: HTMX polling target. Returns the cards-grid fragment, or
-    HX-Redirect on completion. DISC-14 plugs finalize_after_inventory in
-    on the completed branch. Task 28 will simplify finalize_after_inventory
-    to drop the config_yaml_text / bundle_dir kwargs."""
-    run_id_raw = request.GET.get("run", "0")
-    try:
-        run_id = int(run_id_raw)
-    except ValueError:
-        return HttpResponse(status=404)
+    """HTMX polling endpoint. Returns the cards grid + status strip."""
+    run_id = request.GET.get("run")
     run = InventoryRun.objects.filter(pk=run_id).first()
     if run is None:
         return HttpResponse(status=404)
-    if run.status == "completed":
-        # DISC-14: open the single bulk PR on first completion poll.
-        if not run.pr_url and not run.pr_error:
-            from app.inventory.finalize import finalize_after_inventory
-            try:
-                working_dir = _working_dir_or_fail()
-                # config_yaml_text and bundle_dir are legacy from the pre-pivot flow.
-                # Task 28 simplifies finalize_after_inventory to (run, *, working_dir).
-                bundle_dir = working_dir / "policies" / "document-retention"
-                finalize_after_inventory(
-                    run,
-                    working_dir=working_dir,
-                    config_yaml_text="",
-                    bundle_dir=bundle_dir,
-                )
-            except Exception as exc:  # noqa: BLE001
-                run.pr_error = str(exc)
-                run.save()
-        resp = HttpResponse("")
-        resp["HX-Redirect"] = "/catalog/"
-        return resp
-    html = render_to_string("inventory/_inventory_status.html", {"run": run})
-    return HttpResponse(html)
+    return HttpResponse(render_to_string("inventory/_status.html", {
+        "run": run,
+        "lifecycle": _lifecycle(run),
+    }, request=request))

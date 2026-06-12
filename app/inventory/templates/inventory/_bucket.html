@@ -1,0 +1,21 @@
+<div id="bucket" class="mt-8">
+  <form method="post" action="{% url 'inventory_upload' %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label class="cursor-pointer flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-base-300 rounded-lg
+                 {% if lifecycle == 'active' %}opacity-50 cursor-not-allowed{% else %}hover:border-primary{% endif %}">
+      <span class="text-base-content/60">
+        {% if lifecycle == 'active' %}
+          Extraction in progress — wait for it to finish before adding more.
+        {% else %}
+          Drop your policy documents here, or click to browse
+        {% endif %}
+      </span>
+      <span class="text-xs text-base-content/50 mt-2">PDF, DOCX, MD, TXT &middot; 25 MB each, 500 MB total</span>
+      <input type="file" name="files" multiple accept=".pdf,.docx,.md,.txt"
+             {% if lifecycle == 'active' %}disabled{% endif %} class="hidden">
+    </label>
+    {% if lifecycle != 'active' %}
+      <button type="submit" class="hidden">Upload</button>
+    {% endif %}
+  </form>
+</div>
