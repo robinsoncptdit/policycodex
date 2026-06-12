@@ -1,0 +1,50 @@
+{% extends "settings/base_settings.html" %}
+{% block panel_content %}
+<p class="mb-6 text-base-content/80">
+  These actions are destructive. They wipe credentials, working copies, or users
+  from <strong>this PolicyCodex install</strong>. Nothing is sent to GitHub.
+</p>
+{% if message %}<div class="alert alert-success mb-4">{{ message }}</div>{% endif %}
+{% if error %}<div class="alert alert-warning mb-4">{{ error }}</div>{% endif %}
+
+<div class="space-y-6">
+  <div class="card bg-base-200 border border-error">
+    <div class="card-body">
+      <h2 class="card-title">Clear credential store</h2>
+      <p>Wipes /data/.credentials. You will need to re-enter every credential from the other Settings panels. Working copy is untouched.</p>
+      <form method="post" class="flex gap-2 mt-2">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="clear_credentials">
+        <input name="confirm_token" placeholder="type CLEAR" class="input input-bordered">
+        <button type="submit" class="btn btn-error">Clear credentials</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card bg-base-200 border border-error">
+    <div class="card-body">
+      <h2 class="card-title">Disconnect everything</h2>
+      <p>Clears the credential store AND removes /data/working-copy/. The policy repo on GitHub is untouched.</p>
+      <form method="post" class="flex gap-2 mt-2">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="disconnect_everything">
+        <input name="confirm_token" placeholder="type DISCONNECT" class="input input-bordered">
+        <button type="submit" class="btn btn-error">Disconnect</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card bg-base-300 border-2 border-error">
+    <div class="card-body">
+      <h2 class="card-title">Full factory reset</h2>
+      <p>Clears credentials + working copy + every non-admin user + every inventory run. Equivalent to a fresh /data volume. You stay signed in.</p>
+      <form method="post" class="flex gap-2 mt-2">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="factory_reset">
+        <input name="confirm_token" placeholder="type RESET POLICYCODEX" class="input input-bordered flex-1">
+        <button type="submit" class="btn btn-error">Factory reset</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
