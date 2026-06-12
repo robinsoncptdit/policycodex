@@ -17,7 +17,14 @@ def _credential_store_path() -> Path:
 
 
 def _working_copy_root() -> Path:
-    return Path(os.environ.get("POLICYCODEX_WORKING_COPY_ROOT", "/data/working-copy"))
+    # Mirror app.working_copy.config: prefer the env var, then /data/working-copy
+    # in Docker, then ~/.policycodex/working-copies for dev outside Docker.
+    root_raw = os.environ.get("POLICYCODEX_WORKING_COPY_ROOT", "")
+    if root_raw:
+        return Path(os.path.expanduser(root_raw))
+    if Path("/data").exists():
+        return Path("/data/working-copy")
+    return Path.home() / ".policycodex" / "working-copies"
 
 
 def _clear_credentials() -> None:
