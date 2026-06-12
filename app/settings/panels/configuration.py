@@ -56,12 +56,16 @@ class ConfigurationPanel(SettingsPanel):
     title = "Configuration"
     nav_group = "Diocese"
 
+    def is_configured(self, request) -> bool:
+        from app.credentials import store
+        return store.has("diocese.config_pushed") and bool(store.get("diocese.config_pushed"))
+
     def render(self, request, *, form=None, message=None, error=None, pr_url=None):
         from app.settings.views import _nav_groups
         return render(request, "settings/panels/configuration.html", {
             "active_slug": self.slug,
             "panel_title": self.title,
-            "nav_groups": _nav_groups(),
+            "nav_groups": _nav_groups(request),
             "form": form or _Form(),
             "message": message,
             "error": error,

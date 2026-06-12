@@ -42,6 +42,14 @@ class LLMProviderPanel(SettingsPanel):
     title = "AI provider"
     nav_group = "Credentials"
 
+    def is_configured(self, request) -> bool:
+        if not store.has("llm.provider"):
+            return False
+        provider = store.get("llm.provider")
+        if provider == "local-llama":
+            return True
+        return store.has(f"llm.{provider}.api_key") and bool(store.get(f"llm.{provider}.api_key"))
+
     def render(self, request, *, form=None, error=None, success=None):
         from app.settings.views import _nav_groups
         # Only the provider choice is safe to pre-fill. The API key is a
@@ -54,7 +62,7 @@ class LLMProviderPanel(SettingsPanel):
         ctx = {
             "active_slug": self.slug,
             "panel_title": self.title,
-            "nav_groups": _nav_groups(),
+            "nav_groups": _nav_groups(request),
             "form": form or _Form(initial=initial),
             "error": error,
             "success": success,

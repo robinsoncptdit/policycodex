@@ -141,6 +141,9 @@ class PolicyRepoPanel(SettingsPanel):
     title = "Policy repository"
     nav_group = "Diocese"
 
+    def is_configured(self, request) -> bool:
+        return store.has("policy_repo.url") and bool(store.get("policy_repo.url"))
+
     def render(self, request, *, form=None, message=None, error=None):
         from app.settings.views import _nav_groups
         initial = {}
@@ -162,7 +165,7 @@ class PolicyRepoPanel(SettingsPanel):
         return render(request, "settings/panels/policy_repo.html", {
             "active_slug": self.slug,
             "panel_title": self.title,
-            "nav_groups": _nav_groups(),
+            "nav_groups": _nav_groups(request),
             "form": form or _Form(initial=initial),
             "current_url": store.get("policy_repo.url") if store.has("policy_repo.url") else None,
             "panel_setup_actions": self.setup_actions(request),

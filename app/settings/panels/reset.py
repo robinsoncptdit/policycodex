@@ -64,12 +64,16 @@ class ResetPanel(SettingsPanel):
     title = "Reset PolicyCodex"
     nav_group = "Danger"
 
+    def is_configured(self, request) -> bool:
+        # Reset is always available; checkmark is not meaningful here.
+        return True
+
     def render(self, request, *, message=None, error=None):
         from app.settings.views import _nav_groups
         return render(request, "settings/panels/reset.html", {
             "active_slug": self.slug,
             "panel_title": self.title,
-            "nav_groups": _nav_groups(),
+            "nav_groups": _nav_groups(request),
             "message": message,
             "error": error,
         })

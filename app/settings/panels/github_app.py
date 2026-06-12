@@ -49,6 +49,12 @@ class GitHubAppPanel(SettingsPanel):
     title = "GitHub App"
     nav_group = "Credentials"
 
+    def is_configured(self, request) -> bool:
+        return all(
+            store.has(k) and bool(store.get(k))
+            for k in ("github_app.app_id", "github_app.installation_id", "github_app.private_key_pem")
+        )
+
     def render(self, request, *, form=None, message=None, error=None):
         from app.settings.views import _nav_groups
         # App ID and Installation ID are NOT secrets (they appear in
@@ -67,7 +73,7 @@ class GitHubAppPanel(SettingsPanel):
         return render(request, "settings/panels/github_app.html", {
             "active_slug": self.slug,
             "panel_title": self.title,
-            "nav_groups": _nav_groups(),
+            "nav_groups": _nav_groups(request),
             "form": form or _Form(initial=initial),
             "panel_setup_actions": self.setup_actions(request),
             "panel_danger_actions": self.danger_actions(request),

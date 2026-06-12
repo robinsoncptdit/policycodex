@@ -58,6 +58,12 @@ class UsersPanel(SettingsPanel):
     title = "Users and roles"
     nav_group = "Admin"
 
+    def is_configured(self, request) -> bool:
+        # Users panel is "configured" once at least one non-superuser has been added.
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        return User.objects.filter(is_superuser=False).exists()
+
     def render(self, request, *, message=None, error=None, last_temp=None):
         from app.settings.views import _nav_groups
         User = _get_user_model()
@@ -69,7 +75,7 @@ class UsersPanel(SettingsPanel):
         return render(request, "settings/panels/users.html", {
             "active_slug": self.slug,
             "panel_title": self.title,
-            "nav_groups": _nav_groups(),
+            "nav_groups": _nav_groups(request),
             "users": [(u, _user_role(u)) for u in users],
             "role_choices": _ROLE_NAMES,
             "message": message,

@@ -6,8 +6,12 @@
         {% for item in items %}
           <li>
             <a href="{% url 'settings_panel' slug=item.slug %}"
-               class="block px-2 py-1 rounded {% if item.slug == active_slug %}bg-base-200 font-medium{% else %}hover:bg-base-200{% endif %}">
-              {{ item.title }}
+               data-configured="{% if item.is_configured and item.slug != 'reset' %}true{% else %}false{% endif %}"
+               class="flex items-center gap-2 px-2 py-1 rounded {% if item.slug == active_slug %}bg-base-200 font-medium{% else %}hover:bg-base-200{% endif %}">
+              <span>{{ item.title }}</span>
+              {% if item.is_configured and item.slug != 'reset' %}
+                <span class="text-success text-xs">✓</span>
+              {% endif %}
             </a>
           </li>
         {% endfor %}

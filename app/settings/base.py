@@ -77,3 +77,8 @@ class SettingsPanel(ABC):
         if user.is_superuser:
             return True
         return user.groups.filter(name="Admin").exists()
+
+    def is_configured(self, request) -> bool:
+        """True when this panel's underlying configuration is in place.
+        Default False — panels override to inspect the credential store."""
+        return False

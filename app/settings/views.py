@@ -43,11 +43,15 @@ def settings_panel_test(request, slug):
     return result
 
 
-def _nav_groups():
-    """Group panels by nav_group in registration order."""
+def _nav_groups(request=None):
+    """Group panels by nav_group in registration order. Each item carries
+    is_configured so the left rail can render a checkmark."""
     groups: dict[str, list] = {}
     for p in registry.all_panels():
-        groups.setdefault(p.nav_group, []).append({"slug": p.slug, "title": p.title})
-    # Stable order for the four canonical groups.
+        groups.setdefault(p.nav_group, []).append({
+            "slug": p.slug,
+            "title": p.title,
+            "is_configured": p.is_configured(request) if request else False,
+        })
     order = ["Credentials", "Diocese", "Admin", "Danger"]
     return [(name, groups[name]) for name in order if name in groups]
