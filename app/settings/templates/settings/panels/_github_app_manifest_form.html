@@ -3,6 +3,7 @@
 <p class="mb-4">Redirecting you to GitHub to approve the new App. If the redirect does not happen, click the button below.</p>
 <form id="manifest-form" method="post" action="{{ post_url }}">
   <input type="hidden" name="manifest" value="{{ manifest_json }}">
+  <input type="hidden" name="state" value="{{ state_token }}">
   <button type="submit" class="btn btn-primary">Continue to GitHub</button>
 </form>
 <script>

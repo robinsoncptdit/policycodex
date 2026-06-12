@@ -38,13 +38,13 @@ def _shell_ctx(panel_title: str) -> dict:
     }
 
 
-def _build_manifest(redirect_url: str, state_token: str) -> dict:
+def _build_manifest(redirect_url: str) -> dict:
     return {
         "name": "PolicyCodex",
         "url": "https://policycodex.org",
         "description": "AI-assisted policy management for Catholic dioceses.",
         "public": False,
-        "redirect_url": f"{redirect_url}?state={state_token}",
+        "redirect_url": redirect_url,
         "default_permissions": {
             "contents": "write",
             "metadata": "read",
@@ -66,10 +66,11 @@ def manifest_start(request):
     state = secrets.token_urlsafe(24)
     request.session[_STATE_SESSION_KEY] = state
     redirect_url = _absolute_callback_url(request)
-    manifest = _build_manifest(redirect_url, state)
+    manifest = _build_manifest(redirect_url)
     return render(request, "settings/panels/_github_app_manifest_form.html", {
         **_shell_ctx("GitHub App — automated setup"),
         "manifest_json": json.dumps(manifest),
+        "state_token": state,
         "post_url": "https://github.com/settings/apps/new",
     })
 
