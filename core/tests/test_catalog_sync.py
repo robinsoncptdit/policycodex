@@ -48,3 +48,39 @@ def test_get_method_not_allowed(client, editor):
     client.force_login(editor)
     response = client.get("/catalog/sync/")
     assert response.status_code == 405
+
+
+def test_sync_writes_last_sync_marker(client, editor, tmp_path):
+    """After a successful sync the working copy carries a marker file
+    with an ISO 8601 timestamp."""
+    from unittest.mock import patch, MagicMock
+    client.force_login(editor)
+    cfg = MagicMock()
+    cfg.working_dir = tmp_path
+    cfg.branch = "main"
+    with patch("core.views.WorkingCopyManager") as mock_mgr, \
+         patch("core.views.load_working_copy_config", return_value=cfg), \
+         patch("core.views.GitHubProvider"):
+        mock_mgr.return_value.sync.return_value = None
+        client.post("/catalog/sync/")
+    marker = tmp_path / ".policycodex" / "last_sync.json"
+    assert marker.exists()
+    import json
+    payload = json.loads(marker.read_text())
+    assert "iso" in payload
+    assert payload["iso"].startswith("20")
+
+
+def test_catalog_shows_last_synced_text_when_marker_exists(client, editor, tmp_path):
+    from unittest.mock import patch, MagicMock
+    # Pre-create the marker but NOT the policies/ dir, so catalog falls
+    # through to the empty-state branch after reading the marker.
+    cfg_dir = tmp_path / ".policycodex"
+    cfg_dir.mkdir()
+    (cfg_dir / "last_sync.json").write_text('{"iso": "2026-06-12T14:30:00Z"}')
+    # policies/ is intentionally absent so catalog renders empty-state.
+    client.force_login(editor)
+    with patch("core.views.load_working_copy_config") as mock_cfg:
+        mock_cfg.return_value.working_dir = tmp_path
+        response = client.get("/catalog/")
+    assert b"Last synced" in response.content

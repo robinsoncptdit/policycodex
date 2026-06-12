@@ -91,11 +91,28 @@ def catalog(request):
     try:
         config = load_working_copy_config()
     except RuntimeError:
-        return render(request, "catalog.html", {"is_empty_onboarding": True, "rows": []})
+        return render(request, "catalog.html", {
+            "is_empty_onboarding": True,
+            "rows": [],
+            "last_sync": None,
+        })
+
+    import json as _json
+    last_sync = None
+    marker = config.working_dir / ".policycodex" / "last_sync.json"
+    if marker.exists():
+        try:
+            last_sync = _json.loads(marker.read_text()).get("iso")
+        except (OSError, ValueError):
+            last_sync = None
 
     policies_dir: Path = config.working_dir / "policies"
     if not policies_dir.exists():
-        return render(request, "catalog.html", {"is_empty_onboarding": True, "rows": []})
+        return render(request, "catalog.html", {
+            "is_empty_onboarding": True,
+            "rows": [],
+            "last_sync": last_sync,
+        })
 
     policies = list(BundleAwarePolicyReader(policies_dir).read())
     gate_lookup = _build_gate_lookup(config.working_dir)
@@ -143,6 +160,7 @@ def catalog(request):
             "rows": rows,
             "gap_count": gap_count,
             "pending_review": pending_review,
+            "last_sync": last_sync,
         },
     )
 
@@ -677,6 +695,13 @@ def catalog_sync(request):
     try:
         config = load_working_copy_config()
         WorkingCopyManager(config, GitHubProvider()).sync()
+        # Write last-sync marker so the catalog can render the timestamp.
+        from datetime import datetime, timezone
+        marker_dir = config.working_dir / ".policycodex"
+        marker_dir.mkdir(parents=True, exist_ok=True)
+        (marker_dir / "last_sync.json").write_text(
+            f'{{"iso": "{datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}"}}'
+        )
         messages.success(request, "Catalog synced from GitHub.")
     except Exception as exc:  # noqa: BLE001 — surfaced to user; provider redacts tokens
         logger.warning("catalog_sync failed user=%s err=%s", request.user.username, exc)

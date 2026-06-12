@@ -5,10 +5,16 @@
 {% block content %}
   <div class="flex items-end justify-between mb-6">
     <h2 class="text-xl font-semibold text-slate-900 tracking-tight">Policy catalog</h2>
-    <form method="post" action="{% url 'catalog_sync' %}" class="inline">
-      {% csrf_token %}
-      <button type="submit" class="btn btn-outline btn-sm">Sync from GitHub</button>
-    </form>
+    <div class="flex items-center gap-2">
+      <form method="post" action="{% url 'catalog_sync' %}"
+            onsubmit="this.querySelector('button').disabled=true;this.querySelector('button').textContent='Syncing…';">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline btn-sm">Sync from GitHub</button>
+      </form>
+      {% if last_sync %}
+      <span class="text-xs text-base-content/60">Last synced {{ last_sync|slice:":19" }}Z</span>
+      {% endif %}
+    </div>
   </div>
 
   {% if is_empty_onboarding %}
