@@ -91,8 +91,13 @@ class LLMProviderPanel(SettingsPanel):
                 return self.render(request, form=form, success="Saved.")
             return self.render(request, form=form, error="Paste your API key.")
         sig = _signature(provider, api_key)
-        if request.session.get(_TEST_OK_SESSION_KEY) != sig:
-            return self.render(request, form=form, error="Test the key first.")
+        existing_pin = request.session.get(_TEST_OK_SESSION_KEY)
+        if existing_pin is None:
+            return self.render(request, form=form,
+                               error="Click Test key before saving.")
+        if existing_pin != sig:
+            return self.render(request, form=form,
+                               error="The key changed since you tested it. Test again before saving.")
         store.set("llm.provider", provider)
         store.set(f"llm.{provider}.api_key", api_key)
         return self.render(request, form=form, success="Saved.")

@@ -73,7 +73,7 @@ def test_save_anthropic_without_test_pin_blocks(client, admin):
         "api_key": "sk-ant-untested",
     })
     assert response.status_code == 200
-    assert b"Test the key" in response.content
+    assert b"Click Test key" in response.content
 
 
 def test_save_after_test_pin_persists(client, admin):
@@ -90,6 +90,32 @@ def test_save_after_test_pin_persists(client, admin):
         })
     assert store.get("llm.provider") == "claude"
     assert store.get("llm.claude.api_key") == "sk-ant-good"
+
+
+def test_save_with_no_test_pin_shows_test_first_message(client, admin):
+    client.force_login(admin)
+    response = client.post("/settings/llm-provider/", {
+        "provider": "claude",
+        "api_key": "sk-ant-never-tested",
+    })
+    assert b"Click Test key" in response.content
+
+
+def test_save_with_stale_test_pin_shows_key_changed_message(client, admin):
+    from unittest.mock import patch
+    client.force_login(admin)
+    with patch("ai.claude_provider.ClaudeProvider.test_key", return_value=True):
+        # Test key A (pin gets set).
+        client.post("/htmx/settings/llm-provider/test/", {
+            "provider": "claude",
+            "api_key": "sk-ant-key-A",
+        })
+        # Now save key B without re-testing.
+        response = client.post("/settings/llm-provider/", {
+            "provider": "claude",
+            "api_key": "sk-ant-key-B-different",
+        })
+    assert b"key changed" in response.content.lower()
 
 
 def test_success_chip_renders_above_intro_paragraph(client, admin):

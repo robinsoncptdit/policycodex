@@ -47,7 +47,7 @@ def test_save_without_pinning_blocks(client, admin):
     response = client.post("/settings/github-app/", {
         "app_id": "1", "installation_id": "2", "private_key_pem": _PEM,
     })
-    assert b"Test the connection" in response.content
+    assert b"Click Test connection" in response.content
 
 
 def test_save_after_pinning_persists(client, admin):
@@ -78,6 +78,34 @@ def test_revoke_clears_pem(client, admin):
     })
     # PEM is cleared by overwriting with empty (store has no delete).
     assert store.get("github_app.private_key_pem") == ""
+
+
+_PEM2 = "-----BEGIN PRIVATE KEY-----\nDIFFERENT\n-----END PRIVATE KEY-----"
+
+
+def test_save_with_no_test_pin_shows_test_first_message(client, admin):
+    client.force_login(admin)
+    response = client.post("/settings/github-app/", {
+        "app_id": "1", "installation_id": "2", "private_key_pem": _PEM,
+    })
+    assert b"Click Test connection" in response.content
+
+
+def test_save_with_stale_test_pin_shows_credentials_changed(client, admin):
+    from unittest.mock import patch
+    client.force_login(admin)
+    with patch("app.git_provider.github_provider.GitHubProvider.test_credentials",
+               return_value=True):
+        # Test PEM A.
+        client.post("/htmx/settings/github-app/test/", {
+            "app_id": "1", "installation_id": "2", "private_key_pem": _PEM,
+        })
+        # Save with PEM B.
+        response = client.post("/settings/github-app/", {
+            "app_id": "1", "installation_id": "2", "private_key_pem": _PEM2,
+        })
+    body = response.content.lower()
+    assert b"credentials changed" in body or b"test again" in body
 
 
 def test_intro_does_not_contradict_setup_action(client, admin):

@@ -96,8 +96,13 @@ class GitHubAppPanel(SettingsPanel):
             # Re-pin signature against the EXISTING pem so the save proceeds.
             pem = store.get("github_app.private_key_pem")
         sig = _signature(app_id, installation_id, pem)
-        if request.session.get(_TEST_OK_SESSION_KEY) != sig:
-            return self.render(request, form=form, error="Test the connection first.")
+        existing_pin = request.session.get(_TEST_OK_SESSION_KEY)
+        if existing_pin is None:
+            return self.render(request, form=form,
+                               error="Click Test connection before saving.")
+        if existing_pin != sig:
+            return self.render(request, form=form,
+                               error="The credentials changed since you tested. Test again before saving.")
         store.set("github_app.app_id", app_id)
         store.set("github_app.installation_id", installation_id)
         store.set("github_app.private_key_pem", pem)
