@@ -1,0 +1,11 @@
+{% extends "settings/base_settings.html" %}
+{% block panel_content %}
+<p class="mb-4">Redirecting you to GitHub to approve the new App. If the redirect does not happen, click the button below.</p>
+<form id="manifest-form" method="post" action="{{ post_url }}">
+  <input type="hidden" name="manifest" value="{{ manifest_json }}">
+  <button type="submit" class="btn btn-primary">Continue to GitHub</button>
+</form>
+<script>
+  document.getElementById('manifest-form').submit();
+</script>
+{% endblock %}

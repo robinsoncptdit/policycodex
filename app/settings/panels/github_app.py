@@ -15,7 +15,7 @@ from django.template.loader import render_to_string
 
 from app.credentials import store
 from app.git_provider.github_provider import GitHubProvider
-from app.settings.base import SettingsPanel, DangerAction
+from app.settings.base import SettingsPanel, DangerAction, SetupAction
 from app.settings.registry import register
 
 
@@ -122,7 +122,19 @@ class GitHubAppPanel(SettingsPanel):
         }))
 
     def setup_actions(self, request):
-        return []  # Manifest flow lands in a follow-up task.
+        actions = []
+        if not store.has("github_app.app_id"):
+            actions.append(SetupAction(
+                label="Set up automatically (recommended)",
+                description=(
+                    "Three clicks. PolicyCodex creates the GitHub App on your account, "
+                    "you confirm on GitHub, you install it on your organization, and "
+                    "PolicyCodex stores the credentials automatically."
+                ),
+                cta_label="Create PolicyCodex GitHub App",
+                cta_url="/settings/github-app/manifest/start/",
+            ))
+        return actions
 
     def danger_actions(self, request):
         if store.has("github_app.private_key_pem") and store.get("github_app.private_key_pem"):

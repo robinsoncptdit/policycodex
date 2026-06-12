@@ -1,0 +1,8 @@
+{% extends "settings/base_settings.html" %}
+{% block panel_content %}
+<div class="alert alert-success mb-4">
+  PolicyCodex GitHub App created. App ID: <code>{{ app_id }}</code>.
+</div>
+<p class="mb-4">One more step: install the App on your organization. PolicyCodex will detect the installation and store its ID automatically.</p>
+<a href="{{ install_url }}" class="btn btn-primary">Install on your organization</a>
+{% endblock %}
