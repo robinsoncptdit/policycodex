@@ -37,6 +37,18 @@
 
 <form method="post" class="space-y-4 max-w-2xl mb-8">
   {% csrf_token %}
+  {% if repos %}
+  <div class="form-control mb-4">
+    <label class="label"><span class="label-text">Pick a repo (or type below)</span></label>
+    <select onchange="document.querySelector('[name=repo_url]').value='https://github.com/' + this.value.split('|')[0]; document.querySelector('[name=branch]').value=this.value.split('|')[1];"
+            class="select select-bordered max-w-md">
+      <option value="">-- pick a repo --</option>
+      {% for r in repos %}
+        <option value="{{ r.full_name }}|{{ r.default_branch }}">{{ r.full_name }} (default: {{ r.default_branch }})</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endif %}
   <div class="form-control">
     <label class="label"><span class="label-text">Repository URL</span></label>
     <input name="repo_url" type="url" required class="input input-bordered"

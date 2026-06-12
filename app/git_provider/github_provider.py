@@ -109,6 +109,25 @@ class GitHubProvider(GitProvider):
     def _installation_token(self) -> str:
         return _build_installation_token(self._config)
 
+    def list_installation_repos(self) -> list[dict]:
+        """GET /installation/repositories using the installation token. Returns
+        [{"full_name": "owner/repo", "default_branch": "main"}, ...]."""
+        import requests
+        token = self._installation_token()
+        response = requests.get(
+            "https://api.github.com/installation/repositories",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/vnd.github+json",
+            },
+            timeout=10,
+        )
+        response.raise_for_status()
+        return [
+            {"full_name": r["full_name"], "default_branch": r["default_branch"]}
+            for r in response.json().get("repositories", [])
+        ]
+
     def _origin_url(self, working_dir: Path) -> str:
         """Return the working copy's `origin` remote URL, stripped.
 

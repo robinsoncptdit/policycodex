@@ -148,15 +148,27 @@ class PolicyRepoPanel(SettingsPanel):
             initial["repo_url"] = store.get("policy_repo.url")
         if store.has("policy_repo.branch"):
             initial["branch"] = store.get("policy_repo.branch")
+        # Populate the dropdown only when the GH App is fully configured.
+        repos = []
+        if all(store.has(k) for k in (
+            "github_app.app_id",
+            "github_app.installation_id",
+            "github_app.private_key_pem",
+        )):
+            try:
+                repos = GitHubProvider().list_installation_repos()
+            except Exception:
+                repos = []
         return render(request, "settings/panels/policy_repo.html", {
             "active_slug": self.slug,
             "panel_title": self.title,
             "nav_groups": _nav_groups(),
             "form": form or _Form(initial=initial),
             "current_url": store.get("policy_repo.url") if store.has("policy_repo.url") else None,
+            "panel_setup_actions": self.setup_actions(request),
+            "repos": repos,
             "message": message,
             "error": error,
-            "panel_setup_actions": self.setup_actions(request),
         })
 
     def save(self, request):
