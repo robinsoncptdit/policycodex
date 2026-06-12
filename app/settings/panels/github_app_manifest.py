@@ -27,6 +27,17 @@ _RETRY_COUNTER_KEY = "github_app_manifest_retries"
 _MAX_RETRIES = 3
 
 
+def _shell_ctx(panel_title: str) -> dict:
+    """Common left-rail + heading context for templates that extend
+    base_settings.html outside the normal panel-render path."""
+    from app.settings.views import _nav_groups
+    return {
+        "nav_groups": _nav_groups(),
+        "active_slug": "github-app",
+        "panel_title": panel_title,
+    }
+
+
 def _build_manifest(redirect_url: str, state_token: str) -> dict:
     return {
         "name": "PolicyCodex",
@@ -57,6 +68,7 @@ def manifest_start(request):
     redirect_url = _absolute_callback_url(request)
     manifest = _build_manifest(redirect_url, state)
     return render(request, "settings/panels/_github_app_manifest_form.html", {
+        **_shell_ctx("GitHub App — automated setup"),
         "manifest_json": json.dumps(manifest),
         "post_url": "https://github.com/settings/apps/new",
     })
@@ -84,11 +96,13 @@ def manifest_callback(request):
     expected = request.session.get(_STATE_SESSION_KEY)
     if not state or state != expected:
         return render(request, "settings/panels/_manifest_error.html", {
+            **_shell_ctx("GitHub App — setup failed"),
             "error": "State validation failed. Restart the flow.",
             "can_retry": False,
         })
     if not code:
         return render(request, "settings/panels/_manifest_error.html", {
+            **_shell_ctx("GitHub App — setup failed"),
             "error": "No code returned by GitHub.",
             "can_retry": False,
         })
@@ -100,12 +114,14 @@ def manifest_callback(request):
         if retries < _MAX_RETRIES:
             request.session[_RETRY_COUNTER_KEY] = retries + 1
             return render(request, "settings/panels/_manifest_error.html", {
+                **_shell_ctx("GitHub App — setup failed"),
                 "error": str(exc),
                 "can_retry": True,
                 "retry_url": request.get_full_path(),
                 "retry_count": retries + 1,
             })
         return render(request, "settings/panels/_manifest_error.html", {
+            **_shell_ctx("GitHub App — setup failed"),
             "error": f"Failed after {retries} retries: {exc}",
             "can_retry": False,
         })
@@ -129,9 +145,12 @@ def manifest_callback(request):
     request.session.pop(_RETRY_COUNTER_KEY, None)
     request.session.pop(_STATE_SESSION_KEY, None)
 
-    # Render the "now install" intermediate page.
-    install_url = f"https://github.com/apps/policycodex/installations/new?state={state}"
+    # Render the "now install" intermediate page. Use the slug GitHub
+    # returned — it appends a -N suffix when "policycodex" is already taken.
+    slug = result.get("slug", "policycodex")
+    install_url = f"https://github.com/apps/{slug}/installations/new?state={state}"
     return render(request, "settings/panels/_manifest_post_create.html", {
+        **_shell_ctx("GitHub App — almost done"),
         "app_id": result["id"],
         "install_url": install_url,
     })
