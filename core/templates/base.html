@@ -21,7 +21,10 @@
              class="btn btn-ghost btn-sm{% if request.path == '/catalog/' or request.path|slice:':10' == '/policies/' %} btn-active{% endif %}">Catalog</a>
           <a href="{% url 'inventory' %}"
              class="btn btn-ghost btn-sm{% if request.path|slice:':11' == '/inventory/' %} btn-active{% endif %}">Inventory</a>
-          {% if user.is_superuser or user.groups.all|length and 'Admin' in user.groups.values_list|join:',' %}
+          {# Admin role in this app always implies is_superuser (see _set_role
+             in app/settings/panels/users.py), so superuser is a sufficient
+             gate without a substring match on group names. #}
+          {% if user.is_superuser %}
             <a href="{% url 'settings_root' %}"
                class="btn btn-ghost btn-sm{% if request.path|slice:':10' == '/settings/' %} btn-active{% endif %}">Settings</a>
           {% endif %}
