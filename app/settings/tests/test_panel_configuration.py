@@ -1,9 +1,22 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from pathlib import Path
+from cryptography.fernet import Fernet
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
+
+
+@pytest.fixture(autouse=True)
+def credential_env(tmp_path, monkeypatch):
+    """Provide a scratch credential store so the store.set call in
+    configuration.save does not attempt to write to /data."""
+    from app.credentials import store
+    key_file = tmp_path / ".credential-key"
+    key_file.write_bytes(Fernet.generate_key())
+    monkeypatch.setenv("POLICYCODEX_CREDENTIAL_KEY_FILE", str(key_file))
+    monkeypatch.setenv("POLICYCODEX_CREDENTIAL_STORE_FILE", str(tmp_path / ".credentials"))
+    store._reset_cache()
 
 
 @pytest.fixture

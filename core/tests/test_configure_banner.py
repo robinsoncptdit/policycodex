@@ -85,3 +85,14 @@ def test_banner_still_shows_on_catalog(client, admin):
         )
         response = client.get("/catalog/")
     assert b"configure-banner" in response.content
+
+
+def test_banner_renders_progress(client, admin):
+    from app.credentials import store
+    store.set("github_app.app_id", "1")
+    store.set("github_app.installation_id", "2")
+    store.set("github_app.private_key_pem", "PEM")
+    client.force_login(admin)
+    response = client.get("/catalog/")
+    body = response.content.decode()
+    assert "1 of 4" in body or "1 / 4" in body

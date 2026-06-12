@@ -69,3 +69,20 @@ def test_no_credential_store_returns_github_app(monkeypatch):
     state = lifecycle_state(None)
     assert state.state is ConfigureState.NO_GITHUB_APP
     assert state.next_url == "/settings/github-app/"
+
+
+def test_lifecycle_state_includes_progress(credential_env):
+    from app.credentials import store
+    from core.lifecycle import lifecycle_state
+    state = lifecycle_state(None)
+    # Four configuration steps: github_app, llm, policy_repo, configuration.
+    assert hasattr(state, "progress")
+    assert state.progress == (0, 4)
+    store.set("github_app.app_id", "1")
+    store.set("github_app.installation_id", "2")
+    store.set("github_app.private_key_pem", "PEM")
+    state = lifecycle_state(None)
+    assert state.progress == (1, 4)
+    store.set("llm.provider", "claude")
+    state = lifecycle_state(None)
+    assert state.progress == (2, 4)

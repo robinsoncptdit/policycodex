@@ -32,5 +32,6 @@ def configure_banner(request):
         "configure_banner": {
             "message": state.banner,
             "next_url": state.next_url,
+            "progress": state.progress,
         }
     }

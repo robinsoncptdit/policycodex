@@ -49,7 +49,10 @@
       {% endif %}
       {% if configure_banner %}
       <div class="alert alert-info shadow-sm mb-4" id="configure-banner">
-        <span>{{ configure_banner.message }}</span>
+        <div class="flex-1">
+          <div>{{ configure_banner.message }}</div>
+          <div class="text-xs opacity-70 mt-1">{{ configure_banner.progress.0 }} of {{ configure_banner.progress.1 }} configuration steps complete</div>
+        </div>
         <a href="{{ configure_banner.next_url }}" class="btn btn-sm btn-primary ml-auto">Configure</a>
       </div>
       {% endif %}

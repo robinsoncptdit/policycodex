@@ -103,6 +103,8 @@ class ConfigurationPanel(SettingsPanel):
             )
         except Exception as exc:  # noqa: BLE001 surfaced to user
             return self.render(request, form=form, error=str(exc))
+        from app.credentials import store
+        store.set("diocese.config_pushed", "true")
         return self.render(request, form=form,
                            message="Configuration change submitted.",
                            pr_url=pr.get("url"))

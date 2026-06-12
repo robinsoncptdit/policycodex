@@ -51,6 +51,7 @@ class LifecycleState:
     state: ConfigureState
     next_url: str
     banner: str | None
+    progress: tuple[int, int] = (0, 4)
 
 
 def _store_check():
@@ -63,11 +64,12 @@ def _store_check():
         )
         has_llm = store.has("llm.provider")
         has_repo = store.has("policy_repo.url")
+        has_config = store.has("diocese.config_pushed")
     except RuntimeError:
         # Credential store unavailable (no /data/.credential-key). Treat as
         # fully unconfigured — safest first-boot assumption.
-        return False, False, False
-    return has_gh, has_llm, has_repo
+        return False, False, False, False
+    return has_gh, has_llm, has_repo, has_config
 
 
 def lifecycle_state(request):
@@ -77,7 +79,9 @@ def lifecycle_state(request):
     state (e.g., a returning admin who has not yet acknowledged an
     interrupted run). Keep the signature stable.
     """
-    has_gh, has_llm, has_repo = _store_check()
+    has_gh, has_llm, has_repo, has_config = _store_check()
+    completed = sum([has_gh, has_llm, has_repo, has_config])
+    progress = (completed, 4)
     if not has_gh:
         state = ConfigureState.NO_GITHUB_APP
     elif not has_llm:
@@ -93,4 +97,5 @@ def lifecycle_state(request):
         state=state,
         next_url=_DESTINATIONS[state],
         banner=_BANNER_MESSAGES[state],
+        progress=progress,
     )
