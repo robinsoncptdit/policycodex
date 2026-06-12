@@ -11,6 +11,9 @@ class InventoryRun(models.Model):
     failed = models.IntegerField(default=0)
     pr_url = models.URLField(blank=True)
     pr_error = models.TextField(blank=True)
+    # Absolute path to the directory where uploaded files were staged.
+    # Recorded so retry can re-spawn the runner against the original payload.
+    stage_dir = models.CharField(max_length=512, blank=True)
 
 
 class InventoryItem(models.Model):

@@ -83,7 +83,9 @@ def inventory_upload(request):
         with (stage_dir / f.name).open("wb") as fh:
             for chunk in f.chunks():
                 fh.write(chunk)
-    run = InventoryRun.objects.create(status="pending", total=len(files))
+    run = InventoryRun.objects.create(
+        status="pending", total=len(files), stage_dir=str(stage_dir),
+    )
     for f in files:
         InventoryItem.objects.create(run=run, source_filename=f.name, status="pending")
     try:
@@ -134,11 +136,11 @@ def retry_item(request, item_id):
     item.error_message = ""
     item.save()
     run = item.run
-    # Re-queue. The runner picks up pending items on its next sweep.
+    if not run.stage_dir:
+        return HttpResponse("Retry unavailable: staging directory unknown.", status=400)
     try:
         working_dir = load_working_copy_config().working_dir
-        stage_dir = _staging_root() / str(run.pk)
-        start_run(run, stage_dir, working_dir)
+        start_run(run, Path(run.stage_dir), working_dir)
     except Exception as exc:  # noqa: BLE001
         return HttpResponse(f"Retry failed: {exc}", status=500)
     return redirect("inventory")
@@ -150,14 +152,15 @@ def retry_run(request, run_id):
     run = InventoryRun.objects.filter(pk=run_id).first()
     if run is None:
         return HttpResponse(status=404)
+    if not run.stage_dir:
+        return HttpResponse("Retry unavailable: staging directory unknown.", status=400)
     run.status = "pending"
     run.pr_error = ""
     run.save()
     run.items.all().update(status="pending", error_message="")
     try:
         working_dir = load_working_copy_config().working_dir
-        stage_dir = _staging_root() / str(run.pk)
-        start_run(run, stage_dir, working_dir)
+        start_run(run, Path(run.stage_dir), working_dir)
     except Exception as exc:  # noqa: BLE001
         return HttpResponse(f"Retry failed: {exc}", status=500)
     return redirect("inventory")
