@@ -1,0 +1,66 @@
+{% extends "settings/base_settings.html" %}
+{% block panel_content %}
+<p class="mb-4 text-base-content/80">
+  PolicyCodex uses a GitHub App to create branches, commit files, and open pull requests in your diocese's policy repository. Paste your App ID, Installation ID, and private key below.
+</p>
+{% if message %}<div class="alert alert-success mb-4">{{ message }}</div>{% endif %}
+{% if error %}<div class="alert alert-warning mb-4">{{ error }}</div>{% endif %}
+
+{% for action in panel_setup_actions %}
+<div class="card bg-primary/5 border border-primary mb-6">
+  <div class="card-body">
+    <h2 class="card-title">{{ action.label }}</h2>
+    <p>{{ action.description }}</p>
+    <a href="{{ action.cta_url }}" class="btn btn-primary btn-sm w-fit">{{ action.cta_label }}</a>
+  </div>
+</div>
+{% endfor %}
+
+<details {% if not panel_setup_actions %}open{% endif %} class="mb-6">
+  <summary class="cursor-pointer font-medium mb-4">Manual paste</summary>
+  <form method="post" class="space-y-4 max-w-2xl mt-4">
+    {% csrf_token %}
+    <div class="form-control">
+      <label class="label"><span class="label-text">App ID</span></label>
+      <input name="app_id" type="text" class="input input-bordered w-40"
+             value="{{ form.app_id.value|default_if_none:'' }}"
+             placeholder="12345">
+    </div>
+    <div class="form-control">
+      <label class="label"><span class="label-text">Installation ID</span></label>
+      <input name="installation_id" type="text" class="input input-bordered w-40"
+             value="{{ form.installation_id.value|default_if_none:'' }}"
+             placeholder="67890">
+    </div>
+    <div class="form-control">
+      <label class="label"><span class="label-text">Private key (PEM)</span></label>
+      <textarea name="private_key_pem" rows="8" spellcheck="false"
+                class="textarea textarea-bordered font-mono text-xs"
+                placeholder="-----BEGIN RSA PRIVATE KEY-----&#10;...&#10;-----END RSA PRIVATE KEY-----">{{ form.private_key_pem.value|default_if_none:'' }}</textarea>
+    </div>
+    <div id="github-app-test-result"></div>
+    <div class="flex gap-2 pt-2">
+      <button type="button" class="btn btn-outline btn-sm"
+              hx-post="{% url 'htmx_settings_test' slug='github-app' %}"
+              hx-include="closest form"
+              hx-target="#github-app-test-result">Test connection</button>
+      <button type="submit" class="btn btn-primary btn-sm">Save</button>
+    </div>
+  </form>
+</details>
+
+{% for action in panel_danger_actions %}
+<div class="card bg-base-200 border border-error mt-8">
+  <div class="card-body">
+    <h2 class="card-title">{{ action.label }}</h2>
+    <p>{{ action.description }}</p>
+    <form method="post" class="flex gap-2 mt-2">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="revoke">
+      <input name="confirm_token" placeholder="type {{ action.confirm_token }}" class="input input-bordered">
+      <button type="submit" class="btn btn-error">{{ action.cta_label }}</button>
+    </form>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}
