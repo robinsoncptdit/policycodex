@@ -34,7 +34,7 @@
 <div class="card bg-base-200 border border-error mt-8">
   <div class="card-body">
     <h2 class="card-title">Disconnect from this repository</h2>
-    <p>Clears policy_repo.* from the credential store and removes the local working copy. The repository on GitHub is untouched.</p>
+    <p>Removes the local working copy and clears the credential store (including GitHub App + AI provider; you will need to re-enter them from their panels). The repository on GitHub is untouched.</p>
     <form method="post" class="flex gap-2 mt-2">
       {% csrf_token %}
       <input type="hidden" name="action" value="disconnect">

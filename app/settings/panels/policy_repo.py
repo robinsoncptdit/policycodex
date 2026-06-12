@@ -99,21 +99,24 @@ class PolicyRepoPanel(SettingsPanel):
         sig = _signature(repo_url, branch)
         if request.session.get(_TEST_OK_SESSION_KEY) != sig:
             return self.render(request, form=form, error="Test the repository first.")
-        store.set("policy_repo.url", repo_url)
-        store.set("policy_repo.branch", branch)
+        # Sync first; only write to the store on success. A failed sync that
+        # already mutated the store leaves the user with current_url set to
+        # an unfetched repo, which is worse than no save at all.
         try:
             config = WorkingCopyConfig(repo_url=repo_url, branch=branch, root=_working_copy_root())
             WorkingCopyManager(config, GitHubProvider()).sync()
         except Exception as exc:  # noqa: BLE001 surfaced to user
-            return self.render(request, form=form, error=f"Saved but sync failed: {exc}")
+            return self.render(request, form=form, error=f"Sync failed: {exc}")
+        store.set("policy_repo.url", repo_url)
+        store.set("policy_repo.branch", branch)
         return self.render(request, form=form, message="Saved and synced.")
 
     def _disconnect(self, request):
         if request.POST.get("confirm_token") != "DISCONNECT":
             return self.render(request, error="Type DISCONNECT to confirm.")
-        # Wipe the credential file outright; the store has no per-key delete.
-        # Other stored keys (GH App, LLM) survive — they live in the same file
-        # so disconnect re-clears them too. Re-enter via their panels.
+        # The store has no per-key delete, so this wipes the whole credential
+        # file — GitHub App and LLM credentials go with it. Re-enter via their
+        # panels. The template warns the user before they confirm.
         cred_path = Path(os.environ.get("POLICYCODEX_CREDENTIAL_STORE_FILE", "/data/.credentials"))
         if cred_path.exists():
             cred_path.unlink()
