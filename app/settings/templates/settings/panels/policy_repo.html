@@ -3,6 +3,34 @@
 {% if message %}<div class="alert alert-success mb-4">{{ message }}</div>{% endif %}
 {% if error %}<div class="alert alert-warning mb-4">{{ error }}</div>{% endif %}
 
+{% for action in panel_setup_actions %}
+<div class="card bg-primary/5 border border-primary mb-6">
+  <div class="card-body">
+    <h2 class="card-title">{{ action.label }}</h2>
+    <p>{{ action.description }}</p>
+    <a href="{{ action.cta_url }}" class="btn btn-primary btn-sm w-fit">{{ action.cta_label }}</a>
+  </div>
+</div>
+{% endfor %}
+
+<div id="create-new-form" class="hidden mb-6">
+  <form method="post" class="space-y-2 max-w-xl">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="create_new">
+    <input name="org" placeholder="GitHub org" required class="input input-bordered w-full">
+    <input name="repo_name" placeholder="repo name (e.g. diocese-policies)" required class="input input-bordered w-full">
+    <button type="submit" class="btn btn-primary">Create repository</button>
+  </form>
+</div>
+
+<div id="initialize-form" class="hidden mb-6">
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="initialize">
+    <button type="submit" class="btn btn-primary">Initialize this repository</button>
+  </form>
+</div>
+
 {% if current_url %}
   <p class="mb-4">Currently connected to <strong>{{ current_url }}</strong>.</p>
 {% endif %}

@@ -3,7 +3,8 @@
 This task implements: manual paste, Test (git ls-remote via the GH App
 installation token when available), Save (writes policy_repo.* to credential
 store + runs WorkingCopyManager.sync), Disconnect (clears credentials +
-removes working-copy dir; GitHub is untouched)."""
+removes working-copy dir; GitHub is untouched), Create new repository,
+Initialize this repository."""
 from __future__ import annotations
 
 import hashlib
@@ -26,6 +27,54 @@ from app.settings.registry import register
 
 
 _TEST_OK_SESSION_KEY = "policy_repo_test_ok_signature"
+
+
+def _initialize_repo(repo_url: str, branch: str) -> None:
+    """Clone the repo to a temp dir, push the PolicyCodex skeleton in one
+    commit (.policycodex/config.yaml with schema_version: 1, the L2
+    foundational guard from repo-template/, a placeholder policies/ dir
+    with .gitkeep), and best-effort configure branch protection.
+
+    Idempotent — if .policycodex/ already exists in the repo, returns without
+    committing.
+    """
+    import tempfile
+    config_yaml = "schema_version: 1\n"
+    guard_workflow_src = Path("repo-template/.github/workflows/foundational-guard.yml")
+    guard_script_src = Path("repo-template/.github/scripts/foundational_guard.py")
+    handbook_workflow_src = Path("repo-template/.github/workflows/build-handbook.yml")
+
+    files = [
+        (".policycodex/config.yaml", config_yaml),
+        ("policies/.gitkeep", ""),
+    ]
+    if guard_workflow_src.exists():
+        files.append((".github/workflows/foundational-guard.yml", guard_workflow_src.read_text()))
+    if guard_script_src.exists():
+        files.append((".github/scripts/foundational_guard.py", guard_script_src.read_text()))
+    if handbook_workflow_src.exists():
+        files.append((".github/workflows/build-handbook.yml", handbook_workflow_src.read_text()))
+
+    with tempfile.TemporaryDirectory() as tmp:
+        subprocess.run(["git", "clone", "--depth", "1", repo_url, tmp], check=True, timeout=60)
+        if (Path(tmp) / ".policycodex").exists():
+            return  # Idempotent.
+        for rel, content in files:
+            target = Path(tmp) / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(content)
+        subprocess.run(["git", "-C", tmp, "add", "."], check=True)
+        subprocess.run([
+            "git", "-C", tmp, "commit", "-m",
+            "Initialize PolicyCodex skeleton\n\nCo-Authored-By: PolicyCodex <bot@policycodex>",
+        ], check=True)
+        subprocess.run(["git", "-C", tmp, "push", "origin", branch], check=True, timeout=60)
+
+    # Branch protection is best-effort — the helper may not be implemented yet.
+    try:
+        GitHubProvider().enable_branch_protection(repo_url, branch, require_pr_review=True)
+    except Exception:
+        pass
 
 
 def _signature(repo_url: str, branch: str) -> str:
@@ -83,11 +132,17 @@ class PolicyRepoPanel(SettingsPanel):
             "current_url": store.get("policy_repo.url") if store.has("policy_repo.url") else None,
             "message": message,
             "error": error,
+            "panel_setup_actions": self.setup_actions(request),
         })
 
     def save(self, request):
-        if request.POST.get("action") == "disconnect":
+        action = request.POST.get("action")
+        if action == "disconnect":
             return self._disconnect(request)
+        if action == "create_new":
+            return self._create_new(request)
+        if action == "initialize":
+            return self._initialize(request)
         return self._save_connect(request)
 
     def _save_connect(self, request):
@@ -111,6 +166,40 @@ class PolicyRepoPanel(SettingsPanel):
         store.set("policy_repo.branch", branch)
         return self.render(request, form=form, message="Saved and synced.")
 
+    def _create_new(self, request):
+        org = request.POST.get("org", "").strip()
+        repo_name = request.POST.get("repo_name", "").strip()
+        if not org or not repo_name:
+            return self.render(request, error="Both org and repo name are required.")
+        try:
+            result = GitHubProvider.create_repository(
+                org=org, repo_name=repo_name, private=True,
+            )
+        except Exception as exc:  # noqa: BLE001
+            return self.render(request, error=f"Could not create repo: {exc}")
+        repo_url = result["clone_url"].removesuffix(".git")
+        branch = result.get("default_branch", "main")
+        store.set("policy_repo.url", repo_url)
+        store.set("policy_repo.branch", branch)
+        # auto_init=True is set internally, so the repo already has main with a
+        # README; push the PolicyCodex skeleton on top.
+        try:
+            _initialize_repo(repo_url, branch)
+        except Exception as exc:  # noqa: BLE001
+            return self.render(request, error=f"Repo created but initialization failed: {exc}")
+        return self.render(request, message=f"Created and initialized {org}/{repo_name}.")
+
+    def _initialize(self, request):
+        if not store.has("policy_repo.url"):
+            return self.render(request, error="Save a repository URL first.")
+        repo_url = store.get("policy_repo.url")
+        branch = store.get("policy_repo.branch") if store.has("policy_repo.branch") else "main"
+        try:
+            _initialize_repo(repo_url, branch)
+        except Exception as exc:  # noqa: BLE001
+            return self.render(request, error=str(exc))
+        return self.render(request, message="Repository initialized with PolicyCodex skeleton.")
+
     def _disconnect(self, request):
         if request.POST.get("confirm_token") != "DISCONNECT":
             return self.render(request, error="Type DISCONNECT to confirm.")
@@ -126,6 +215,22 @@ class PolicyRepoPanel(SettingsPanel):
         if root.exists():
             shutil.rmtree(root, ignore_errors=True)
         return self.render(request, message="Disconnected from the policy repository.")
+
+    def setup_actions(self, request):
+        from app.settings.base import SetupAction
+        if not store.has("policy_repo.url"):
+            return [SetupAction(
+                label="Create a new repository",
+                description="PolicyCodex will create a private repo in your GitHub org, initialized with a README and the PolicyCodex skeleton in one step.",
+                cta_label="Create",
+                cta_url="javascript:document.getElementById('create-new-form').classList.toggle('hidden')",
+            )]
+        return [SetupAction(
+            label="Initialize this repository",
+            description="Pushes .policycodex/config.yaml, the L2 foundational guard, and the handbook build workflow in one commit. Idempotent — safe to click on an already-initialized repo.",
+            cta_label="Initialize",
+            cta_url="javascript:document.getElementById('initialize-form').classList.toggle('hidden')",
+        )]
 
     def test(self, request):
         form = _Form(request.POST)
