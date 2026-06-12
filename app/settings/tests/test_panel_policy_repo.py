@@ -76,3 +76,15 @@ def test_disconnect_clears_store_and_removes_working_copy(client, admin, tmp_pat
     })
     assert not store.has("policy_repo.url")
     assert not (tmp_path / "wc" / "policies-repo").exists()
+
+
+def test_policy_repo_panel_has_intro(client, admin):
+    from app.credentials import store
+    store.set("policy_repo.url", "https://github.com/x/y")
+    store.set("policy_repo.branch", "main")
+    client.force_login(admin)
+    response = client.get("/settings/policy-repo/")
+    body = response.content.decode()
+    # An intro paragraph appears before the form.
+    body_after_title = body[body.index("<h1"):]
+    assert "<p" in body_after_title[:500]

@@ -1,5 +1,11 @@
 {% extends "settings/base_settings.html" %}
 {% block panel_content %}
+<p class="mb-4 text-base-content/80">
+  Diocese-specific defaults: address scheme, document versioning, the
+  list of reviewer titles, and retention defaults. Each save opens a
+  PR against your policy repository so the diocese keeps an audit
+  trail in Git.
+</p>
 {% if message %}
   <div class="alert alert-success mb-4">
     <span>{{ message }}</span>

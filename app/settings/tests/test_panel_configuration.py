@@ -92,3 +92,13 @@ def test_custom_values_persist_to_yaml(client, admin, tmp_path):
     assert "department-code" in yaml_body
     assert "COO" in yaml_body
     assert "10" in yaml_body
+
+
+def test_configuration_panel_has_intro(client, admin):
+    client.force_login(admin)
+    response = client.get("/settings/configuration/")
+    body = response.content.decode()
+    assert "diocese-specific" in body.lower() or "diocese" in body.lower()
+    # The intro should be a paragraph near the panel heading <h1>.
+    body_after_title = body[body.index("<h1"):]
+    assert "<p" in body_after_title[:500]

@@ -80,3 +80,13 @@ def test_cannot_delete_last_superuser(client, admin):
     assert User.objects.filter(username="admin").exists()
     assert response.status_code == 200
     assert b"last administrator" in response.content.lower()
+
+
+def test_users_panel_has_intro(client, admin):
+    client.force_login(admin)
+    response = client.get("/settings/users/")
+    body = response.content.decode()
+    # An intro paragraph appears before the user table.
+    assert "Viewer" in body and "Editor" in body and "Admin" in body
+    body_after_title = body[body.index("<h1"):]
+    assert "<p" in body_after_title[:500]

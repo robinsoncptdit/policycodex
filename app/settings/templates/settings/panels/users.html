@@ -1,5 +1,12 @@
 {% extends "settings/base_settings.html" %}
 {% block panel_content %}
+<p class="mb-4 text-base-content/80">
+  PolicyCodex has three roles: <strong>Viewer</strong> reads the
+  catalog, <strong>Editor</strong> creates and edits policies via
+  pull request, <strong>Admin</strong> manages settings. New users
+  get a temporary password displayed once and must change it on
+  first login.
+</p>
 {% if message %}
   <div class="alert alert-success mb-4">
     <span>{{ message }}</span>
