@@ -20,6 +20,11 @@ def _safe_lifecycle_state(request):
 def configure_banner(request):
     if not request.user.is_authenticated:
         return {"configure_banner": None}
+    # The banner's whole purpose is to nudge the user toward a
+    # Settings panel. If they are already inside /settings/, the
+    # nudge is noise — the left rail and panel are visible.
+    if request.path.startswith("/settings/"):
+        return {"configure_banner": None}
     state = _safe_lifecycle_state(request)
     if state is None or state.banner is None:
         return {"configure_banner": None}
