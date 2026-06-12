@@ -55,20 +55,44 @@ def _initialize_repo(repo_url: str, branch: str) -> None:
     if handbook_workflow_src.exists():
         files.append((".github/workflows/build-handbook.yml", handbook_workflow_src.read_text()))
 
+    # Rewrite the clone/push URL with the installation token so the helper
+    # works inside Docker, where no ambient git credential helper exists.
+    auth_url = repo_url
+    if repo_url.startswith("https://github.com/"):
+        try:
+            token = GitHubProvider()._installation_token()
+            auth_url = repo_url.replace("https://", f"https://x-access-token:{token}@")
+        except Exception:
+            pass  # Fall back to ambient credentials for non-Docker dev.
+
+    def _run(cmd, **kwargs):
+        kwargs.setdefault("check", True)
+        kwargs.setdefault("capture_output", True)
+        kwargs.setdefault("text", True)
+        try:
+            return subprocess.run(cmd, **kwargs)
+        except subprocess.CalledProcessError as exc:
+            raise RuntimeError(exc.stderr.strip() or str(exc)) from exc
+
     with tempfile.TemporaryDirectory() as tmp:
-        subprocess.run(["git", "clone", "--depth", "1", repo_url, tmp], check=True, timeout=60)
+        _run(["git", "clone", "--depth", "1", auth_url, tmp], timeout=60)
         if (Path(tmp) / ".policycodex").exists():
             return  # Idempotent.
         for rel, content in files:
             target = Path(tmp) / rel
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(content)
-        subprocess.run(["git", "-C", tmp, "add", "."], check=True)
-        subprocess.run([
-            "git", "-C", tmp, "commit", "-m",
+        _run(["git", "-C", tmp, "add", "."])
+        # -c flags supply a git identity for Docker containers that have
+        # no global git config.
+        _run([
+            "git",
+            "-c", "user.name=PolicyCodex",
+            "-c", "user.email=bot@policycodex",
+            "-C", tmp, "commit", "-m",
             "Initialize PolicyCodex skeleton\n\nCo-Authored-By: PolicyCodex <bot@policycodex>",
-        ], check=True)
-        subprocess.run(["git", "-C", tmp, "push", "origin", branch], check=True, timeout=60)
+        ])
+        _run(["git", "-C", tmp, "push", "origin", branch], timeout=60)
 
     # Branch protection is best-effort — the helper may not be implemented yet.
     try:
