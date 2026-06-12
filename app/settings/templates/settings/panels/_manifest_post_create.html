@@ -3,6 +3,9 @@
 <div class="alert alert-success mb-4">
   PolicyCodex GitHub App created. App ID: <code>{{ app_id }}</code>.
 </div>
-<p class="mb-4">One more step: install the App on your organization. PolicyCodex will detect the installation and store its ID automatically.</p>
-<a href="{{ install_url }}" class="btn btn-primary">Install on your organization</a>
+<ol class="list-decimal pl-6 space-y-2 mb-4">
+  <li><a href="{{ install_url }}" class="link link-primary" target="_blank">Install the App on your organization</a> (opens GitHub in a new tab).</li>
+  <li>Once installed, come back here and click "I have installed the App."</li>
+</ol>
+<a href="/settings/github-app/install/callback/" class="btn btn-primary">I have installed the App</a>
 {% endblock %}

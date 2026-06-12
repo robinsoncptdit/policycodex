@@ -154,3 +154,69 @@ def manifest_callback(request):
         "app_id": result["id"],
         "install_url": install_url,
     })
+
+
+def _list_installations() -> list[dict]:
+    """GET /app/installations using a fresh App JWT (10-minute window)."""
+    import time
+    import jwt as pyjwt
+    import requests
+
+    app_id = store.get("github_app.app_id")
+    pem = store.get("github_app.private_key_pem")
+    now = int(time.time())
+    token = pyjwt.encode(
+        {"iat": now - 60, "exp": now + 540, "iss": str(app_id)},
+        pem, algorithm="RS256",
+    )
+    response = requests.get(
+        "https://api.github.com/app/installations",
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json",
+        },
+        timeout=10,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+@require_role("Admin")
+def install_callback(request):
+    """User clicked Install on GitHub and was redirected back. Or they
+    clicked "I have installed the App" on our post-create page."""
+    try:
+        installations = _list_installations()
+    except Exception as exc:  # noqa: BLE001
+        return render(request, "settings/panels/_manifest_error.html", {
+            **_shell_ctx("GitHub App — install check failed"),
+            "error": f"Could not query installations: {exc}",
+            "can_retry": True,
+            "retry_url": request.get_full_path(),
+            "retry_count": 1,
+        })
+
+    if not installations:
+        # User may have approved but the install API has not propagated yet.
+        return render(request, "settings/panels/_install_pending.html", {
+            **_shell_ctx("GitHub App — waiting for installation"),
+            "retry_url": request.get_full_path(),
+        })
+
+    # Pick the most recent installation. With multiple, latest by ID (which
+    # is monotonically increasing). The diocese will typically have one.
+    latest = max(installations, key=lambda i: i["id"])
+    store.set("github_app.installation_id", str(latest["id"]))
+
+    # Re-pin the signature now that we have the full triplet so Save needs
+    # no Test click.
+    from app.settings.panels.github_app import _signature, _TEST_OK_SESSION_KEY
+    sig = _signature(
+        store.get("github_app.app_id"),
+        store.get("github_app.installation_id"),
+        store.get("github_app.private_key_pem"),
+    )
+    request.session[_TEST_OK_SESSION_KEY] = sig
+
+    from django.shortcuts import redirect
+    return redirect("settings_panel", slug="github-app")

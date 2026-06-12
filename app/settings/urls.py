@@ -8,5 +8,6 @@ urlpatterns = [
     path("", views.settings_root, name="settings_root"),
     path("github-app/manifest/start/", github_app_manifest.manifest_start, name="github_app_manifest_start"),
     path("github-app/manifest/callback/", github_app_manifest.manifest_callback, name="github_app_manifest_callback"),
+    path("github-app/install/callback/", github_app_manifest.install_callback, name="github_app_install_callback"),
     path("<slug:slug>/", views.settings_panel_view, name="settings_panel"),
 ]
