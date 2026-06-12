@@ -38,6 +38,7 @@ class _Form(forms.Form):
     app_id = forms.CharField(max_length=32, label="App ID")
     installation_id = forms.CharField(max_length=32, label="Installation ID")
     private_key_pem = forms.CharField(
+        required=False,
         widget=forms.Textarea(attrs={"rows": 8, "spellcheck": "false"}),
         label="Private key (PEM)",
     )

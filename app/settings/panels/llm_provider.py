@@ -58,7 +58,9 @@ class LLMProviderPanel(SettingsPanel):
             "form": form or _Form(initial=initial),
             "error": error,
             "success": success,
-            "api_key_on_file": store.has("llm.claude.api_key"),
+            # Track the key-on-file flag against the ACTIVE provider so the
+            # placeholder text is honest after a provider switch.
+            "api_key_on_file": store.has(f"llm.{initial['provider']}.api_key"),
         }
         return render(request, "settings/panels/llm_provider.html", ctx)
 

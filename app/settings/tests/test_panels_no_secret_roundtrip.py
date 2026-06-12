@@ -77,3 +77,41 @@ def test_github_app_pem_textarea_autocomplete_off(client, admin):
     pem_field_idx = body.index('name="private_key_pem"')
     surrounding = body[max(0, pem_field_idx - 200):pem_field_idx + 400]
     assert 'autocomplete="new-password"' in surrounding
+
+
+def test_github_app_blank_pem_keeps_existing_on_save(client, admin):
+    """User who already saved a PEM should be able to leave the textarea
+    blank on a subsequent Save (e.g., just updating App ID) and have the
+    save go through using the stored PEM, with the session pin re-built
+    from the stored value."""
+    from app.credentials import store
+    from app.settings.panels.github_app import _signature, _TEST_OK_SESSION_KEY
+    store.set("github_app.app_id", "111")
+    store.set("github_app.installation_id", "222")
+    store.set("github_app.private_key_pem", _PEM)
+    # Pin the session against the stored PEM (simulating a prior Test).
+    client.force_login(admin)
+    session = client.session
+    session[_TEST_OK_SESSION_KEY] = _signature("999", "222", _PEM)
+    session.save()
+    response = client.post("/settings/github-app/", {
+        "app_id": "999",  # admin is updating App ID, no PEM change
+        "installation_id": "222",
+        "private_key_pem": "",
+    })
+    assert b"GitHub App credentials saved." in response.content
+    assert store.get("github_app.app_id") == "999"
+    assert store.get("github_app.private_key_pem") == _PEM
+
+
+def test_llm_provider_api_key_on_file_tracks_active_provider(client, admin):
+    """Placeholder should say "Key on file" only when the ACTIVE provider's
+    key exists, not when Claude's key happens to be on file under a
+    non-Claude provider."""
+    from app.credentials import store
+    store.set("llm.provider", "openai")
+    store.set("llm.openai.api_key", "sk-openai-stored")
+    client.force_login(admin)
+    response = client.get("/settings/llm-provider/")
+    body = response.content.decode()
+    assert "Key on file" in body
