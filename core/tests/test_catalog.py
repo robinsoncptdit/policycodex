@@ -742,7 +742,6 @@ def test_catalog_row_links_to_detail_view(client, user, stub_gh_provider):
 def test_pending_review_section_renders_one_row_per_drafted_pr(client, user, stub_gh_provider):
     """Catalog surfaces a Pending Review section listing only drafted PRs."""
     from unittest.mock import patch
-    from ingest.policy_reader import LogicalPolicy
 
     stub_gh_provider.return_value.list_open_prs.return_value = [
         {
