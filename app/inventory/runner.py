@@ -79,6 +79,15 @@ def _do_run(run_id: int, stage_dir: Path, working_dir: Path, pass_kwargs: dict[s
         InventoryRun.objects.filter(pk=run_id).update(
             status="completed", completed_at=timezone.now(),
         )
+        # Open the bulk PR for the drafted policies. Failure becomes
+        # pr_error on the run; status stays "completed" because extraction
+        # did succeed — the PR step is a follow-on.
+        run = InventoryRun.objects.get(pk=run_id)
+        try:
+            from app.inventory.finalize import finalize_after_inventory
+            finalize_after_inventory(run, working_dir=working_dir)
+        except Exception as exc:  # noqa: BLE001
+            InventoryRun.objects.filter(pk=run_id).update(pr_error=str(exc))
     except Exception as exc:  # noqa: BLE001
         InventoryRun.objects.filter(pk=run_id).update(
             status="failed", pr_error=str(exc),
