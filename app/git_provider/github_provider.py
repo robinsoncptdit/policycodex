@@ -124,8 +124,9 @@ class GitHubProvider(GitProvider):
         )
         response.raise_for_status()
         return [
-            {"full_name": r["full_name"], "default_branch": r["default_branch"]}
+            {"full_name": r.get("full_name", ""), "default_branch": r.get("default_branch", "main")}
             for r in response.json().get("repositories", [])
+            if r.get("full_name")
         ]
 
     def _origin_url(self, working_dir: Path) -> str:
