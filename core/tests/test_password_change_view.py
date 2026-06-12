@@ -18,6 +18,13 @@ def test_get_renders_form(client, admin_must_change):
     response = client.get("/accounts/password/change/")
     assert response.status_code == 200
     assert b"New password" in response.content
+    # PolicyCodex template, not django.contrib.admin's same-named one.
+    assert b"Set a new password" in response.content
+    assert b"id_old_password" in response.content
+    assert (
+        response.templates
+        and response.templates[0].name == "core/password_change_form.html"
+    )
 
 
 def test_post_with_short_password_rejected(client, admin_must_change):

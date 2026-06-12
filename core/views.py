@@ -633,7 +633,9 @@ def publish_policy(request, slug):
 
 
 class ForcedPasswordChangeView(PasswordChangeView):
-    template_name = "registration/password_change_form.html"
+    # Namespace under core/ so django.contrib.admin's same-named template
+    # does not shadow ours via the APP_DIRS loader.
+    template_name = "core/password_change_form.html"
 
     def get_success_url(self):
         profile = self.request.user.profile
