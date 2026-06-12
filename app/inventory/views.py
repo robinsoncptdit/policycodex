@@ -54,24 +54,25 @@ def inventory_page(request):
 @require_role("Editor")
 @require_POST
 def inventory_upload(request):
+    run = _latest_run()
     files = request.FILES.getlist("files")
     if not files:
         return render(request, "inventory/inventory.html", {
-            "run": _latest_run(),
-            "lifecycle": _lifecycle(_latest_run()),
+            "run": run,
+            "lifecycle": _lifecycle(run),
             "error": "Drop at least one document.",
         })
     err = _validate(files)
     if err:
         return render(request, "inventory/inventory.html", {
-            "run": _latest_run(),
-            "lifecycle": _lifecycle(_latest_run()),
+            "run": run,
+            "lifecycle": _lifecycle(run),
             "error": err,
         })
     # Reject if a run is already active.
-    if _latest_run() and _latest_run().status in ("pending", "running"):
+    if run and run.status in ("pending", "running"):
         return render(request, "inventory/inventory.html", {
-            "run": _latest_run(),
+            "run": run,
             "lifecycle": "active",
             "error": "A run is already in progress.",
         })
