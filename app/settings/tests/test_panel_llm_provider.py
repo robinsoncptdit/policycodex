@@ -90,3 +90,28 @@ def test_save_after_test_pin_persists(client, admin):
         })
     assert store.get("llm.provider") == "claude"
     assert store.get("llm.claude.api_key") == "sk-ant-good"
+
+
+def test_success_chip_renders_above_intro_paragraph(client, admin):
+    """Success alert should land above the panel's intro paragraph,
+    not buried between the intro and the form."""
+    from app.credentials import store
+    from unittest.mock import patch
+    client.force_login(admin)
+    with patch("ai.claude_provider.ClaudeProvider.test_key", return_value=True):
+        # Test then save to land in the success state.
+        client.post("/htmx/settings/llm-provider/test/", {
+            "provider": "claude",
+            "api_key": "sk-ant-good",
+        })
+        response = client.post("/settings/llm-provider/", {
+            "provider": "claude",
+            "api_key": "sk-ant-good",
+        })
+    body = response.content.decode()
+    saved_idx = body.find("Saved.")
+    intro_idx = body.find("PolicyCodex needs an LLM")
+    assert saved_idx >= 0 and intro_idx >= 0
+    assert saved_idx < intro_idx, (
+        f"Success chip at {saved_idx} should appear before intro at {intro_idx}"
+    )

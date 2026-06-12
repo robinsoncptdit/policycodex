@@ -1,11 +1,10 @@
 {% extends "settings/base_settings.html" %}
 {% block panel_content %}
+{% include "settings/_panel_messages.html" %}
 <p class="mb-4 text-base-content/80">
   PolicyCodex needs an LLM to extract policies from your uploaded documents.
   Anthropic Claude is recommended. Local Llama is for self-hosted; no API key.
 </p>
-{% if error %}<div class="alert alert-warning mb-4">{{ error }}</div>{% endif %}
-{% if success %}<div class="alert alert-success mb-4">{{ success }}</div>{% endif %}
 <form method="post" class="space-y-4 max-w-2xl">
   {% csrf_token %}
   <div class="form-control">
