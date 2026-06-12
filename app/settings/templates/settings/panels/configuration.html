@@ -1,0 +1,53 @@
+{% extends "settings/base_settings.html" %}
+{% block panel_content %}
+{% if message %}
+  <div class="alert alert-success mb-4">
+    <span>{{ message }}</span>
+    {% if pr_url %}<a href="{{ pr_url }}" class="btn btn-sm btn-outline ml-auto">View PR</a>{% endif %}
+  </div>
+{% endif %}
+{% if error %}<div class="alert alert-warning mb-4">{{ error }}</div>{% endif %}
+
+<form method="post" class="space-y-4 max-w-2xl">
+  {% csrf_token %}
+  <div class="form-control">
+    <label class="label"><span class="label-text">Address scheme</span></label>
+    {% for value, label in form.fields.address_scheme.choices %}
+      <label class="cursor-pointer flex items-center gap-2 py-1">
+        <input type="radio" name="address_scheme" value="{{ value }}"
+               {% if form.address_scheme.value == value or not form.address_scheme.value and forloop.first %}checked{% endif %}
+               class="radio radio-sm">
+        <span>{{ label }}</span>
+      </label>
+    {% endfor %}
+  </div>
+  <div class="form-control">
+    <label class="label"><span class="label-text">Versioning</span></label>
+    {% for value, label in form.fields.versioning.choices %}
+      <label class="cursor-pointer flex items-center gap-2 py-1">
+        <input type="radio" name="versioning" value="{{ value }}"
+               {% if form.versioning.value == value or not form.versioning.value and forloop.first %}checked{% endif %}
+               class="radio radio-sm">
+        <span>{{ label }}</span>
+      </label>
+    {% endfor %}
+  </div>
+  <div class="form-control">
+    <label class="label"><span class="label-text">Reviewer roles</span></label>
+    <input name="reviewer_roles" type="text" class="input input-bordered"
+           value="{{ form.reviewer_roles.value|default:'CFO,HR Director,General Counsel' }}">
+    <span class="label-text-alt text-base-content/60">Comma-separated.</span>
+  </div>
+  <div class="form-control">
+    <label class="label"><span class="label-text">Retention: admin records (years)</span></label>
+    <input name="retention_admin_years" type="number" min="1" max="99" class="input input-bordered w-32"
+           value="{{ form.retention_admin_years.value|default:'7' }}">
+  </div>
+  <div class="form-control">
+    <label class="label"><span class="label-text">Retention: operational records (years)</span></label>
+    <input name="retention_operational_years" type="number" min="1" max="99" class="input input-bordered w-32"
+           value="{{ form.retention_operational_years.value|default:'3' }}">
+  </div>
+  <button type="submit" class="btn btn-primary">Save (opens a PR)</button>
+</form>
+{% endblock %}
