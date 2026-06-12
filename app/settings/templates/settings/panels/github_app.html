@@ -35,8 +35,10 @@
     <div class="form-control">
       <label class="label"><span class="label-text">Private key (PEM)</span></label>
       <textarea name="private_key_pem" rows="8" spellcheck="false"
+                autocomplete="new-password"
                 class="textarea textarea-bordered font-mono text-xs"
-                placeholder="-----BEGIN RSA PRIVATE KEY-----&#10;...&#10;-----END RSA PRIVATE KEY-----">{{ form.private_key_pem.value|default_if_none:'' }}</textarea>
+                placeholder="{% if pem_on_file %}PEM on file. Paste a new one to replace it.{% else %}-----BEGIN PRIVATE KEY-----{% endif %}"></textarea>
+      <span class="label-text-alt text-base-content/60">Generate at &lt;your-app&gt; → Private keys → Generate a private key.</span>
     </div>
     <div id="github-app-test-result"></div>
     <div class="flex gap-2 pt-2">

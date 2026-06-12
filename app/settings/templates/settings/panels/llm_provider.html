@@ -21,8 +21,9 @@
   </div>
   <div class="form-control">
     <label class="label"><span class="label-text">API key</span></label>
-    <input name="api_key" type="text" class="input input-bordered"
-           value="{{ form.api_key.value|default_if_none:'' }}">
+    <input name="api_key" type="password" autocomplete="new-password"
+           class="input input-bordered"
+           placeholder="{% if api_key_on_file %}Key on file. Paste a new one to replace it.{% else %}sk-ant-...{% endif %}">
     <span class="label-text-alt text-base-content/60">Not needed for Local Llama. Get yours at console.anthropic.com/settings/keys.</span>
   </div>
   <div id="llm-test-result"></div>

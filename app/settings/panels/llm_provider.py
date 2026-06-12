@@ -44,13 +44,21 @@ class LLMProviderPanel(SettingsPanel):
 
     def render(self, request, *, form=None, error=None, success=None):
         from app.settings.views import _nav_groups
+        # Only the provider choice is safe to pre-fill. The API key is a
+        # secret and must NOT round-trip through the form.
+        initial = {}
+        if store.has("llm.provider"):
+            initial["provider"] = store.get("llm.provider")
+        else:
+            initial["provider"] = "claude"
         ctx = {
             "active_slug": self.slug,
             "panel_title": self.title,
             "nav_groups": _nav_groups(),
-            "form": form or _Form(initial={"provider": "claude"}),
+            "form": form or _Form(initial=initial),
             "error": error,
             "success": success,
+            "api_key_on_file": store.has("llm.claude.api_key"),
         }
         return render(request, "settings/panels/llm_provider.html", ctx)
 
@@ -64,6 +72,13 @@ class LLMProviderPanel(SettingsPanel):
             return self.render(request, form=form, success="Saved.")
         api_key = form.cleaned_data["api_key"]
         if not api_key:
+            # User left the field blank. If a key is already on file for
+            # this provider and they didn't change provider, keep it.
+            existing_provider = store.get("llm.provider") if store.has("llm.provider") else None
+            existing_key_slug = f"llm.{provider}.api_key"
+            if existing_provider == provider and store.has(existing_key_slug):
+                store.set("llm.provider", provider)  # idempotent
+                return self.render(request, form=form, success="Saved.")
             return self.render(request, form=form, error="Paste your API key.")
         sig = _signature(provider, api_key)
         if request.session.get(_TEST_OK_SESSION_KEY) != sig:

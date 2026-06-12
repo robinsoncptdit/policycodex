@@ -50,14 +50,19 @@ class GitHubAppPanel(SettingsPanel):
 
     def render(self, request, *, form=None, message=None, error=None):
         from app.settings.views import _nav_groups
+        # App ID and Installation ID are NOT secrets (they appear in
+        # github.com URLs); the PEM IS a secret and must not round-trip.
         initial = {}
         for k, field in (
             ("github_app.app_id", "app_id"),
             ("github_app.installation_id", "installation_id"),
-            ("github_app.private_key_pem", "private_key_pem"),
         ):
             if store.has(k):
                 initial[field] = store.get(k)
+        pem_on_file = (
+            store.has("github_app.private_key_pem")
+            and bool(store.get("github_app.private_key_pem"))
+        )
         return render(request, "settings/panels/github_app.html", {
             "active_slug": self.slug,
             "panel_title": self.title,
@@ -67,6 +72,7 @@ class GitHubAppPanel(SettingsPanel):
             "panel_danger_actions": self.danger_actions(request),
             "message": message,
             "error": error,
+            "pem_on_file": pem_on_file,
         })
 
     def save(self, request):
@@ -75,16 +81,19 @@ class GitHubAppPanel(SettingsPanel):
         form = _Form(request.POST)
         if not form.is_valid():
             return self.render(request, form=form)
-        sig = _signature(
-            form.cleaned_data["app_id"],
-            form.cleaned_data["installation_id"],
-            form.cleaned_data["private_key_pem"],
-        )
+        app_id = form.cleaned_data["app_id"]
+        installation_id = form.cleaned_data["installation_id"]
+        pem = form.cleaned_data["private_key_pem"]
+        # If the textarea is blank but a PEM is already on file, keep it.
+        if not pem and store.has("github_app.private_key_pem") and store.get("github_app.private_key_pem"):
+            # Re-pin signature against the EXISTING pem so the save proceeds.
+            pem = store.get("github_app.private_key_pem")
+        sig = _signature(app_id, installation_id, pem)
         if request.session.get(_TEST_OK_SESSION_KEY) != sig:
             return self.render(request, form=form, error="Test the connection first.")
-        store.set("github_app.app_id", form.cleaned_data["app_id"])
-        store.set("github_app.installation_id", form.cleaned_data["installation_id"])
-        store.set("github_app.private_key_pem", form.cleaned_data["private_key_pem"])
+        store.set("github_app.app_id", app_id)
+        store.set("github_app.installation_id", installation_id)
+        store.set("github_app.private_key_pem", pem)
         return self.render(request, form=form, message="GitHub App credentials saved.")
 
     def _revoke(self, request):
