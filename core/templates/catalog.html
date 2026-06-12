@@ -29,21 +29,29 @@
       </div>
     {% endif %}
 
-    <div class="card bg-base-100 border border-base-300 mb-6">
-      <div class="card-body">
-        <h3 class="card-title text-sm font-semibold uppercase tracking-wider text-slate-500">Approve a PR</h3>
-        <p class="text-sm text-slate-500">Enter the GitHub PR number to approve.</p>
-        <form method="post" action="{% url 'approve_pr' %}" class="flex items-end gap-2">
-          {% csrf_token %}
-          <div>
-            <label for="pr_number" class="block text-xs text-slate-500 mb-1">PR number</label>
-            <input type="number" name="pr_number" id="pr_number" min="1" required
-                   class="input input-bordered input-sm w-32">
-          </div>
-          <button type="submit" class="btn btn-primary btn-sm">Approve PR</button>
-        </form>
+    {% if pending_review %}
+    <section class="card bg-base-100 border border-base-300 mb-6">
+      <div class="card-body py-4">
+        <h2 class="card-title text-base">Pending review ({{ pending_review|length }})</h2>
+        <ul class="divide-y divide-base-300">
+          {% for row in pending_review %}
+          <li class="py-2 flex items-center gap-4">
+            <div class="flex-1">
+              <div class="font-medium">{{ row.policy.frontmatter.title|default:row.policy.slug }}</div>
+              <div class="text-xs text-base-content/60">PR #{{ row.pr.number }} · {{ row.pr.author }} · {{ row.pr.title }}</div>
+            </div>
+            <a href="{{ row.pr.html_url }}" target="_blank" rel="noopener" class="link link-hover text-sm">View PR ↗</a>
+            <form method="post" action="{% url 'approve_pr' %}">
+              {% csrf_token %}
+              <input type="hidden" name="pr_number" value="{{ row.pr.number }}">
+              <button type="submit" class="btn btn-primary btn-sm">Approve</button>
+            </form>
+          </li>
+          {% endfor %}
+        </ul>
       </div>
-    </div>
+    </section>
+    {% endif %}
 
     <div class="card bg-base-100 border border-base-300">
       <table class="table">

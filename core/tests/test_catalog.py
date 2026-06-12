@@ -371,18 +371,28 @@ def test_catalog_degrades_gracefully_when_list_open_prs_raises(client, user):
     assert "gate-published" in body
 
 
-def test_catalog_renders_approve_pr_form(client, user):
-    """The catalog has a POST form pointing at /policies/approve/ with pr_number input."""
+def test_catalog_renders_approve_pr_form_when_drafted_pr_present(client, user):
+    """When a drafted PR exists, the catalog renders a per-row Approve form
+    pointing at /policies/approve/ with a hidden pr_number input."""
     client.force_login(user)
+    policies = [_stub_policy(slug="onboarding", kind="flat", title="Onboarding")]
+    open_prs = [{
+        "number": 7,
+        "head_branch": "policycodex/edit-onboarding-abcd1234",
+        "gate": "drafted",
+        "title": "Update onboarding",
+        "author": "editor@diocese.example",
+        "html_url": "https://github.com/x/y/pull/7",
+    }]
     with override_settings(
         POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
         POLICYCODEX_WORKING_COPY_ROOT="/tmp",
     ):
         with patch("core.views.Path.exists", return_value=True):
             with patch("core.views.BundleAwarePolicyReader") as MockReader:
-                MockReader.return_value.read.return_value = iter([])
+                MockReader.return_value.read.return_value = iter(policies)
                 with patch("core.views.GitHubProvider") as MockProvider:
-                    MockProvider.return_value.list_open_prs.return_value = []
+                    MockProvider.return_value.list_open_prs.return_value = open_prs
                     response = client.get("/catalog/")
 
     body = response.content.decode()
@@ -391,6 +401,8 @@ def test_catalog_renders_approve_pr_form(client, user):
     assert 'name="pr_number"' in body
     # CSRF token is rendered.
     assert "csrfmiddlewaretoken" in body
+    # Free-form widget is gone.
+    assert "Enter the GitHub PR number" not in body
 
 
 def test_catalog_omits_approve_form_in_empty_onboarding_state(client, user):
@@ -725,3 +737,55 @@ def test_catalog_row_links_to_detail_view(client, user, stub_gh_provider):
     assert 'href="/policies/onboarding/"' in body
     # The dead in-page anchor must be gone.
     assert 'href="#onboarding"' not in body
+
+
+def test_pending_review_section_renders_one_row_per_drafted_pr(client, user, stub_gh_provider):
+    """Catalog surfaces a Pending Review section listing only drafted PRs."""
+    from unittest.mock import patch
+    from ingest.policy_reader import LogicalPolicy
+
+    stub_gh_provider.return_value.list_open_prs.return_value = [
+        {
+            "number": 42,
+            "head_branch": "policycodex/edit-onboarding-abcd1234",
+            "gate": "drafted",
+            "title": "Update onboarding policy",
+            "author": "cfo@diocese.example",
+            "html_url": "https://github.com/x/y/pull/42",
+        },
+    ]
+
+    policies = [_stub_policy(slug="onboarding", kind="flat", title="Onboarding")]
+    client.force_login(user)
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+        POLICYCODEX_WORKING_COPY_ROOT="/tmp",
+    ):
+        with patch("core.views.Path.exists", return_value=True):
+            with patch("core.views.BundleAwarePolicyReader") as MockReader:
+                MockReader.return_value.read.return_value = iter(policies)
+                response = client.get("/catalog/")
+
+    body = response.content.decode()
+    assert "Pending review" in body
+    assert "PR #42" in body
+    assert "Update onboarding policy" in body
+    assert "cfo@diocese.example" in body
+    # The free-form Approve widget should be gone.
+    assert "Enter the GitHub PR number" not in body
+
+
+def test_no_pending_review_section_when_no_drafted_prs(client, user, stub_gh_provider):
+    """When all PRs are reviewed or merged, the section hides itself."""
+    from unittest.mock import patch
+
+    stub_gh_provider.return_value.list_open_prs.return_value = []
+    client.force_login(user)
+    with override_settings(
+        POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
+        POLICYCODEX_WORKING_COPY_ROOT="/tmp",
+    ):
+        with patch("core.views.Path.exists", return_value=False):
+            response = client.get("/catalog/")
+    body = response.content.decode()
+    assert "Pending review" not in body

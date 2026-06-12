@@ -149,3 +149,36 @@ def test_approve_pr_provider_exception_flashes_error(client, user):
     assert response.url == "/catalog/"
     follow = client.get("/catalog/")
     assert "error" in follow.content.decode().lower() or "could not approve" in follow.content.decode().lower()
+
+
+def test_approve_pr_flashes_success_on_success(client, user):
+    from pathlib import Path
+    from unittest.mock import patch
+    client.force_login(user)
+    with patch("core.views._build_gate_lookup", return_value={}), \
+         patch("core.views.GitHubProvider") as MockProvider, \
+         patch("core.views.load_working_copy_config") as mock_cfg:
+        provider = MockProvider.return_value
+        provider.read_pr_state.return_value = "drafted"
+        provider.approve_pr.return_value = {"html_url": "https://x/pull/42"}
+        mock_cfg.return_value.working_dir = Path("/tmp")
+        response = client.post("/policies/approve/", {"pr_number": "42"}, follow=True)
+    assert response.status_code == 200
+    body = response.content.decode().lower()
+    assert "approved" in body or "reviewed" in body
+
+
+def test_approve_pr_flashes_error_on_wrong_state(client, user):
+    from pathlib import Path
+    from unittest.mock import patch
+    client.force_login(user)
+    with patch("core.views._build_gate_lookup", return_value={}), \
+         patch("core.views.GitHubProvider") as MockProvider, \
+         patch("core.views.load_working_copy_config") as mock_cfg:
+        provider = MockProvider.return_value
+        provider.read_pr_state.return_value = "published"
+        mock_cfg.return_value.working_dir = Path("/tmp")
+        response = client.post("/policies/approve/", {"pr_number": "42"}, follow=True)
+    assert response.status_code == 200
+    body = response.content.decode().lower()
+    assert "not drafted" in body or "already" in body or "state" in body

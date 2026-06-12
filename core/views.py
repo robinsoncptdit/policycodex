@@ -43,13 +43,14 @@ def health(request):
     return JsonResponse({"status": "ok"})
 
 
-def _build_gate_lookup(working_dir: Path) -> dict[str, str]:
-    """Call list_open_prs once and return a {slug: gate} map.
+def _build_gate_lookup(working_dir: Path) -> dict[str, dict]:
+    """Call list_open_prs once and return a {slug: {gate, pr}} map.
 
     Returns an empty dict on any provider failure: the catalog gracefully
     falls back to treating every policy as Published when GitHub is
-    unreachable. Logging the failure is a follow-up; v0.1 prioritizes the
-    page rendering over surfacing the network error.
+    unreachable. The PR sub-dict carries number/title/author/html_url so
+    the Pending Review section can render per-PR Approve buttons without
+    making a second API call.
     """
     try:
         provider = GitHubProvider()
@@ -60,17 +61,23 @@ def _build_gate_lookup(working_dir: Path) -> dict[str, str]:
         )
         return {}
 
-    lookup: dict[str, str] = {}
+    lookup: dict[str, dict] = {}
     for pr in open_prs:
         slug = branch_to_slug(pr.get("head_branch", ""))
         if slug is None:
             continue
-        # If two PRs target the same slug (shouldn't happen with branch
-        # protection, but defensive), keep the more-advanced gate.
-        existing = lookup.get(slug)
+        existing = lookup.get(slug, {}).get("gate")
         if existing == "reviewed":
             continue
-        lookup[slug] = pr.get("gate", "drafted")
+        lookup[slug] = {
+            "gate": pr.get("gate", "drafted"),
+            "pr": {
+                "number": pr.get("number"),
+                "title": pr.get("title", ""),
+                "author": pr.get("author", ""),
+                "html_url": pr.get("html_url", ""),
+            },
+        }
     return lookup
 
 
@@ -111,16 +118,32 @@ def catalog(request):
         gap = bool(known) and is_gap(policy.frontmatter.get("category"), known)
         if gap:
             gap_count += 1
+        entry = gate_lookup.get(policy.slug, {"gate": "published", "pr": None})
         rows.append({
             "policy": policy,
-            "gate": gate_lookup.get(policy.slug, "published"),
+            "gate": entry["gate"],
             "is_gap": gap,
         })
+
+    pending_review = [
+        {
+            "policy": row["policy"],
+            "pr": gate_lookup[row["policy"].slug]["pr"],
+        }
+        for row in rows
+        if gate_lookup.get(row["policy"].slug, {}).get("gate") == "drafted"
+        and gate_lookup.get(row["policy"].slug, {}).get("pr") is not None
+    ]
 
     return render(
         request,
         "catalog.html",
-        {"is_empty_onboarding": False, "rows": rows, "gap_count": gap_count},
+        {
+            "is_empty_onboarding": False,
+            "rows": rows,
+            "gap_count": gap_count,
+            "pending_review": pending_review,
+        },
     )
 
 
@@ -171,7 +194,7 @@ def policy_detail(request, slug):
     # badge exactly. Degrades to "published" on any provider/config failure.
     try:
         config = load_working_copy_config()
-        gate = _build_gate_lookup(config.working_dir).get(slug, "published")
+        gate = _build_gate_lookup(config.working_dir).get(slug, {"gate": "published"})["gate"]
     except RuntimeError:
         gate = "published"
 
@@ -518,9 +541,13 @@ def approve_pr(request):
         return redirect("catalog")
 
     if state != "drafted":
+        logger.warning(
+            "approve_pr: PR %s in state %s, not drafted; user=%s",
+            pr_number, state, request.user.username,
+        )
         messages.error(
             request,
-            f"PR #{pr_number} cannot be approved (current state: {state}).",
+            f"PR #{pr_number} is in state '{state}', not 'drafted'. Refresh the catalog or check the PR on GitHub.",
         )
         return redirect("catalog")
 
