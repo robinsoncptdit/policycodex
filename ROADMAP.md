@@ -1,12 +1,12 @@
 # PolicyCodex Roadmap
 
-*Last updated 2026-06-11. Living document. Themes evolve as real-world install signal arrives.*
+*Last updated 2026-06-14. Living document. Themes evolve as real-world install signal arrives.*
 
 ## How to read this
 
 PolicyCodex follows a maintainer-mode open-source model. Dates appear only after we can promise them. Earlier phases describe themes and direction, not commitments. Anything labeled "vision" or "horizons" is genuinely uncertain and depends on partner engagement, real-world install signal, and the time of the maintainer team.
 
-If you are evaluating PolicyCodex for your diocese or for a partnership, the most useful sections are **Architectural foundation** (what is built) and **In rebuild** (what is in progress before v0.1 ships). Everything past that is forward-looking and may change.
+If you are evaluating PolicyCodex for your diocese or for a partnership, the most useful sections are **Architectural foundation** (what is built) and **Settings-page rebuild** (the v0.1 admin architecture, now shipped). Everything past that is forward-looking and may change.
 
 ## Architectural foundation (built, survives the 2026-06-11 pivot)
 
@@ -24,22 +24,22 @@ The pieces below shipped pre-pivot and carry forward into v0.1 unchanged:
 
 **Design reviewers:** Archdiocese of Los Angeles (David Schmitt, IT Director) and Archdiocese of Baltimore (Marcus Madsen, Director of IT).
 
-## In rebuild (v0.1 ship pending the Settings-page architecture, post-2026-06-11 pivot)
+## Settings-page rebuild (shipped 2026-06-11, polished 2026-06-12)
 
 The DISC-readiness sprint built a seven-screen onboarding wizard. The live walkthrough on 2026-06-11 surfaced architectural fault lines between the new credential store and the legacy settings-driven plumbing. Each fix revealed the next broken consumer. The team paused and called for a rethink.
 
-The replacement architecture, locked the same evening:
+The replacement architecture, built that same evening and polished the next morning:
 
 - Seeded admin (`admin`/`admin1234`) forced to change password on first login.
 - All configuration lives in a `/settings/` page with five panels: GitHub App, AI provider, Policy repository, Diocese configuration, Users-and-roles, plus a Reset panel.
 - Inventory becomes a top-level `/inventory/` page with an always-present drop bucket.
 - GitHub App provisioning automates via the GitHub App manifest flow with Installation ID auto-detect and a repo dropdown. The admin clicks three buttons instead of pasting an App ID, an Installation ID, and a PEM.
 
-Six-phase rebuild plan, 30 tasks, roughly one week of focused work with parallel subagent dispatch. v0.1 ships when the rebuild lands. The architectural foundation above carries forward unchanged.
+The six-phase plan (30 tasks) was executed end-to-end on 2026-06-11 via parallel subagent dispatch, then refined by a UX-fix pass on 2026-06-12. The test suite is green. The architectural foundation above carries forward unchanged.
 
 ## Transition (between v0.1 ship and v0.2 commitment)
 
-What the maintainer team does in the months between the Settings-page rebuild landing and v0.2 scope commitment. This phase exists deliberately. We do not commit v0.2 scope speculatively.
+What the maintainer team does in the months between the Settings-page rebuild landing (2026-06-11) and v0.2 scope commitment. This phase exists deliberately. We do not commit v0.2 scope speculatively.
 
 **What the maintainer team focuses on during the transition:**
 

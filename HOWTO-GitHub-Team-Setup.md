@@ -1,6 +1,6 @@
 # How To: Set Up GitHub for PolicyCodex
 
-> **2026-06-11 pivot note.** Post-pivot, GitHub App creation is automated through the GitHub App manifest flow inside the Settings GitHub App panel. The manual Part 1 walkthrough below is preserved as a fallback for installs where the manifest flow does not apply, and remains the source of truth for the Team-tier branch-protection setup (which is separate from App creation). Where this guide references "the onboarding wizard," read "the Settings GitHub App panel" until this doc is refreshed against the rebuild.
+> **Note.** GitHub App creation is automated by the GitHub App manifest flow inside the **Settings → GitHub App** panel: the admin clicks through and PolicyCodex registers the App, stores its credentials, and auto-detects the Installation ID. The manual Part 1 walkthrough below is the fallback for installs where the manifest flow does not apply (an air-gapped network, or an org that blocks manifest registration). You create the App by hand and paste the three values into the panel's manual fields. Parts 2 through 5 (Team upgrade, branch protection, the foundational-policy guard, handbook publishing) apply to every install regardless of which App-creation path you took.
 
 PolicyCodex stores every policy as a markdown file in a private GitHub repo your
 organization owns. Two pieces of GitHub setup make that work:
@@ -32,9 +32,10 @@ the **Owner** role on the organization.
 
 Each diocese registers its own GitHub App. The App stays on your org, owns its
 own private key, and only ever sees the one repo you install it on. PolicyCodex
-authenticates as the App using the credentials you save in Phase 5 of the
-install: an **App ID**, an **Installation ID**, and a **private key** `.pem`
-file. The onboarding wizard prompts for all three.
+authenticates as the App using three credentials you save in the
+**Settings → GitHub App** panel: an **App ID**, an **Installation ID**, and a
+**private key** `.pem` file. The manifest flow fills all three in for you; the
+panel's manual fields accept them if you create the App by hand.
 
 You can do Part 1 on either a **Free** or a **Team** org; nothing about App
 creation requires Team. The downstream parts (branch protection, Pages) are
@@ -66,7 +67,7 @@ where the Team plan matters.
    | Contents | Read and write | Commit policy edits to feature branches. |
    | Pull requests | Read and write | Open, read, and merge the PRs that drive every gate transition. |
    | Metadata | Read-only | Mandatory; auto-selected. |
-   | Workflows | Read and write | Commit the vendored `.github/workflows/build-handbook.yml` and `foundational-guard.yml` during onboarding. |
+   | Workflows | Read and write | Commit the vendored `.github/workflows/build-handbook.yml` and `foundational-guard.yml` when the policy repo is initialized. |
    | Administration | Read-only | Read the branch-protection ruleset for the L3 startup self-check. |
 
    Leave **Organization permissions** and **Account permissions** on **No
@@ -77,17 +78,17 @@ where the Team plan matters.
 
 6. Click **Create GitHub App**.
 
-7. On the App's settings page, capture the values you need for the onboarding
-   wizard (screen 2 — GitHub App):
+7. On the App's settings page, capture the values you will paste into the
+   **Settings → GitHub App** panel's manual fields:
 
    - The **App ID** is shown near the top (a numeric value). Copy it; the
-     wizard calls this the "App ID."
+     panel labels this field "App ID."
    - Scroll to **Private keys** and click **Generate a private key**. Your
      browser downloads a `.pem` file. **Save that file somewhere safe on the
      VM that will run PolicyCodex** (for example,
      `~/.config/policycodex/github-app-private-key.pem`). Do not paste the
-     contents into chat or any other surface. `chmod 600` the file. The wizard
-     will ask for the absolute path to this file.
+     contents into chat or any other surface. `chmod 600` the file. The panel
+     asks for the absolute path to this file.
 
 8. Install the App on your policy repo:
 
@@ -101,8 +102,8 @@ where the Team plan matters.
    `https://github.com/organizations/<your-org>/settings/installations/<installation-id>`.
    The trailing number is the Installation ID. Copy it.
 
-You now have all three values the onboarding wizard (screen 2) needs: App ID,
-Installation ID, and the path to your private key file.
+You now have all three values the **Settings → GitHub App** panel's manual
+fields need: App ID, Installation ID, and the path to your private key file.
 
 ## Part 2: Upgrade the organization to the Team plan
 
@@ -125,7 +126,7 @@ With the org on Team, enforcement on a private repo now takes effect.
 
 1. Go to your policy repo: `https://github.com/<your-org>/<your-repo>`.
 2. Open **Settings**, then **Rules**, then **Rulesets**.
-3. Create a new branch ruleset (or edit the one PolicyCodex onboarding created).
+3. Create a new branch ruleset (or edit the one the Settings Policy-repository panel's repo-initialization step created).
 4. Set **Enforcement status** to **Active**.
 5. Under **Target branches**, add your default branch: **`main`**.
 6. Enable these rules (the audit-trail baseline):

@@ -22,7 +22,7 @@ specific diocese.
    `foundational-guard` check to the policy repo's `main` ruleset as a required
    status check. Before you do, read the path-filter caveat (a naive required
    check blocks pull requests that do not touch `policies/`): see
-   "Part 3 (optional): Require the foundational-policy guard" in
+   "Part 4 (optional): Require the foundational-policy guard" in
    `HOWTO-GitHub-Team-Setup.md`.
 
 ## Handbook build and deploy (PUBLISH-06 + PUBLISH-07)
@@ -44,7 +44,7 @@ three jobs:
    without Pages enabled does not red-flag its merges. Pinned to
    `actions/deploy-pages@v5`.
 
-To turn on serving at your subdomain, follow Part 4 of
+To turn on serving at your subdomain, follow Part 5 of
 `HOWTO-GitHub-Team-Setup.md` (DNS CNAME, org-level apex verification,
 repo Pages settings = GitHub Actions source + custom domain). After the
 one-time setup, every merge to `main` re-deploys the handbook.
