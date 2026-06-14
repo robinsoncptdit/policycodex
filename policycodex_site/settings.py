@@ -39,29 +39,12 @@ POLICYCODEX_ONBOARDING_COMPLETE = _onboarding_raw.lower() in ("1", "true", "yes"
 # gets DEBUG on and the historical dev key (see policycodex_site/env.py).
 DEBUG = _env.get_debug(os.environ)
 
-# DISC-01: SECRET_KEY persists across container restarts via a file in /data.
-# The entrypoint generates it on first boot. At test time, a sane default is
-# provided so settings imports without a real /data mount.
-_secret_key_file = os.environ.get("POLICYCODEX_SECRET_KEY_FILE", "")
-if _secret_key_file and os.path.isfile(_secret_key_file):
-    with open(_secret_key_file, "r", encoding="utf-8") as _fh:
-        SECRET_KEY = _fh.read().strip()
-else:
-    # Test / dev fallback. Production paths set POLICYCODEX_SECRET_KEY_FILE.
-    SECRET_KEY = os.environ.get(
-        "DJANGO_SECRET_KEY",
-        "django-insecure-test-only-not-for-production",
-    )
-
-# Preserve the REPO-05 invariant: in production (DEBUG off), a real key must
-# be configured. Without this guard, a non-Docker boot that forgets to set
-# POLICYCODEX_SECRET_KEY_FILE would silently fall back to the dev string.
-if not DEBUG and SECRET_KEY.startswith("django-insecure-"):
-    raise RuntimeError(
-        "Refusing to start with the insecure default SECRET_KEY while DEBUG is off. "
-        "Set POLICYCODEX_SECRET_KEY_FILE to a file containing a real key, "
-        "or set DJANGO_SECRET_KEY in the environment."
-    )
+# DISC-01 / REPO-05: SECRET_KEY resolution is centralized in env.get_secret_key
+# (single source of truth, unit-tested in tests/test_settings_env.py). It reads
+# POLICYCODEX_SECRET_KEY_FILE (the container entrypoint sets it), falls back to
+# DJANGO_SECRET_KEY, allows the dev key only when DEBUG is on, and refuses to
+# boot with no real key when DEBUG is off.
+SECRET_KEY = _env.get_secret_key(os.environ, DEBUG)
 
 ALLOWED_HOSTS = _env.get_allowed_hosts(os.environ)
 

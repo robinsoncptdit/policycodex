@@ -6,6 +6,7 @@ reloading Django. settings.py calls these with os.environ.
 """
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 # The historical insecure dev key. Used only when DEBUG is on and no
@@ -27,6 +28,24 @@ def get_debug(environ) -> bool:
 
 
 def get_secret_key(environ, debug: bool) -> str:
+    # DISC-01: the container entrypoint writes the key to a file under /data
+    # and points POLICYCODEX_SECRET_KEY_FILE at it. A real file key always wins
+    # so the container boots without DJANGO_SECRET_KEY in the environment.
+    key_file = environ.get("POLICYCODEX_SECRET_KEY_FILE", "").strip()
+    if key_file and os.path.isfile(key_file):
+        try:
+            with open(key_file, "r", encoding="utf-8") as fh:
+                file_key = fh.read().strip()
+        except OSError as exc:
+            # The file is explicitly configured but unreadable (bad permissions,
+            # or swapped/removed after the isfile check). Surface an actionable
+            # error rather than a bare traceback at settings import.
+            raise SettingsError(
+                f"POLICYCODEX_SECRET_KEY_FILE is set to {key_file!r} but the "
+                f"file could not be read: {exc}"
+            ) from exc
+        if file_key:
+            return file_key
     key = environ.get("DJANGO_SECRET_KEY", "").strip()
     if key:
         return key
@@ -34,7 +53,8 @@ def get_secret_key(environ, debug: bool) -> str:
         return _DEV_SECRET_KEY
     raise SettingsError(
         "DJANGO_SECRET_KEY must be set when DEBUG is off. Generate one and "
-        "pass it via the environment (see .env.example)."
+        "pass it via the environment, or set POLICYCODEX_SECRET_KEY_FILE "
+        "(see .env.example)."
     )
 
 

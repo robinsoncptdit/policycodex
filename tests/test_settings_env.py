@@ -87,3 +87,29 @@ def test_source_url_uses_env():
     assert env.get_source_url({"POLICYCODEX_SOURCE_URL": "https://x.test/repo"}) == (
         "https://x.test/repo"
     )
+
+
+def test_secret_key_file_wins_over_env(tmp_path):
+    key_file = tmp_path / "k"
+    key_file.write_text("from-file\n")
+    assert env.get_secret_key(
+        {"POLICYCODEX_SECRET_KEY_FILE": str(key_file), "DJANGO_SECRET_KEY": "from-env"},
+        debug=False,
+    ) == "from-file"
+
+
+def test_secret_key_file_unreadable_raises_settings_error(tmp_path):
+    import os
+
+    key_file = tmp_path / "k"
+    key_file.write_text("from-file\n")
+    os.chmod(key_file, 0o000)
+    if os.access(key_file, os.R_OK):  # running as root: perms ignored
+        os.chmod(key_file, 0o600)
+        pytest.skip("cannot make a file unreadable (running as root)")
+    try:
+        with pytest.raises(env.SettingsError) as exc_info:
+            env.get_secret_key({"POLICYCODEX_SECRET_KEY_FILE": str(key_file)}, debug=False)
+    finally:
+        os.chmod(key_file, 0o600)  # let tmp_path cleanup remove it
+    assert "could not be read" in str(exc_info.value)
