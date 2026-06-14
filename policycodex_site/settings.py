@@ -30,8 +30,8 @@ POLICYCODEX_WORKING_COPY_ROOT = os.environ.get("POLICYCODEX_WORKING_COPY_ROOT", 
 # once the Settings page has been fully configured. Truthy parser tolerates
 # "1", "true", "yes" (case-insensitive); empty string and "0"/"false"/"no"
 # are falsy.
-_onboarding_raw = os.environ.get("POLICYCODEX_ONBOARDING_COMPLETE", "")
-POLICYCODEX_ONBOARDING_COMPLETE = _onboarding_raw.lower() in ("1", "true", "yes")
+_config_complete_raw = os.environ.get("POLICYCODEX_CONFIG_COMPLETE", "")
+POLICYCODEX_CONFIG_COMPLETE = _config_complete_raw.lower() in ("1", "true", "yes")
 
 
 # Deploy-time knobs (REPO-05). Driven by the environment so the same image

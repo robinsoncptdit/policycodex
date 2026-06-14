@@ -3,7 +3,7 @@
 Validates that every required `provides:` capability is satisfied by
 exactly one published foundational policy in the local working copy.
 
-Failure severity is gated by the POLICYCODEX_ONBOARDING_COMPLETE setting:
+Failure severity is gated by the POLICYCODEX_CONFIG_COMPLETE setting:
 - False (default): missing working copy or unset repo URL returns Warning,
   letting `manage.py runserver` start before configuration is complete.
   Bundle-validity failures (broken data.yaml, missing or duplicate
@@ -28,14 +28,14 @@ REQUIRED_CAPABILITIES: tuple[str, ...] = ("classifications", "retention-schedule
 @register()
 def foundational_policy_check(app_configs, **kwargs) -> Sequence:
     """Return a list of Error/Warning objects; empty list means pass."""
-    onboarding_complete = bool(getattr(settings, "POLICYCODEX_ONBOARDING_COMPLETE", False))
+    config_complete = bool(getattr(settings, "POLICYCODEX_CONFIG_COMPLETE", False))
 
     # Resolve the working copy config. Unset POLICYCODEX_POLICY_REPO_URL is
     # an infrastructure-level failure: Warning during onboarding, Error after.
     try:
         config = load_working_copy_config()
     except RuntimeError as exc:
-        if onboarding_complete:
+        if config_complete:
             return [Error(
                 f"Working copy not configured: {exc}",
                 hint="Set POLICYCODEX_POLICY_REPO_URL to the diocese's policy repo URL.",
@@ -49,7 +49,7 @@ def foundational_policy_check(app_configs, **kwargs) -> Sequence:
 
     policies_dir: Path = config.working_dir / "policies"
     if not policies_dir.exists():
-        if onboarding_complete:
+        if config_complete:
             return [Error(
                 f"Policies directory not found: {policies_dir}",
                 hint="Run `python manage.py pull_working_copy` to sync the diocese's policy repo.",

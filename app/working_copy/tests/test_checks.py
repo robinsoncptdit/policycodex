@@ -36,7 +36,7 @@ def test_check_runs_via_manage_py_check_command(monkeypatch):
     from io import StringIO
 
     with override_settings(
-        POLICYCODEX_ONBOARDING_COMPLETE=False,
+        POLICYCODEX_CONFIG_COMPLETE=False,
         POLICYCODEX_POLICY_REPO_URL="",
     ):
         out = StringIO()
@@ -76,7 +76,7 @@ def _run_check_with_mocked_reader(*, policies, onboarding=True, repo_url="https:
     from app.working_copy import checks as checks_module
 
     with override_settings(
-        POLICYCODEX_ONBOARDING_COMPLETE=onboarding,
+        POLICYCODEX_CONFIG_COMPLETE=onboarding,
         POLICYCODEX_POLICY_REPO_URL=repo_url,
         POLICYCODEX_POLICY_BRANCH="main",
         POLICYCODEX_WORKING_COPY_ROOT="/tmp",
@@ -158,7 +158,7 @@ def test_broken_bundle_returns_error_with_file_hint():
     from app.working_copy import checks as checks_module
 
     with override_settings(
-        POLICYCODEX_ONBOARDING_COMPLETE=True,
+        POLICYCODEX_CONFIG_COMPLETE=True,
         POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
         POLICYCODEX_WORKING_COPY_ROOT="/tmp",
     ):
@@ -188,7 +188,7 @@ def test_broken_bundle_is_error_even_during_onboarding():
     from app.working_copy import checks as checks_module
 
     with override_settings(
-        POLICYCODEX_ONBOARDING_COMPLETE=False,  # onboarding mode
+        POLICYCODEX_CONFIG_COMPLETE=False,  # onboarding mode
         POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
         POLICYCODEX_WORKING_COPY_ROOT="/tmp",
     ):
@@ -205,12 +205,12 @@ def test_broken_bundle_is_error_even_during_onboarding():
 # Onboarding-gated infrastructure failures: missing env var, missing policies dir.
 
 def test_unset_repo_url_during_onboarding_returns_warning():
-    """POLICYCODEX_ONBOARDING_COMPLETE=False + unset repo URL -> Warning."""
+    """POLICYCODEX_CONFIG_COMPLETE=False + unset repo URL -> Warning."""
     from app.working_copy import checks as checks_module
     from django.core.checks import Warning
 
     with override_settings(
-        POLICYCODEX_ONBOARDING_COMPLETE=False,
+        POLICYCODEX_CONFIG_COMPLETE=False,
         POLICYCODEX_POLICY_REPO_URL="",
     ):
         results = checks_module.foundational_policy_check(app_configs=None)
@@ -223,12 +223,12 @@ def test_unset_repo_url_during_onboarding_returns_warning():
 
 
 def test_unset_repo_url_post_onboarding_returns_error():
-    """POLICYCODEX_ONBOARDING_COMPLETE=True + unset repo URL -> Error."""
+    """POLICYCODEX_CONFIG_COMPLETE=True + unset repo URL -> Error."""
     from app.working_copy import checks as checks_module
     from django.core.checks import Error
 
     with override_settings(
-        POLICYCODEX_ONBOARDING_COMPLETE=True,
+        POLICYCODEX_CONFIG_COMPLETE=True,
         POLICYCODEX_POLICY_REPO_URL="",
     ):
         results = checks_module.foundational_policy_check(app_configs=None)
@@ -239,12 +239,12 @@ def test_unset_repo_url_post_onboarding_returns_error():
 
 
 def test_missing_policies_dir_during_onboarding_returns_warning():
-    """POLICYCODEX_ONBOARDING_COMPLETE=False + policies dir missing -> Warning."""
+    """POLICYCODEX_CONFIG_COMPLETE=False + policies dir missing -> Warning."""
     from app.working_copy import checks as checks_module
     from django.core.checks import Warning
 
     with override_settings(
-        POLICYCODEX_ONBOARDING_COMPLETE=False,
+        POLICYCODEX_CONFIG_COMPLETE=False,
         POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
         POLICYCODEX_WORKING_COPY_ROOT="/tmp",
     ):
@@ -258,12 +258,12 @@ def test_missing_policies_dir_during_onboarding_returns_warning():
 
 
 def test_missing_policies_dir_post_onboarding_returns_error():
-    """POLICYCODEX_ONBOARDING_COMPLETE=True + policies dir missing -> Error."""
+    """POLICYCODEX_CONFIG_COMPLETE=True + policies dir missing -> Error."""
     from app.working_copy import checks as checks_module
     from django.core.checks import Error
 
     with override_settings(
-        POLICYCODEX_ONBOARDING_COMPLETE=True,
+        POLICYCODEX_CONFIG_COMPLETE=True,
         POLICYCODEX_POLICY_REPO_URL="https://example.com/x.git",
         POLICYCODEX_WORKING_COPY_ROOT="/tmp",
     ):
