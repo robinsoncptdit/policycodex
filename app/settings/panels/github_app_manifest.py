@@ -149,7 +149,12 @@ def manifest_callback(request):
     # Render the "now install" intermediate page. Use the slug GitHub
     # returned — it appends a -N suffix when "policycodex" is already taken.
     slug = result.get("slug", "policycodex")
-    install_url = f"https://github.com/apps/{slug}/installations/new?state={state}"
+    # Fresh nonce — do NOT reuse the CSRF state token (already validated and
+    # popped above). GitHub echoes this state back in the redirect, but
+    # install_callback re-derives trust from stored creds + a fresh App JWT and
+    # never reads it, so it is decoration only (F13).
+    install_marker = secrets.token_urlsafe(16)
+    install_url = f"https://github.com/apps/{slug}/installations/new?state={install_marker}"
     return render(request, "settings/panels/_manifest_post_create.html", {
         **_shell_ctx(request, "GitHub App — almost done"),
         "app_id": result["id"],
