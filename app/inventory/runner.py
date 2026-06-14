@@ -22,7 +22,8 @@ from django.db import transaction
 from django.utils import timezone
 
 from ai.inventory import run_inventory_pass
-from ingest.incremental import plan_incremental_run
+from ingest.local_folder import LocalFolderConnector
+from ingest.manifest import build_manifest
 
 from app.inventory.models import InventoryItem, InventoryRun
 
@@ -68,26 +69,23 @@ def _do_run(run_id: int, stage_dir: Path, working_dir: Path, pass_kwargs: dict[s
 
     InventoryRun.objects.filter(pk=run_id).update(status="running")
     try:
-        diff = plan_incremental_run(stage_dir, manifest_path=stage_dir / "manifest.json")
-        run_inventory_pass(
-            manifest=diff.to_process,
+        manifest = build_manifest(
+            LocalFolderConnector(stage_dir).walk(), source_label="inventory-upload",
+        )
+        result = run_inventory_pass(
+            manifest=manifest,
             working_dir=working_dir,
             on_item_done=_on_item_done(run_id),
             on_item_failed=_on_item_failed(run_id),
             **pass_kwargs,
         )
+        # run_inventory_pass is the sole PR owner: it drafts, commits, pushes,
+        # opens ONE PR (result.pr), and restores the default branch on success
+        # and failure. Persist its PR url so the page can link it.
+        pr_url = (result.pr or {}).get("url", "") if result is not None else ""
         InventoryRun.objects.filter(pk=run_id).update(
-            status="completed", completed_at=timezone.now(),
+            status="completed", completed_at=timezone.now(), pr_url=pr_url,
         )
-        # Open the bulk PR for the drafted policies. Failure becomes
-        # pr_error on the run; status stays "completed" because extraction
-        # did succeed — the PR step is a follow-on.
-        run = InventoryRun.objects.get(pk=run_id)
-        try:
-            from app.inventory.finalize import finalize_after_inventory
-            finalize_after_inventory(run, working_dir=working_dir)
-        except Exception as exc:  # noqa: BLE001
-            InventoryRun.objects.filter(pk=run_id).update(pr_error=str(exc))
     except Exception as exc:  # noqa: BLE001
         InventoryRun.objects.filter(pk=run_id).update(
             status="failed", pr_error=str(exc),
