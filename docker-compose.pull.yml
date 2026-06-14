@@ -1,7 +1,8 @@
 # Profile B: pull a pre-built published image (boxed ship for non-developer
-# dioceses). The image below is NOT published yet; registry publishing is a
-# post-DISC follow-up. This file is validated by `docker compose config`;
-# it will run once the image is pushed. Until then, use docker-compose.yml.
+# dioceses). Published to GHCR by .github/workflows/release-ghcr.yml on every
+# v* tag; first release v0.1.0 (2026-06-14), verified by an anonymous pull +
+# boot + /health/ check on Colima. Use this to run without building from
+# source; use docker-compose.yml (Profile A) to build from source instead.
 services:
   app:
     image: ghcr.io/robinsoncptdit/policycodex:latest
