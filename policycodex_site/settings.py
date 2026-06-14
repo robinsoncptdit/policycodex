@@ -48,8 +48,9 @@ SECRET_KEY = _env.get_secret_key(os.environ, DEBUG)
 
 ALLOWED_HOSTS = _env.get_allowed_hosts(os.environ)
 
-# AGPL "View Source" footer target (REPO-05). Placeholder org until the
-# public GitHub org slug is finalized; override via POLICYCODEX_SOURCE_URL.
+# AGPL "View Source" footer target (REPO-05). Canonical public repo is
+# github.com/robinsoncptdit/policycodex (F8, finalized 2026-06-14); a diocese
+# can override per-install via POLICYCODEX_SOURCE_URL.
 POLICYCODEX_SOURCE_URL = _env.get_source_url(os.environ)
 
 

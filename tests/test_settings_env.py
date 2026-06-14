@@ -79,7 +79,7 @@ def test_db_path_uses_env(tmp_path):
     )
 
 
-def test_source_url_default_placeholder():
+def test_source_url_default_is_canonical_repo():
     assert env.get_source_url({}) == "https://github.com/robinsoncptdit/policycodex"
 
 
