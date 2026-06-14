@@ -69,3 +69,14 @@ def test_global_nav_hides_settings_for_editor(client, editor):
 def test_global_nav_absent_when_not_authenticated(client):
     response = client.get("/login/")
     assert b'href="/inventory/"' not in response.content
+
+
+def test_navbar_has_no_leaked_template_comments(client, admin):
+    # Regression: a multi-line {# #} comment in base.html's nav rendered as
+    # literal text on every authenticated page, because Django's {# #} syntax
+    # is single-line only. Multi-line developer notes must use {% comment %}.
+    client.force_login(admin)
+    body = client.get("/catalog/").content
+    assert b"{#" not in body
+    assert b"#}" not in body
+    assert b"is_superuser" not in body
