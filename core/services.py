@@ -50,3 +50,44 @@ def build_catalog(policies_dir, working_dir, *, reader_cls, load_taxonomy, gate_
         and gate_lookup.get(row["policy"].slug, {}).get("pr") is not None
     ]
     return {"rows": rows, "gap_count": gap_count, "pending_review": pending_review}
+
+
+def propose_policy_edit(
+    policy, slug, *, user, title, body, summary, config, provider, branch_name,
+    render_md, git_author_fn, propose_fn,
+) -> dict:
+    """Write the edited flat policy, then branch/commit/push/open-PR via propose_fn.
+
+    Pure of request/render. Raises whatever propose_fn raises on failure; the
+    caller (view) catches it to re-render the form with a flash message. Returns
+    the provider PR metadata dict on success.
+    """
+    new_fm = dict(policy.frontmatter)
+    new_fm["title"] = title
+    new_text = render_md(new_fm, body)
+    policy.policy_path.write_text(new_text, encoding="utf-8")
+
+    author_name, author_email = git_author_fn(user)
+    summary = (summary or "").strip()
+    commit_message = summary or f"Update {slug}"
+    pr_title = f"Edit policies/{slug}: {commit_message}"
+    pr_body = (
+        f"Opened by PolicyCodex on behalf of {user.username}.\n"
+        f"\n"
+        f"Policy: policies/{slug}\n"
+        f"Author: {author_name} <{author_email}>\n"
+    )
+    if summary:
+        pr_body += f"\n{summary}\n"
+    return propose_fn(
+        provider=provider,
+        working_dir=config.working_dir,
+        default_branch=config.branch,
+        branch_name=branch_name,
+        files=[policy.policy_path],
+        commit_message=commit_message,
+        author_name=author_name,
+        author_email=author_email,
+        pr_title=pr_title,
+        pr_body=pr_body,
+    )

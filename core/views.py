@@ -219,60 +219,21 @@ def policy_edit(request, slug):
         if not form.is_valid():
             return render(request, "policy_edit.html", {"policy": policy, "form": form})
 
-        # 1. Merge form values into the policy's existing frontmatter
-        #    (preserves all keys the form does not expose).
-        #
-        # v0.1 assumes a single editor at a time; we do NOT re-read the
-        # file from disk inside this block. A pull from `manage.py
-        # pull_working_copy` running concurrently between _find_policy()
-        # above and the write_text() below could in principle overwrite a
-        # newer revision. Single-server, single-admin deployments make
-        # this race vanishingly rare; future tickets can add a stat-based
-        # mtime check or an in-memory lock if real dioceses see thrash.
-        new_fm = dict(policy.frontmatter)
-        new_fm["title"] = form.cleaned_data["title"]
-        new_body = form.cleaned_data["body"]
-        new_text = _render_policy_md(new_fm, new_body)
-
-        # 2. Write the file in the local working copy.
-        policy.policy_path.write_text(new_text, encoding="utf-8")
-
-        # 3. Sequence the four GitHub operations.
         config = load_working_copy_config()
-        working_dir = config.working_dir
-        provider = GitHubProvider()
-        author_name, author_email = get_git_author(request.user)
-        branch_name = _make_branch_name(slug)
-        summary = (form.cleaned_data.get("summary") or "").strip()
-        commit_message = summary or f"Update {slug}"
-
-        pr_title = f"Edit policies/{slug}: {commit_message}"
-        pr_body = (
-            f"Opened by PolicyCodex on behalf of {request.user.username}.\n"
-            f"\n"
-            f"Policy: policies/{slug}\n"
-            f"Author: {author_name} <{author_email}>\n"
-        )
-        if summary:
-            pr_body += f"\n{summary}\n"
-
-        # propose_change runs branch -> commit -> push -> open_pr; on ANY
-        # failure it restores a clean default branch (reverts the write_text
-        # above, deletes the local feature branch) so the next sync() pull
-        # never wedges on a dirty tree. On success it leaves the working copy
-        # back on the default branch (APP-33).
+        from core.services import propose_policy_edit
         try:
-            pr = propose_change(
-                provider=provider,
-                working_dir=working_dir,
-                default_branch=config.branch,
-                branch_name=branch_name,
-                files=[policy.policy_path],
-                commit_message=commit_message,
-                author_name=author_name,
-                author_email=author_email,
-                pr_title=pr_title,
-                pr_body=pr_body,
+            pr = propose_policy_edit(
+                policy, slug,
+                user=request.user,
+                title=form.cleaned_data["title"],
+                body=form.cleaned_data["body"],
+                summary=form.cleaned_data.get("summary"),
+                config=config,
+                provider=GitHubProvider(),
+                branch_name=_make_branch_name(slug),
+                render_md=_render_policy_md,
+                git_author_fn=get_git_author,
+                propose_fn=propose_change,
             )
         except Exception as exc:
             logger.error("APP-07 propose_change failure on slug=%s: %s", slug, exc)
