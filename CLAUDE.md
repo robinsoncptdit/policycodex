@@ -12,7 +12,14 @@ The active spec lives in `PolicyWonk-v0.1-Spec.md`. The sprint board lives in `P
 
 ## Current Status
 
-**Settings-page rebuild SHIPPED (2026-06-11) and polished (2026-06-12).** The 2026-06-11 pivot decision (tear down the seven-screen onboarding wizard, replace it with a Settings page) was executed the same evening: all six phases / 30 tasks of the rebuild plan landed on `main` as feature+cleanup commit pairs. A 13-commit UX polish sprint (`ux-fix-1`..`ux-fix-13`) followed the next morning. The shipped code tip is **`978a50a`** (`ux-fix-13`); the suite is green at **664 passed, 11 skipped, 0 failed** (run it with `ai/venv/bin/python -m pytest`).
+**Settings-page rebuild SHIPPED (2026-06-11) + polished (2026-06-12); REPO-10 audit run and all 14 findings resolved (2026-06-14).** The 2026-06-11 pivot decision (tear down the seven-screen onboarding wizard, replace it with a Settings page) was executed the same evening: all six phases / 30 tasks of the rebuild plan landed on `main` as feature+cleanup commit pairs, followed by a 13-commit UX polish sprint (`ux-fix-1`..`ux-fix-13`) the next morning (`978a50a`). On 2026-06-14 the full REPO-10 generic-ship + 7-track audit ran (ship-generic gate **PASS**, zero PT leakage; 14 findings F1–F14) and **every finding was fixed** across three subagent-driven batches. **Current code tip `cf4bf00`**; suite green at **687 passed, 11 skipped, 0 failed** (run it with `ai/venv/bin/python -m pytest`). Last pushed to public `origin/main` is **`080ae57`** — the docker batch (`f9c39fd..cf4bf00`) is local, **push pending**.
+
+**Audit fixes (2026-06-14, all on `main`; full detail in `internal/PolicyWonk-REPO10-Audit-2026-06-14.md`):**
+
+- **Blockers** `41608f3..c63c7e9` (pushed): F1 (inventory golden-path TypeError), F3/F6 (Tailwind `@source` missed Settings/Inventory), F2 (orchestrator clean-tree recovery).
+- **Tier 1 + Tier 2** `b794fb2..080ae57` (pushed, 10 commits): F14+F9 (inventory runner is the sole PR owner; inert diff layer dropped), F7 (`SECRET_KEY` single source in `env.get_secret_key`), **F5 — fat-views extraction into a new `core/services.py` via dependency injection** (Strategy A'; the three views are thin, 64 existing view tests pass unchanged), F12 + `is_empty_onboarding` (wizard-era renames), F11 (DISC smoke README), F13 (manifest fresh CSRF marker).
+- **Docker** `f9c39fd..cf4bf00` (push pending): F4 (`POLICYCODEX_PORT` threads end-to-end through compose + gunicorn), F10 (`/secrets` mount comment corrected to the inert-fallback reality), F8 (canonical public-org slug finalized as `robinsoncptdit` — a dedicated org is a deliberate v0.2 move).
+- **Only remaining audit-adjacent item:** Profile-B image publish — tag `v0.1.0` to fire `release-ghcr.yml` → publishes `ghcr.io/robinsoncptdit/policycodex` so `docker-compose.pull.yml` works. F4's live-Colima custom-port boot validation is also still owed.
 
 **Why the pivot happened:** the live DISC-readiness walkthrough surfaced architectural fault lines between the new credential store and the legacy settings-driven plumbing. Each fix-the-symptom commit revealed the next consumer that had not been refactored. Chuck paused 5 panels in and called for a rethink.
 
@@ -35,11 +42,11 @@ The active spec lives in `PolicyWonk-v0.1-Spec.md`. The sprint board lives in `P
 - DISC-05..10 (signature pinning, `test_credentials` / `test_key` classmethods, drop-bucket markup, working-copy clone logic) — code reused, migrated into Settings panels.
 - DISC-03 (wizard gating), DISC-04..10 (the seven wizard screens), the wizard-state session model, and `app/onboarding/` itself — torn down entirely (commit `dace636`, "phase-1-1: tear down app/onboarding entirely"). DISC-16 rewritten as the new Playwright Settings smoke. Wizard-tickets APP-08..APP-16 and the DISC followup commits (`cb8748a` / `4ff105d` / `384f94d` / `900f4c0` / `75bb6d2` / `f2c43ee` / `cfce5cf`) are superseded.
 
-**Architectural decisions that survive:** REPO-05 containerization, REPO-09 L2 CI guard, REPO-14 deprecated-tombstone end-to-end, APP-23 detail view, APP-25 typed-table editor, AI-10 / AI-16 / AI-17 inventory orchestrator, INGEST-05 / INGEST-06 incremental ingest, the AGPL "View Source" footer, the Frontend Portability constraints, the foundational-bundle pattern, the PR-as-gate workflow, the handbook generator.
+**Architectural decisions that survive:** REPO-05 containerization, REPO-09 L2 CI guard, REPO-14 deprecated-tombstone end-to-end, APP-23 detail view, APP-25 typed-table editor, AI-10 / AI-16 / AI-17 inventory orchestrator, INGEST-05 / INGEST-06 incremental ingest, the AGPL "View Source" footer, the Frontend Portability constraints, the **`core/services.py` thin-views service layer** (F5 — `build_catalog` / `propose_policy_edit` / `build_foundational_bundle` / `propose_foundational_edit`, collaborators dependency-injected from `core.views`), the foundational-bundle pattern, the PR-as-gate workflow, the handbook generator.
 
-**Sprint board:** `PolicyWonk-v0.1-Tickets.md` (gitignored/local-only) was reconciled 2026-06-14 — the pivot banner was updated to the shipped state, a Current State (post-pivot) section was added, and the post-rebuild audit backlog was recorded.
+**Sprint board:** `PolicyWonk-v0.1-Tickets.md` (gitignored/local-only) was reconciled 2026-06-14 — the pivot banner updated to the shipped state, a Current State (post-pivot) section added, and the audit fixes recorded (F1–F14 fixed, only the Profile-B image publish left open). The board was also pruned 2026-06-14 (300KB → 52KB): de-padded (208KB of cosmetic markdown-table whitespace removed, lossless), superseded wizard rows + verbose resolution notes moved to `internal/archive/`.
 
-For sprint-by-sprint detail and the full pre-pivot history, see `internal/PolicyWonk-Daily-Log.md`.
+For sprint-by-sprint detail and the full pre-pivot history, see `internal/PolicyWonk-Daily-Log.md`. Older tracking-doc history (May Daily-Log entries, wizard tickets, full resolution notes) was pruned into `internal/archive/` on 2026-06-14 to keep the live trackers greppable.
 
 ## What's In This Folder
 
