@@ -18,6 +18,7 @@ first wins, the rest are reported as collisions rather than clobbering it.
 from __future__ import annotations
 
 import re
+import subprocess
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -111,6 +112,28 @@ def _build_pr_body(result: "InventoryResult", username: str) -> str:
         lines += ["", f"{len(result.errors)} extraction errors (not committed):"]
         lines += [f"- {slug}: {msg}" for slug, msg in result.errors.items()]
     return "\n".join(lines) + "\n"
+
+
+def _git(args: list[str], working_dir: Path) -> subprocess.CompletedProcess:
+    return subprocess.run(["git", *args], cwd=working_dir, capture_output=True)
+
+
+def _restore_default_branch(
+    working_dir: Path, default_branch: str, written_paths: list[Path], branch_name: str
+) -> None:
+    """Best-effort: return the working copy to default_branch with a clean tree
+    and drop the local feature branch. Never raises (recovery must not mask the
+    original error). Mirrors app/git_provider/propose.py's hygiene, duplicated
+    here so ai/ stays Django-free and does not import the app layer."""
+    _git(["checkout", default_branch], working_dir)
+    for p in written_paths:
+        p = Path(p)
+        tracked = _git(["ls-files", "--error-unmatch", str(p)], working_dir).returncode == 0
+        if tracked:
+            _git(["checkout", "--", str(p)], working_dir)
+        elif p.exists():
+            p.unlink(missing_ok=True)
+    _git(["branch", "-D", branch_name], working_dir)
 
 
 def run_inventory_pass(
@@ -212,20 +235,33 @@ def run_inventory_pass(
 
     branch_name = make_inventory_branch_name()
     message = f"Inventory pass: add {len(result.written)} draft policies"
-    provider.branch(branch_name, working_dir)
-    provider.commit(
-        message=message,
-        files=to_commit,
-        author_name=author_name,
-        author_email=author_email,
-        working_dir=working_dir,
-    )
-    provider.push(branch_name, working_dir)
-    result.pr = provider.open_pr(
-        title=f"Inventory pass: {len(result.written)} draft policies",
-        body=_build_pr_body(result, username),
-        head_branch=branch_name,
-        base_branch=base_branch,
-        working_dir=working_dir,
-    )
+    try:
+        provider.branch(branch_name, working_dir)
+        provider.commit(
+            message=message,
+            files=to_commit,
+            author_name=author_name,
+            author_email=author_email,
+            working_dir=working_dir,
+        )
+        provider.push(branch_name, working_dir)
+        result.pr = provider.open_pr(
+            title=f"Inventory pass: {len(result.written)} draft policies",
+            body=_build_pr_body(result, username),
+            head_branch=branch_name,
+            base_branch=base_branch,
+            working_dir=working_dir,
+        )
+    except Exception:
+        # APP-33 contract: a provider failure must never strand the working
+        # copy on the feature branch. Restore the default branch, then re-raise
+        # so the caller records the failure (the prior manifest stays intact).
+        _restore_default_branch(working_dir, base_branch, to_commit, branch_name)
+        raise
+    # APP-33 contract: success must also leave the working copy on the default
+    # branch so the next sync pull is not wedged once the PR merges and the
+    # remote feature branch is deleted. Best-effort (_git never raises); the PR
+    # already exists, so a failed checkout-back must not lose result.pr.
+    _git(["checkout", base_branch], working_dir)
+    _git(["branch", "-D", branch_name], working_dir)
     return result
