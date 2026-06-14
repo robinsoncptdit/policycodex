@@ -86,13 +86,13 @@ def catalog(request):
     """Render the policy inventory from the local working copy.
 
     Falls back to an empty-state template when the working copy is not
-    yet configured (fresh install before onboarding) or not yet synced.
+    yet configured (fresh install before it is configured) or not yet synced.
     """
     try:
         config = load_working_copy_config()
     except RuntimeError:
         return render(request, "catalog.html", {
-            "is_empty_onboarding": True,
+            "is_unconfigured": True,
             "rows": [],
             "last_sync": None,
         })
@@ -109,7 +109,7 @@ def catalog(request):
     policies_dir: Path = config.working_dir / "policies"
     if not policies_dir.exists():
         return render(request, "catalog.html", {
-            "is_empty_onboarding": True,
+            "is_unconfigured": True,
             "rows": [],
             "last_sync": last_sync,
         })
@@ -126,7 +126,7 @@ def catalog(request):
         request,
         "catalog.html",
         {
-            "is_empty_onboarding": False,
+            "is_unconfigured": False,
             "rows": catalog_data["rows"],
             "gap_count": catalog_data["gap_count"],
             "pending_review": catalog_data["pending_review"],
