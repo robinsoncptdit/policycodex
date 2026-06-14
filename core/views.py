@@ -20,7 +20,6 @@ from app.git_provider.propose import propose_change
 from app.git_provider.states import branch_to_slug
 from app.working_copy.config import load_working_copy_config
 from app.working_copy.manager import WorkingCopyManager
-from ai.gap_detection import is_gap, known_types
 from ai.retention_extract import RetentionExtractionError, build_data_yaml
 from ai.taxonomy_loader import load_foundational_taxonomy
 from core.forms import (
