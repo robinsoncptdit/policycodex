@@ -114,52 +114,22 @@ def catalog(request):
             "last_sync": last_sync,
         })
 
-    policies = list(BundleAwarePolicyReader(policies_dir).read())
-    gate_lookup = _build_gate_lookup(config.working_dir)
-
-    # AI-13: flag policies whose type is not in the diocese's retention
-    # bundle classifications. Load via the same taxonomy loader the AI
-    # extraction uses, so both see identical types. Any load failure (no
-    # bundle, malformed data.yaml) degrades to no gap detection rather than
-    # 500-ing the catalog; gap flags only appear when classifications exist.
-    try:
-        taxonomy = load_foundational_taxonomy(policies_dir, ["classifications"])
-    except Exception as exc:  # noqa: BLE001 - catalog must always render
-        logger.warning("AI-13 taxonomy load failed (%s); gap detection off", exc)
-        taxonomy = None
-    known = known_types((taxonomy or {}).get("classifications"))
-
-    rows = []
-    gap_count = 0
-    for policy in policies:
-        gap = bool(known) and is_gap(policy.frontmatter.get("category"), known)
-        if gap:
-            gap_count += 1
-        entry = gate_lookup.get(policy.slug, {"gate": "published", "pr": None})
-        rows.append({
-            "policy": policy,
-            "gate": entry["gate"],
-            "is_gap": gap,
-        })
-
-    pending_review = [
-        {
-            "policy": row["policy"],
-            "pr": gate_lookup[row["policy"].slug]["pr"],
-        }
-        for row in rows
-        if gate_lookup.get(row["policy"].slug, {}).get("gate") == "drafted"
-        and gate_lookup.get(row["policy"].slug, {}).get("pr") is not None
-    ]
-
+    from core.services import build_catalog
+    catalog_data = build_catalog(
+        policies_dir,
+        config.working_dir,
+        reader_cls=BundleAwarePolicyReader,
+        load_taxonomy=load_foundational_taxonomy,
+        gate_lookup_fn=_build_gate_lookup,
+    )
     return render(
         request,
         "catalog.html",
         {
             "is_empty_onboarding": False,
-            "rows": rows,
-            "gap_count": gap_count,
-            "pending_review": pending_review,
+            "rows": catalog_data["rows"],
+            "gap_count": catalog_data["gap_count"],
+            "pending_review": catalog_data["pending_review"],
             "last_sync": last_sync,
         },
     )
