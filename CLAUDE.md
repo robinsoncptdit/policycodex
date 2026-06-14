@@ -12,30 +12,32 @@ The active spec lives in `PolicyWonk-v0.1-Spec.md`. The sprint board lives in `P
 
 ## Current Status
 
-**Pivoted 2026-06-11.** The seven-screen onboarding wizard was torn down after the live DISC-readiness walkthrough surfaced architectural fault lines between the new credential store and the legacy settings-driven plumbing. Each fix-the-symptom commit revealed the next consumer that had not been refactored. Chuck paused 5 panels in and called for a rethink.
+**Settings-page rebuild SHIPPED (2026-06-11) and polished (2026-06-12).** The 2026-06-11 pivot decision (tear down the seven-screen onboarding wizard, replace it with a Settings page) was executed the same evening: all six phases / 30 tasks of the rebuild plan landed on `main` as feature+cleanup commit pairs. A 13-commit UX polish sprint (`ux-fix-1`..`ux-fix-13`) followed the next morning. The shipped code tip is **`978a50a`** (`ux-fix-13`); the suite is green at **664 passed, 11 skipped, 0 failed** (run it with `ai/venv/bin/python -m pytest`).
 
-**Replacement architecture (locked the same evening):**
+**Why the pivot happened:** the live DISC-readiness walkthrough surfaced architectural fault lines between the new credential store and the legacy settings-driven plumbing. Each fix-the-symptom commit revealed the next consumer that had not been refactored. Chuck paused 5 panels in and called for a rethink.
 
-- Seeded admin (`admin`/`admin1234`) forced to change password on first login.
-- All configuration lives in a `/settings/` page with five panels: GitHub App, AI provider, Policy repository, Diocese configuration, Users-and-roles, plus a Reset panel.
-- Inventory becomes a top-level `/inventory/` page with an always-present drop bucket.
-- GitHub App provisioning automates via the GitHub App manifest flow (https://docs.github.com/en/apps/sharing-github-apps/registering-a-github-app-from-a-manifest) with Installation ID auto-detect and repo dropdown. Admin clicks three buttons instead of pasting App ID, Installation ID, and a PEM.
+**The architecture now in code:**
+
+- Seeded admin (`admin`/`admin1234`) forced to change password on first login. Migrations `core/migrations/0001_create_user_profile` / `0002_seed_default_admin` / `0003_create_role_groups`; enforced by `core/middleware.py` `ForcePasswordChangeMiddleware` + `core/views.py` `ForcedPasswordChangeView`.
+- All configuration lives in a top-level `/settings/` page — its **own Django app `app/settings/`** (label `settings_panel`), routed from `policycodex_site/urls.py`, NOT in `core/`. Six panels in `app/settings/panels/`: GitHub App, AI provider, Policy repository, Diocese configuration (slug `configuration`), Users-and-roles, plus Reset.
+- Inventory is a top-level `/inventory/` page — its **own Django app `app/inventory/`** — with a 5-state lifecycle, always-present drop bucket, per-item and whole-run retry endpoints, and HTMX status polling.
+- GitHub App provisioning automates via the GitHub App manifest flow (https://docs.github.com/en/apps/sharing-github-apps/registering-a-github-app-from-a-manifest) in `app/settings/panels/github_app_manifest.py`: manifest start/callback persists App ID + PEM + webhook secret, install callback auto-detects the Installation ID. Manual-paste fields remain as the air-gapped fallback.
 
 **Spec:** `internal/superpowers/specs/2026-06-11-settings-page-design.md` (12 sections, ~430 lines).
-**Plan:** `internal/superpowers/plans/2026-06-11-settings-page-rebuild.md` (6,679 lines, 30 tasks, six phases, ~7-8 days for one engineer).
-**Pre-pivot clean revert sha on `main`:** `7286bb4`.
+**Plan:** `internal/superpowers/plans/2026-06-11-settings-page-rebuild.md` (6,679 lines, 30 tasks, six phases — all executed).
+**UX-fix plan:** `internal/superpowers/plans/2026-06-12-ux-test-drive-fixes.md`.
+**Revert anchors on `main`:** `7286bb4` (pre-pivot clean revert, still reachable; the rebuild + polish sit on top), `f273185` (pre-UX-fix).
 
-**Carve-out of what survives the pivot (verbatim or light refactor):**
+**DISC carve-out as executed:**
 
-- DISC-01 (first-boot keys + entrypoint), DISC-02 (Fernet credential store + hydration), DISC-15 (install.sh + GHCR workflow + cleanup). Keep verbatim.
-- DISC-11..14 (inventory models + runner + bulk-PR finalize). Light refactor with `finalize_after_inventory` signature simplified to `(run, *, working_dir)`.
-- DISC-05..10 (signature pinning, `test_credentials` / `test_key` classmethods, drop-bucket markup, working-copy clone logic). Reuse code from but do not keep wholesale. Migrates into Settings panels.
+- DISC-01 (first-boot keys + entrypoint), DISC-02 (Fernet credential store + hydration), DISC-15 (install.sh + GHCR workflow + cleanup) — kept verbatim.
+- DISC-11..14 (inventory models + runner + bulk-PR finalize) — light refactor; `finalize_after_inventory` signature simplified to `(run, *, working_dir)`.
+- DISC-05..10 (signature pinning, `test_credentials` / `test_key` classmethods, drop-bucket markup, working-copy clone logic) — code reused, migrated into Settings panels.
+- DISC-03 (wizard gating), DISC-04..10 (the seven wizard screens), the wizard-state session model, and `app/onboarding/` itself — torn down entirely (commit `dace636`, "phase-1-1: tear down app/onboarding entirely"). DISC-16 rewritten as the new Playwright Settings smoke. Wizard-tickets APP-08..APP-16 and the DISC followup commits (`cb8748a` / `4ff105d` / `384f94d` / `900f4c0` / `75bb6d2` / `f2c43ee` / `cfce5cf`) are superseded.
 
 **Architectural decisions that survive:** REPO-05 containerization, REPO-09 L2 CI guard, REPO-14 deprecated-tombstone end-to-end, APP-23 detail view, APP-25 typed-table editor, AI-10 / AI-16 / AI-17 inventory orchestrator, INGEST-05 / INGEST-06 incremental ingest, the AGPL "View Source" footer, the Frontend Portability constraints, the foundational-bundle pattern, the PR-as-gate workflow, the handbook generator.
 
-**What gets torn down completely:** DISC-03 (wizard gating), DISC-04..10 (the seven wizard screens), the wizard-state session model, DISC-16 (rewritten). Wizard-tickets APP-08..APP-16 and the DISC followup commits (`cb8748a` / `4ff105d` / `384f94d` / `900f4c0` / `75bb6d2` / `f2c43ee` / `cfce5cf`) are superseded.
-
-**Execution mode pending.** Subagent-driven recommended, with Phase 1 Tasks 2-8 and Phase 4 panels parallelizable. Alternatively inline via `superpowers:executing-plans`. On execution start, Task 1 of Phase 1 is the wizard tear-down (`git rm -r app/onboarding/` plus dependent test cleanup). Phase 6 Task 30 verifies via the rewritten Playwright smoke harness.
+**Open follow-up (paused):** the sprint board `PolicyWonk-v0.1-Tickets.md` still carries wizard-era tickets and has no Settings-panel tickets; reconciling the board is deferred.
 
 For sprint-by-sprint detail and the full pre-pivot history, see `internal/PolicyWonk-Daily-Log.md`.
 
@@ -50,9 +52,9 @@ For sprint-by-sprint detail and the full pre-pivot history, see `internal/Policy
 - `HOWTO-GitHub-Team-Setup.md` is a generic, diocese-agnostic guide for upgrading a GitHub org to Team tier, enabling branch protection, optionally requiring the foundational-policy guard, and publishing the handbook at a custom subdomain. Pre-pivot, Part 1 walked the IT director through manual GitHub App creation; post-pivot, App creation is automated by the GitHub App manifest flow inside the Settings GitHub App panel and Part 1 stands as a fallback for installs where the manifest flow does not apply.
 - `repo-template/` holds generic, vendorable files copied into a diocese's policy repo during onboarding: the L2 foundational-policy CI guard (REPO-09), the handbook build-and-deploy workflow + vendored Astro `handbook/` + `sync-handbook.sh` re-vendor script (PUBLISH-06 + PUBLISH-07), and a README. Its `tests/` run in the main suite but are not copied on install. Canonical home for installable diocese-repo automation.
 - `ai/` is the LLM provider abstraction + Claude implementation, markdown/YAML emit, confidence-audit sidecar, Django-free foundational-bundle loader, gap detection, generic per-policy extraction + the Django-free inventory-pass orchestrator (`inventory_extract.py` + `inventory.py`, AI-10), per-diocese taxonomy seeds, and tests.
-- `app/` is App-lane Django code: git provider (clone/branch/commit/push/PR), local working-copy manager + L3 startup self-check, the first-boot key + credential-store machinery (DISC-01/DISC-02), and tests. The post-pivot rebuild moves configuration UI into `core/` Settings views. `app/onboarding/` is queued for tear-down per Phase 1 of the rebuild plan.
+- `app/` is App-lane Django code: git provider (clone/branch/commit/push/PR), local working-copy manager + L3 startup self-check, the first-boot key + credential-store machinery (DISC-01/DISC-02), the **`app/settings/`** config app (six panels — GitHub App, AI provider, Policy repository, Diocese configuration, Users-and-roles, Reset — routed at `/settings/`), the **`app/inventory/`** app (top-level `/inventory/` page, 5-state lifecycle + drop bucket + retry endpoints), and tests. `app/onboarding/` was torn down in the rebuild (commit `dace636`) and no longer exists.
 - `ingest/` is Ingest-lane code: `LocalFolderConnector` CLI, extractors (PDF/DOCX/MD/TXT), `BundleAwarePolicyReader` (reads flat policies + foundational bundles as one inventory), source manifest model, and tests.
-- `core/` is the project-wide Django app: `/health/`, `/login/`, `/logout/`, policy catalog + read-only detail view, the upcoming `/settings/` page + `/inventory/` page (per the rebuild plan), git-author mapper, the `run_inventory_pass` management command, and tests.
+- `core/` is the project-wide Django app: `/health/`, `/login/`, `/logout/`, the seeded-admin + forced-password-change flow (`ForcePasswordChangeMiddleware` + `ForcedPasswordChangeView` + the role-group migrations), policy catalog + read-only detail view + role-gated edit/approve/publish, git-author mapper, the `run_inventory_pass` management command, and tests. Settings and Inventory are NOT here — they are their own apps under `app/` (`app/settings/`, `app/inventory/`).
 - `manage.py` plus `policycodex_site/` is the Django 5+ project skeleton (SQLite default; `SECRET_KEY` hardening deferred per REPO-05).
 - `pytest.ini` wires pytest-django for the whole repo.
 - `spike/` is the riskiest-assumption extraction spike: `extract.py` loading PT taxonomy, per-policy JSON outputs (gitignored), and the `spike/eval/` regression harness.
