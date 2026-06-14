@@ -11,8 +11,9 @@ services:
     volumes:
       # Persistent state: SQLite DB + cloned working copies.
       - policycodex-data:/data
-      # Credentials fallback (read-only): the DISC-02 Fernet store under /data is
-      # authoritative; this host dir is consulted only if /data hydration fails.
+      # Legacy credentials mount (read-only). The DISC-02 Fernet store under /data
+      # is the authoritative source; no app code reads /secrets today. Kept as an
+      # inert fallback slot for manual, out-of-band key placement only.
       - ${HOME}/.config/policycodex:/secrets:ro
     restart: unless-stopped
 

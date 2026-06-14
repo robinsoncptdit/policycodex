@@ -27,5 +27,8 @@ RUN DJANGO_SECRET_KEY=build-time-only-dummy python manage.py collectstatic --noi
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+# Documentation only: the default port. The actual bind is set at runtime from
+# POLICYCODEX_PORT (entrypoint.sh + compose port mapping), so a custom port works
+# without rebuilding; EXPOSE has no runtime effect and stays at the default.
 EXPOSE 8000
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
