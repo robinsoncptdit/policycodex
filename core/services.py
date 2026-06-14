@@ -52,6 +52,81 @@ def build_catalog(policies_dir, working_dir, *, reader_cls, load_taxonomy, gate_
     return {"rows": rows, "gap_count": gap_count, "pending_review": pending_review}
 
 
+def build_foundational_bundle(cforms, rforms) -> dict:
+    """Transform validated typed-table formsets into the data.yaml bundle dict.
+
+    Soft-delete semantics (APP-32): an existing row with DELETE checked becomes a
+    deprecated:true tombstone; a brand-new extra row with DELETE checked is
+    dropped. Pure: no IO, no Django settings.
+    """
+    initial_count = cforms.initial_form_count()
+    classifications = []
+    for i, f in enumerate(cforms):
+        if not f.cleaned_data:
+            continue
+        is_existing = i < initial_count
+        deleted = f.cleaned_data.get("DELETE")
+        if deleted and not is_existing:
+            continue
+        row = {"id": f.cleaned_data["id"], "name": f.cleaned_data["name"]}
+        if deleted or f.cleaned_data.get("deprecated"):
+            row["deprecated"] = True
+        classifications.append(row)
+    retention_schedule = [
+        {
+            "group": f.cleaned_data["group"],
+            "sub_group": f.cleaned_data.get("sub_group", ""),
+            "type": f.cleaned_data["type"],
+            "retention": f.cleaned_data["retention"],
+            "medium": f.cleaned_data.get("medium", ""),
+            "retained_at": f.cleaned_data.get("retained_at", ""),
+        }
+        for f in rforms
+        if f.cleaned_data and not f.cleaned_data.get("DELETE")
+    ]
+    return {"classifications": classifications, "retention_schedule": retention_schedule}
+
+
+def propose_foundational_edit(
+    policy, slug, *, bundle, summary, user, config, provider, branch_name,
+    build_yaml_fn, git_author_fn, propose_fn,
+) -> dict:
+    """Serialize bundle to data.yaml, write it, then branch/commit/push/open-PR.
+
+    build_yaml_fn may raise (RetentionExtractionError) BEFORE any write; propose_fn
+    may raise on git/provider failure. The view catches each to re-render. Returns
+    the PR dict on success. A propose_fn failure leaves the data.yaml write
+    uncommitted, but propose_change restores the working copy to a clean default
+    branch on its own failure path, so the stray edit does not survive.
+    """
+    data_yaml_text = build_yaml_fn(bundle)   # may raise RetentionExtractionError
+    policy.data_path.write_text(data_yaml_text, encoding="utf-8")
+    author_name, author_email = git_author_fn(user)
+    summary = (summary or "").strip()
+    commit_message = summary or f"Update {slug} classifications and retention schedule"
+    pr_title = f"Edit policies/{slug}: {commit_message}"
+    pr_body = (
+        f"Opened by PolicyCodex on behalf of {user.username}.\n"
+        f"\n"
+        f"Foundational policy: policies/{slug} (data.yaml)\n"
+        f"Author: {author_name} <{author_email}>\n"
+    )
+    if summary:
+        pr_body += f"\n{summary}\n"
+    return propose_fn(
+        provider=provider,
+        working_dir=config.working_dir,
+        default_branch=config.branch,
+        branch_name=branch_name,
+        files=[policy.data_path],
+        commit_message=commit_message,
+        author_name=author_name,
+        author_email=author_email,
+        pr_title=pr_title,
+        pr_body=pr_body,
+    )
+
+
 def propose_policy_edit(
     policy, slug, *, user, title, body, summary, config, provider, branch_name,
     render_md, git_author_fn, propose_fn,

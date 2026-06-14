@@ -328,81 +328,18 @@ def _foundational_edit_post(request, slug, policy):
     if not (cforms.is_valid() and rforms.is_valid() and meta.is_valid()):
         return _render()
 
-    initial_count = cforms.initial_form_count()
-    classifications = []
-    for i, f in enumerate(cforms):
-        if not f.cleaned_data:
-            continue
-        is_existing = i < initial_count
-        deleted = f.cleaned_data.get("DELETE")
-        if deleted and not is_existing:
-            continue
-        row = {"id": f.cleaned_data["id"], "name": f.cleaned_data["name"]}
-        if deleted or f.cleaned_data.get("deprecated"):
-            row["deprecated"] = True
-        classifications.append(row)
-    retention_schedule = [
-        {
-            "group": f.cleaned_data["group"],
-            "sub_group": f.cleaned_data.get("sub_group", ""),
-            "type": f.cleaned_data["type"],
-            "retention": f.cleaned_data["retention"],
-            "medium": f.cleaned_data.get("medium", ""),
-            "retained_at": f.cleaned_data.get("retained_at", ""),
-        }
-        for f in rforms
-        if f.cleaned_data and not f.cleaned_data.get("DELETE")
-    ]
-    bundle = {"classifications": classifications, "retention_schedule": retention_schedule}
-
-    # build_data_yaml validates required fields + drops blank optionals (DRY
-    # with the APP-15 bootstrap emitter). Belt-and-suspenders: the formsets
-    # already enforce the required fields, so this rarely raises; it guards
-    # against a future emitter constraint the form layer doesn't mirror.
+    from core.services import build_foundational_bundle, propose_foundational_edit
+    bundle = build_foundational_bundle(cforms, rforms)
+    config = load_working_copy_config()
     try:
-        data_yaml_text = build_data_yaml(bundle)
+        pr = propose_foundational_edit(
+            policy, slug, bundle=bundle, summary=meta.cleaned_data.get("summary"),
+            user=request.user, config=config, provider=GitHubProvider(),
+            branch_name=_make_branch_name(slug), build_yaml_fn=build_data_yaml,
+            git_author_fn=get_git_author, propose_fn=propose_change,
+        )
     except RetentionExtractionError as exc:
         return _render(error=f"Could not save: {exc}")
-
-    # Write the edited data.yaml in the working copy.
-    policy.data_path.write_text(data_yaml_text, encoding="utf-8")
-
-    # Same four-operation gate sequence as policy_edit, committing data.yaml.
-    config = load_working_copy_config()
-    working_dir = config.working_dir
-    provider = GitHubProvider()
-    author_name, author_email = get_git_author(request.user)
-    branch_name = _make_branch_name(slug)
-    summary = (meta.cleaned_data.get("summary") or "").strip()
-    commit_message = summary or f"Update {slug} classifications and retention schedule"
-
-    pr_title = f"Edit policies/{slug}: {commit_message}"
-    pr_body = (
-        f"Opened by PolicyCodex on behalf of {request.user.username}.\n"
-        f"\n"
-        f"Foundational policy: policies/{slug} (data.yaml)\n"
-        f"Author: {author_name} <{author_email}>\n"
-    )
-    if summary:
-        pr_body += f"\n{summary}\n"
-
-    # propose_change runs branch -> commit -> push -> open_pr; on ANY
-    # failure it restores a clean default branch (reverts the data.yaml
-    # write above, deletes the local feature branch). On success it
-    # leaves the working copy back on the default branch (APP-33).
-    try:
-        pr = propose_change(
-            provider=provider,
-            working_dir=working_dir,
-            default_branch=config.branch,
-            branch_name=branch_name,
-            files=[policy.data_path],
-            commit_message=commit_message,
-            author_name=author_name,
-            author_email=author_email,
-            pr_title=pr_title,
-            pr_body=pr_body,
-        )
     except Exception as exc:
         logger.error("APP-25 propose_change failure on slug=%s: %s", slug, exc)
         # Surface the failure inline (not via messages.error like policy_edit):
