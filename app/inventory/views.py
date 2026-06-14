@@ -10,6 +10,10 @@ from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
 
+from ai.claude_provider import ClaudeProvider
+from ai.inventory import REQUIRED_CAPABILITIES
+from ai.taxonomy_loader import load_foundational_taxonomy
+from app.git_provider.github_provider import GitHubProvider
 from app.inventory.models import InventoryRun, InventoryItem
 from app.inventory.runner import start_run
 from app.working_copy.config import load_working_copy_config
@@ -19,6 +23,39 @@ from core.permissions import require_role
 _ALLOWED_EXT = {".pdf", ".docx", ".md", ".txt"}
 _MAX_FILE_BYTES = 25 * 1024 * 1024
 _MAX_TOTAL_BYTES = 500 * 1024 * 1024
+
+
+class InventoryNotReady(RuntimeError):
+    """The inventory pass cannot start: the policy repository or the
+    foundational retention bundle is not configured yet."""
+
+
+def _inventory_pass_kwargs(config, user) -> dict:
+    """Per-diocese dependencies run_inventory_pass requires, wired identically
+    to core/management/commands/run_inventory_pass.py so the UI path and the
+    CLI path behave the same. Raises InventoryNotReady when the foundational
+    retention bundle is missing (extraction has no grounding without it)."""
+    policies_dir = Path(config.working_dir) / "policies"
+    taxonomy = load_foundational_taxonomy(policies_dir, REQUIRED_CAPABILITIES)
+    if taxonomy is None:
+        raise InventoryNotReady(
+            "No foundational retention bundle found. Finish setting up the "
+            "Policy repository so the document-retention bundle exists, then retry."
+        )
+    if user.is_authenticated:
+        author_name = user.get_full_name() or user.get_username()
+        author_email = user.email or "bot@policycodex.local"
+    else:
+        author_name, author_email = "PolicyCodex", "bot@policycodex.local"
+    return {
+        "provider": GitHubProvider(),
+        "llm_provider": ClaudeProvider(),
+        "taxonomy": taxonomy,
+        "author_name": author_name,
+        "author_email": author_email,
+        "base_branch": config.branch,
+        "username": author_name,
+    }
 
 
 def _staging_root() -> Path:
@@ -89,13 +126,14 @@ def inventory_upload(request):
     for f in files:
         InventoryItem.objects.create(run=run, source_filename=f.name, status="pending")
     try:
-        working_dir = load_working_copy_config().working_dir
-    except RuntimeError:
+        config = load_working_copy_config()
+        pass_kwargs = _inventory_pass_kwargs(config, request.user)
+    except Exception as exc:  # noqa: BLE001 — surface setup gaps on the run row, never 500
         run.status = "failed"
-        run.pr_error = "Policy repository not configured."
+        run.pr_error = str(exc) or "Inventory could not start."
         run.save()
         return redirect("inventory")
-    start_run(run, stage_dir, working_dir)
+    start_run(run, stage_dir, Path(config.working_dir), **pass_kwargs)
     return redirect("inventory")
 
 
@@ -139,8 +177,9 @@ def retry_item(request, item_id):
     if not run.stage_dir:
         return HttpResponse("Retry unavailable: staging directory unknown.", status=400)
     try:
-        working_dir = load_working_copy_config().working_dir
-        start_run(run, Path(run.stage_dir), working_dir)
+        config = load_working_copy_config()
+        pass_kwargs = _inventory_pass_kwargs(config, request.user)
+        start_run(run, Path(run.stage_dir), Path(config.working_dir), **pass_kwargs)
     except Exception as exc:  # noqa: BLE001
         return HttpResponse(f"Retry failed: {exc}", status=500)
     return redirect("inventory")
@@ -159,8 +198,9 @@ def retry_run(request, run_id):
     run.save()
     run.items.all().update(status="pending", error_message="")
     try:
-        working_dir = load_working_copy_config().working_dir
-        start_run(run, Path(run.stage_dir), working_dir)
+        config = load_working_copy_config()
+        pass_kwargs = _inventory_pass_kwargs(config, request.user)
+        start_run(run, Path(run.stage_dir), Path(config.working_dir), **pass_kwargs)
     except Exception as exc:  # noqa: BLE001
         return HttpResponse(f"Retry failed: {exc}", status=500)
     return redirect("inventory")
