@@ -27,6 +27,7 @@ export POLICYCODEX_CREDENTIAL_KEY_FILE="$CREDENTIAL_KEY_FILE"
 
 python3 manage.py migrate --noinput
 
+PORT="${POLICYCODEX_PORT:-8000}"
 exec gunicorn policycodex_site.wsgi:application \
-    --bind 0.0.0.0:8000 \
+    --bind "0.0.0.0:${PORT}" \
     --workers 3
