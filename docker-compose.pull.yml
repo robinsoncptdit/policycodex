@@ -8,9 +8,11 @@ services:
     env_file:
       - .env
     ports:
-      - "8000:8000"
+      - "${POLICYCODEX_PORT:-8000}:${POLICYCODEX_PORT:-8000}"
     volumes:
       - policycodex-data:/data
+      # Credentials fallback (read-only): the DISC-02 Fernet store under /data is
+      # authoritative; this host dir is consulted only if /data hydration fails.
       - ${HOME}/.config/policycodex:/secrets:ro
     restart: unless-stopped
 

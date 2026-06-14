@@ -79,3 +79,49 @@ def test_dockerfile_does_not_copy_load_secrets_helper():
     text = _read("Dockerfile")
     assert "COPY docker/load-secrets.sh" not in text
     assert "chmod +x /usr/local/bin/load-secrets.sh" not in text
+
+
+# --- F4: POLICYCODEX_PORT configurable port --------------------------------
+
+
+def test_build_compose_port_uses_env_var():
+    """F4: docker-compose.yml must map ${POLICYCODEX_PORT:-8000} on both sides."""
+    text = _read("docker-compose.yml")
+    assert "${POLICYCODEX_PORT:-8000}:${POLICYCODEX_PORT:-8000}" in text, (
+        "docker-compose.yml ports must use ${POLICYCODEX_PORT:-8000}:${POLICYCODEX_PORT:-8000}"
+    )
+
+
+def test_pull_compose_port_uses_env_var():
+    """F4: docker-compose.pull.yml must map ${POLICYCODEX_PORT:-8000} on both sides."""
+    text = _read("docker-compose.pull.yml")
+    assert "${POLICYCODEX_PORT:-8000}:${POLICYCODEX_PORT:-8000}" in text, (
+        "docker-compose.pull.yml ports must use ${POLICYCODEX_PORT:-8000}:${POLICYCODEX_PORT:-8000}"
+    )
+
+
+def test_entrypoint_binds_to_configurable_port():
+    """F4: entrypoint.sh must honor POLICYCODEX_PORT, not hardcode 8000."""
+    text = _read("docker/entrypoint.sh")
+    assert "POLICYCODEX_PORT" in text, "entrypoint.sh must reference POLICYCODEX_PORT"
+    assert "--bind 0.0.0.0:8000" not in text, (
+        "entrypoint.sh must not hardcode --bind 0.0.0.0:8000"
+    )
+
+
+# --- F10: /secrets mount comment accuracy ----------------------------------
+
+
+def test_build_compose_secrets_comment_is_current():
+    """F10: /secrets comment must not mention retired POLICYCODEX_GH_PRIVATE_KEY_PATH."""
+    text = _read("docker-compose.yml")
+    assert "POLICYCODEX_GH_PRIVATE_KEY_PATH" not in text, (
+        "docker-compose.yml must not reference retired POLICYCODEX_GH_PRIVATE_KEY_PATH"
+    )
+    # Comment must acknowledge the Fernet /data store as authoritative.
+    assert "fallback" in text, (
+        "docker-compose.yml /secrets comment must describe the mount as a fallback"
+    )
+    assert "/data" in text, (
+        "docker-compose.yml /secrets comment must name /data as the authoritative store"
+    )

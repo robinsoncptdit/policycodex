@@ -7,12 +7,12 @@ services:
     env_file:
       - .env
     ports:
-      - "8000:8000"
+      - "${POLICYCODEX_PORT:-8000}:${POLICYCODEX_PORT:-8000}"
     volumes:
       # Persistent state: SQLite DB + cloned working copies.
       - policycodex-data:/data
-      # Credentials, read-only, straight from the host convention dir.
-      # config.env's POLICYCODEX_GH_PRIVATE_KEY_PATH must point inside here.
+      # Credentials fallback (read-only): the DISC-02 Fernet store under /data is
+      # authoritative; this host dir is consulted only if /data hydration fails.
       - ${HOME}/.config/policycodex:/secrets:ro
     restart: unless-stopped
 
