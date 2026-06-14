@@ -26,6 +26,10 @@ def test_served_css_covers_newest_template_classes():
     # this list whenever a template introduces classes the CSS may not carry.
     path = finders.find("css/policycodex.css")
     text = open(path, encoding="utf-8").read()
-    assert ".badge-primary" in text  # onboarding/complete.html (APP-29)
-    assert ".space-y-6" in text  # onboarding/complete.html (APP-29)
-    assert "hover\\:bg-base-200" in text  # onboarding/_llm_provider_body.html (APP-31)
+    # F3/F6: the prior canary pinned classes from the onboarding templates
+    # deleted in the Settings rebuild (commit dace636). Pin classes the live
+    # Settings/Inventory templates actually use and that the @source fix must
+    # restore: destructive-action buttons and save/test success banners.
+    assert ".btn-error" in text  # app/settings/templates/.../reset.html (destructive buttons)
+    assert ".alert-success" in text  # app/settings/.../_panel_messages.html (save banners)
+    assert ".badge-error" in text  # settings/inventory status badges

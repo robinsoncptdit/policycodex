@@ -5,7 +5,8 @@
 
 /* Scan the Django template trees so utility classes survive purge. */
 @source "../core/templates";
-@source "../app/onboarding/templates";
+@source "../app/settings/templates";
+@source "../app/inventory/templates";
 
 @plugin "../.tools/daisyui.mjs";
 @plugin "../.tools/daisyui-theme.mjs" {
