@@ -37,7 +37,7 @@ The active spec lives in `PolicyWonk-v0.1-Spec.md`. The sprint board lives in `P
 
 **Architectural decisions that survive:** REPO-05 containerization, REPO-09 L2 CI guard, REPO-14 deprecated-tombstone end-to-end, APP-23 detail view, APP-25 typed-table editor, AI-10 / AI-16 / AI-17 inventory orchestrator, INGEST-05 / INGEST-06 incremental ingest, the AGPL "View Source" footer, the Frontend Portability constraints, the foundational-bundle pattern, the PR-as-gate workflow, the handbook generator.
 
-**Open follow-up (paused):** the sprint board `PolicyWonk-v0.1-Tickets.md` still carries wizard-era tickets and has no Settings-panel tickets; reconciling the board is deferred.
+**Sprint board:** `PolicyWonk-v0.1-Tickets.md` (gitignored/local-only) was reconciled 2026-06-14 — the pivot banner was updated to the shipped state, a Current State (post-pivot) section was added, and the post-rebuild audit backlog was recorded.
 
 For sprint-by-sprint detail and the full pre-pivot history, see `internal/PolicyWonk-Daily-Log.md`.
 
@@ -46,7 +46,6 @@ For sprint-by-sprint detail and the full pre-pivot history, see `internal/Policy
 **Public root (tracked, public-facing):**
 
 - `PolicyWonk-v0.1-Spec.md` is the active PRD.
-- `PolicyWonk-v0.1-Tickets.md` is the engineering sprint board.
 - `README.md` is the public-facing GitHub README.
 - `LICENSE` is the AGPL-3.0 text.
 - `HOWTO-GitHub-Team-Setup.md` is a generic, diocese-agnostic guide for upgrading a GitHub org to Team tier, enabling branch protection, optionally requiring the foundational-policy guard, and publishing the handbook at a custom subdomain. Pre-pivot, Part 1 walked the IT director through manual GitHub App creation; post-pivot, App creation is automated by the GitHub App manifest flow inside the Settings GitHub App panel and Part 1 stands as a fallback for installs where the manifest flow does not apply.
