@@ -1,7 +1,9 @@
 # DISC smoke test
 
-End-to-end Playwright test that drives the PolicyCodex onboarding wizard from
-admin-account through to a populated catalog. Acts as the DISC-readiness merge gate.
+End-to-end Playwright test that drives the post-pivot PolicyCodex Settings flow:
+seeded-admin login, forced password change, then the Settings panels (GitHub App,
+AI provider, Policy repository), an Inventory upload, and a catalog sync that surfaces
+the opened PR. Acts as the DISC-readiness merge gate.
 
 ## Required secrets (configured in GitHub Actions repo settings)
 
@@ -50,6 +52,14 @@ The generated PDFs are committed alongside the generator script so CI does not n
 
 ## Assertion
 
-The smoke test asserts `>= 17` catalog rows after the inventory run completes.
-This allows for 1 image-only PDF skip and 1 spare, so a single transient LLM
-failure does not trip the gate.
+After the inventory run, the smoke test asserts two visible states, with a catalog
+sync between them:
+
+1. The extraction-success alert appears (`.alert-success` containing "Most recent
+   extraction"), confirming the inventory pass finished.
+2. The test then syncs the catalog from GitHub (Catalog panel -> "Sync from GitHub")
+   — a click action, not an assertion.
+3. A "View PR" link is visible on the Inventory page, confirming the run opened the
+   pull request.
+
+The test does not assert a catalog row count.
