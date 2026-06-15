@@ -99,6 +99,9 @@ def run():
         all_pdfs = sorted(str(p) for p in CORPUS.glob("*.pdf"))
         if not all_pdfs:
             raise RuntimeError(f"No PDFs found in {CORPUS}")
+        # The deferred upload script binds the change listener on DOMContentLoaded;
+        # wait for it before selecting files, or the change may fire unhandled.
+        page.wait_for_function("document.readyState === 'complete'")
         page.set_input_files('input[name="files"]', all_pdfs)
 
         # 8. Wait up to 10 min for the run to complete and the PR to open.
