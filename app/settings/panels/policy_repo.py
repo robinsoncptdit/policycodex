@@ -11,6 +11,7 @@ import hashlib
 import os
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
 from django import forms
@@ -18,9 +19,12 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.template.loader import render_to_string
 
+from ai.claude_provider import ClaudeProvider
+from ai.retention_extract import RetentionExtractionError
 from app.credentials import store
 from app.git_provider.github_provider import GitHubProvider
-from app.working_copy.config import WorkingCopyConfig
+from app.settings.retention_setup import scaffold_retention_bundle
+from app.working_copy.config import WorkingCopyConfig, load_working_copy_config
 from app.working_copy.manager import WorkingCopyManager
 from app.settings.base import SettingsPanel
 from app.settings.registry import register
@@ -144,7 +148,7 @@ class PolicyRepoPanel(SettingsPanel):
     def is_configured(self, request) -> bool:
         return store.has("policy_repo.url") and bool(store.get("policy_repo.url"))
 
-    def render(self, request, *, form=None, message=None, error=None):
+    def render(self, request, *, form=None, message=None, error=None, pr_url=None):
         from app.settings.views import _nav_groups
         initial = {}
         if store.has("policy_repo.url"):
@@ -172,6 +176,7 @@ class PolicyRepoPanel(SettingsPanel):
             "repos": repos,
             "message": message,
             "error": error,
+            "pr_url": pr_url,
         })
 
     def save(self, request):
@@ -182,6 +187,8 @@ class PolicyRepoPanel(SettingsPanel):
             return self._create_new(request)
         if action == "initialize":
             return self._initialize(request)
+        if action == "upload_retention":
+            return self._upload_retention(request)
         return self._save_connect(request)
 
     def _save_connect(self, request):
@@ -239,6 +246,51 @@ class PolicyRepoPanel(SettingsPanel):
             return self.render(request, error=str(exc))
         return self.render(request, message="Repository initialized with PolicyCodex skeleton.")
 
+    _RETENTION_SUFFIXES = {".pdf", ".docx", ".md", ".txt"}
+
+    def _upload_retention(self, request):
+        if not store.has("policy_repo.url"):
+            return self.render(request, error="Connect and initialize a policy repository first.")
+        upload = request.FILES.get("retention_document")
+        if not upload:
+            return self.render(request, error="Choose a retention policy document to upload.")
+        suffix = Path(upload.name).suffix.lower()
+        if suffix not in self._RETENTION_SUFFIXES:
+            return self.render(
+                request,
+                error=f"Unsupported file type {suffix or '(none)'}. Upload a PDF, DOCX, MD, or TXT.",
+            )
+        try:
+            config = load_working_copy_config()
+        except RuntimeError as exc:
+            return self.render(request, error=f"Policy repository is not configured: {exc}")
+        author_name = request.user.get_full_name() or request.user.get_username()
+        author_email = request.user.email or f"{request.user.username}@policycodex"
+        with tempfile.TemporaryDirectory() as tmp:
+            doc_path = Path(tmp) / upload.name
+            with doc_path.open("wb") as fh:
+                for chunk in upload.chunks():
+                    fh.write(chunk)
+            try:
+                pr = scaffold_retention_bundle(
+                    document_path=doc_path,
+                    working_dir=config.working_dir,
+                    default_branch=config.branch,
+                    llm_provider=ClaudeProvider(),
+                    provider=GitHubProvider(),
+                    author_name=author_name,
+                    author_email=author_email,
+                )
+            except RetentionExtractionError as exc:
+                return self.render(request, error=f"Could not read a retention bundle from that document: {exc}")
+            except Exception as exc:  # noqa: BLE001 surfaced to user
+                return self.render(request, error=f"Upload failed: {exc}")
+        return self.render(
+            request,
+            message="Retention policy parsed. Review and merge the PR to publish the bundle.",
+            pr_url=pr.get("url"),
+        )
+
     def _disconnect(self, request):
         if request.POST.get("confirm_token") != "DISCONNECT":
             return self.render(request, error="Type DISCONNECT to confirm.")
@@ -264,12 +316,20 @@ class PolicyRepoPanel(SettingsPanel):
                 cta_label="Create",
                 cta_url="javascript:document.getElementById('create-new-form').classList.toggle('hidden')",
             )]
-        return [SetupAction(
-            label="Initialize this repository",
-            description="Pushes .policycodex/config.yaml, the L2 foundational guard, and the handbook build workflow in one commit. Idempotent — safe to click on an already-initialized repo.",
-            cta_label="Initialize",
-            cta_url="javascript:document.getElementById('initialize-form').classList.toggle('hidden')",
-        )]
+        return [
+            SetupAction(
+                label="Initialize this repository",
+                description="Pushes .policycodex/config.yaml, the L2 foundational guard, and the handbook build workflow in one commit. Idempotent — safe to click on an already-initialized repo.",
+                cta_label="Initialize",
+                cta_url="javascript:document.getElementById('initialize-form').classList.toggle('hidden')",
+            ),
+            SetupAction(
+                label="Upload retention policy",
+                description="Upload your Document Retention Policy (PDF, DOCX, MD, or TXT). PolicyCodex AI-parses it into the document-retention foundational bundle and opens a PR. Required before the first inventory pass.",
+                cta_label="Upload",
+                cta_url="javascript:document.getElementById('upload-retention-form').classList.toggle('hidden')",
+            ),
+        ]
 
     def test(self, request):
         form = _Form(request.POST)

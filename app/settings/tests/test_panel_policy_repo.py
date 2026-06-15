@@ -88,3 +88,67 @@ def test_policy_repo_panel_has_intro(client, admin):
     # An intro paragraph appears before the form.
     body_after_title = body[body.index("<h1"):]
     assert "<p" in body_after_title[:500]
+
+
+from unittest.mock import patch
+from django.core.files.uploadedfile import SimpleUploadedFile
+
+
+def _login_admin(client):
+    User = get_user_model()
+    u = User.objects.get(username="admin")
+    u.profile.must_change_password = False
+    u.profile.save()
+    client.force_login(u)
+    return u
+
+
+@pytest.mark.django_db
+def test_upload_retention_requires_configured_repo(client):
+    _login_admin(client)
+    from app.credentials import store
+    store._reset_cache()  # no policy_repo.url
+    upload = SimpleUploadedFile("r.txt", b"text", content_type="text/plain")
+    resp = client.post("/settings/policy-repo/", {"action": "upload_retention", "retention_document": upload})
+    assert b"Connect and initialize a policy repository first." in resp.content
+
+
+@pytest.mark.django_db
+def test_upload_retention_rejects_no_file(client, tmp_path, monkeypatch):
+    _login_admin(client)
+    from app.credentials import store
+    store.set("policy_repo.url", "https://github.com/d/r")
+    store.set("policy_repo.branch", "main")
+    resp = client.post("/settings/policy-repo/", {"action": "upload_retention"})
+    assert b"Choose a retention policy document" in resp.content
+
+
+@pytest.mark.django_db
+def test_upload_retention_rejects_bad_suffix(client):
+    _login_admin(client)
+    from app.credentials import store
+    store.set("policy_repo.url", "https://github.com/d/r")
+    store.set("policy_repo.branch", "main")
+    upload = SimpleUploadedFile("r.exe", b"x", content_type="application/octet-stream")
+    resp = client.post("/settings/policy-repo/", {"action": "upload_retention", "retention_document": upload})
+    assert b"Unsupported file type" in resp.content
+
+
+@pytest.mark.django_db
+def test_upload_retention_happy_path_calls_scaffolder(client):
+    _login_admin(client)
+    from app.credentials import store
+    store.set("policy_repo.url", "https://github.com/d/r")
+    store.set("policy_repo.branch", "main")
+    upload = SimpleUploadedFile("retention.pdf", b"%PDF-1.4 fake", content_type="application/pdf")
+    with patch("app.settings.panels.policy_repo.scaffold_retention_bundle") as scaffold, \
+         patch("app.settings.panels.policy_repo.ClaudeProvider"), \
+         patch("app.settings.panels.policy_repo.GitHubProvider"), \
+         patch("app.settings.panels.policy_repo.load_working_copy_config") as cfg:
+        from types import SimpleNamespace
+        cfg.return_value = SimpleNamespace(working_dir="/tmp/wc", branch="main")
+        scaffold.return_value = {"url": "https://github.com/d/r/pull/12", "pr_number": 12}
+        resp = client.post("/settings/policy-repo/",
+                           {"action": "upload_retention", "retention_document": upload})
+    assert scaffold.called
+    assert b"pull/12" in resp.content or b"Retention policy parsed" in resp.content
