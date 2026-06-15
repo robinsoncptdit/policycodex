@@ -27,6 +27,13 @@ the **Owner** role on the organization.
   only completing Part 1 against a Free org and accept the weaker enforcement.
 - For Part 5 (the handbook), DNS control of the parent zone of your chosen
   subdomain.
+- An accurate clock on the server running PolicyCodex. GitHub App
+  authentication signs short-lived tokens whose validity window is only a few
+  minutes wide, so a server clock that is off by more than that makes GitHub
+  reject the credentials (it looks like "bad credentials" but is not). Enable
+  NTP / automatic time sync on the host before you connect the App. If the App
+  connect or install check fails with a time-related error, fix the clock and
+  retry.
 
 ## Part 1: Create the PolicyCodex GitHub App
 
