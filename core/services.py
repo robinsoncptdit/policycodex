@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import logging
 
+from app.git_provider.propose import working_copy_lock
+
 logger = logging.getLogger(__name__)
 
 
@@ -100,7 +102,6 @@ def propose_foundational_edit(
     branch on its own failure path, so the stray edit does not survive.
     """
     data_yaml_text = build_yaml_fn(bundle)   # may raise RetentionExtractionError
-    policy.data_path.write_text(data_yaml_text, encoding="utf-8")
     author_name, author_email = git_author_fn(user)
     summary = (summary or "").strip()
     commit_message = summary or f"Update {slug} classifications and retention schedule"
@@ -113,18 +114,22 @@ def propose_foundational_edit(
     )
     if summary:
         pr_body += f"\n{summary}\n"
-    return propose_fn(
-        provider=provider,
-        working_dir=config.working_dir,
-        default_branch=config.branch,
-        branch_name=branch_name,
-        files=[policy.data_path],
-        commit_message=commit_message,
-        author_name=author_name,
-        author_email=author_email,
-        pr_title=pr_title,
-        pr_body=pr_body,
-    )
+    # Write and propose under one lock: a single shared working copy serves all
+    # gunicorn workers, so a concurrent save must not race on the same .git.
+    with working_copy_lock(config.working_dir):
+        policy.data_path.write_text(data_yaml_text, encoding="utf-8")
+        return propose_fn(
+            provider=provider,
+            working_dir=config.working_dir,
+            default_branch=config.branch,
+            branch_name=branch_name,
+            files=[policy.data_path],
+            commit_message=commit_message,
+            author_name=author_name,
+            author_email=author_email,
+            pr_title=pr_title,
+            pr_body=pr_body,
+        )
 
 
 def propose_policy_edit(
@@ -140,8 +145,6 @@ def propose_policy_edit(
     new_fm = dict(policy.frontmatter)
     new_fm["title"] = title
     new_text = render_md(new_fm, body)
-    policy.policy_path.write_text(new_text, encoding="utf-8")
-
     author_name, author_email = git_author_fn(user)
     summary = (summary or "").strip()
     commit_message = summary or f"Update {slug}"
@@ -154,15 +157,18 @@ def propose_policy_edit(
     )
     if summary:
         pr_body += f"\n{summary}\n"
-    return propose_fn(
-        provider=provider,
-        working_dir=config.working_dir,
-        default_branch=config.branch,
-        branch_name=branch_name,
-        files=[policy.policy_path],
-        commit_message=commit_message,
-        author_name=author_name,
-        author_email=author_email,
-        pr_title=pr_title,
-        pr_body=pr_body,
-    )
+    # Write and propose under one lock (shared working copy, many workers).
+    with working_copy_lock(config.working_dir):
+        policy.policy_path.write_text(new_text, encoding="utf-8")
+        return propose_fn(
+            provider=provider,
+            working_dir=config.working_dir,
+            default_branch=config.branch,
+            branch_name=branch_name,
+            files=[policy.policy_path],
+            commit_message=commit_message,
+            author_name=author_name,
+            author_email=author_email,
+            pr_title=pr_title,
+            pr_body=pr_body,
+        )

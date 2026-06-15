@@ -1,5 +1,7 @@
 """Tests for the propose sequence + clean-tree guarantees (APP-33)."""
 import subprocess
+import threading
+import time
 from pathlib import Path
 
 import pytest
@@ -149,5 +151,72 @@ def test_recovers_when_starting_on_a_stale_feature_branch(repo):
     (repo / "policies" / "safety.md").write_text("edited\n", encoding="utf-8")
     pr = _propose(repo, _LocalGitProvider(), [repo / "policies" / "safety.md"])
     assert pr["pr_number"] == 7
+    assert _current_branch(repo) == "main"
+    assert _is_clean(repo)
+
+
+# --- Cross-process working-copy lock (concurrent saves on one shared copy) ---
+
+
+def test_working_copy_lock_serializes_across_threads(tmp_path):
+    """The app runs gunicorn --workers 3 against one working copy. The lock must
+    give mutual exclusion so two saves never mutate the same .git at once."""
+    from app.git_provider.propose import working_copy_lock
+    wd = tmp_path / "wc"
+    wd.mkdir()
+    state = {"inside": 0, "max_inside": 0}
+    state_guard = threading.Lock()
+
+    def worker():
+        with working_copy_lock(wd):
+            with state_guard:
+                state["inside"] += 1
+                state["max_inside"] = max(state["max_inside"], state["inside"])
+            time.sleep(0.05)
+            with state_guard:
+                state["inside"] -= 1
+
+    threads = [threading.Thread(target=worker) for _ in range(4)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert state["max_inside"] == 1, "two workers held the working-copy lock at once"
+
+
+def test_concurrent_untracked_saves_serialize_and_both_succeed(repo):
+    """Regression: a config save writes a NEW untracked file then proposes.
+    Two overlapping saves used to race — worker A's checkout-back removed the
+    file before worker B's git add, yielding 'pathspec did not match'. With the
+    lock wrapping write+propose, both serialize and succeed."""
+    from app.git_provider.propose import working_copy_lock
+    cfg = repo / ".policycodex" / "config.yaml"
+    results, errors = {}, {}
+
+    def save(idx):
+        try:
+            with working_copy_lock(repo):
+                cfg.parent.mkdir(parents=True, exist_ok=True)
+                cfg.write_text(f"version: {idx}\n", encoding="utf-8")
+                results[idx] = propose_change(
+                    provider=_LocalGitProvider(),
+                    working_dir=repo,
+                    default_branch="main",
+                    branch_name=f"policycodex/config-{idx}",
+                    files=[cfg],
+                    commit_message=f"config {idx}",
+                    author_name="P", author_email="p@e.com",
+                    pr_title=f"t{idx}", pr_body="b",
+                )
+        except Exception as exc:  # noqa: BLE001
+            errors[idx] = repr(exc)
+
+    threads = [threading.Thread(target=save, args=(i,)) for i in range(2)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert errors == {}, errors
+    assert set(results) == {0, 1}
     assert _current_branch(repo) == "main"
     assert _is_clean(repo)

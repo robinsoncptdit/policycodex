@@ -11,7 +11,7 @@ from django import forms
 from django.shortcuts import render
 
 from app.git_provider.github_provider import GitHubProvider
-from app.git_provider.propose import propose_change
+from app.git_provider.propose import propose_change, working_copy_lock
 from app.working_copy.config import load_working_copy_config
 from app.settings.base import SettingsPanel
 from app.settings.registry import register
@@ -81,11 +81,7 @@ class ConfigurationPanel(SettingsPanel):
         except RuntimeError as exc:
             return self.render(request, form=form,
                                error=f"Policy repository is not configured: {exc}")
-        # Write the YAML to disk before opening the PR. propose_change reads
-        # files from the working copy on the new branch.
         config_path = config.working_dir / _CONFIG_REL_PATH
-        config_path.parent.mkdir(parents=True, exist_ok=True)
-        config_path.write_text(form.to_yaml(), encoding="utf-8")
         author_email = request.user.email or f"{request.user.username}@policycodex"
         commit_message = (
             "Update diocese configuration\n\n"
@@ -93,18 +89,24 @@ class ConfigurationPanel(SettingsPanel):
             f"Co-Authored-By: {request.user.username} <{author_email}>"
         )
         try:
-            pr = propose_change(
-                provider=GitHubProvider(),
-                working_dir=config.working_dir,
-                default_branch=config.branch,
-                branch_name=f"policycodex/config-{uuid.uuid4().hex[:8]}",
-                files=[config_path],
-                commit_message=commit_message,
-                author_name=request.user.username,
-                author_email=author_email,
-                pr_title="Update diocese configuration",
-                pr_body="Saved from PolicyCodex Settings → Diocese configuration.",
-            )
+            # The write and the propose must share one lock: gunicorn runs
+            # multiple workers on a single working copy, and a concurrent save
+            # would otherwise yank this untracked file out before `git add`.
+            with working_copy_lock(config.working_dir):
+                config_path.parent.mkdir(parents=True, exist_ok=True)
+                config_path.write_text(form.to_yaml(), encoding="utf-8")
+                pr = propose_change(
+                    provider=GitHubProvider(),
+                    working_dir=config.working_dir,
+                    default_branch=config.branch,
+                    branch_name=f"policycodex/config-{uuid.uuid4().hex[:8]}",
+                    files=[config_path],
+                    commit_message=commit_message,
+                    author_name=request.user.username,
+                    author_email=author_email,
+                    pr_title="Update diocese configuration",
+                    pr_body="Saved from PolicyCodex Settings → Diocese configuration.",
+                )
         except Exception as exc:  # noqa: BLE001 surfaced to user
             return self.render(request, form=form, error=str(exc))
         from app.credentials import store

@@ -12,12 +12,45 @@ GitProvider interface.
 """
 from __future__ import annotations
 
+import fcntl
 import logging
 import shutil
 import subprocess
+from contextlib import contextmanager
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
+
+@contextmanager
+def working_copy_lock(working_dir: Path):
+    """Serialize all mutations of one shared working copy across processes.
+
+    The app runs gunicorn with multiple workers against a SINGLE working copy.
+    Every write path (config save, policy edit, foundational edit, inventory
+    finalize) must hold this lock around BOTH its file writes AND propose_change
+    -- not just the git body. Otherwise two concurrent saves race on the same
+    .git: while worker A is between writing its file and `git add`, worker B's
+    checkout / restore yanks the file out, producing
+    "pathspec '<file>' did not match any files" (plus index.lock and
+    branch-already-exists contention). Locking only propose_change is NOT enough
+    -- A's checkout-back to the default branch removes the just-committed file
+    from the tree, so B must re-write it inside the same locked region.
+
+    fcntl.flock is advisory, POSIX, and released automatically if the process
+    dies. The lockfile is a sibling of the working copy (never inside it, so it
+    is never committed). The lock is NOT acquired inside propose_change to avoid
+    a self-deadlock when a caller already holds it.
+    """
+    lock_path = working_dir.parent / f".{working_dir.name}.lock"
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    fd = open(lock_path, "w")
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        yield
+    finally:
+        fcntl.flock(fd, fcntl.LOCK_UN)
+        fd.close()
 
 
 def _git(args: list[str], working_dir: Path) -> subprocess.CompletedProcess:
