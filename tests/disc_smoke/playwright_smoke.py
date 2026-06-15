@@ -91,18 +91,15 @@ def run():
         # Allow up to 60s for repo creation + initialization push.
         expect(page.locator('.alert-success')).to_be_visible(timeout=60_000)
 
-        # 7. Inventory — drop the corpus.
+        # 7. Inventory — pick the corpus. Selecting files fires the input's
+        # change handler, which submits the upload form (see
+        # static/js/inventory-upload.js).
         page.click('a:has-text("Inventory")')
         expect(page).to_have_url(f"{BASE}/inventory/")
         all_pdfs = sorted(str(p) for p in CORPUS.glob("*.pdf"))
         if not all_pdfs:
             raise RuntimeError(f"No PDFs found in {CORPUS}")
         page.set_input_files('input[name="files"]', all_pdfs)
-        # The bucket form submits on file selection or on the (hidden) Upload
-        # button. Force a submit via JS to be robust against either pattern.
-        page.evaluate(
-            "document.querySelector('#bucket form').requestSubmit()"
-        )
 
         # 8. Wait up to 10 min for the run to complete and the PR to open.
         expect(
