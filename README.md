@@ -141,7 +141,7 @@ open http://localhost:8000
 
 Both paths land you at the in-browser login. Sign in with the seeded `admin` / `admin1234` credentials and change the password on first login. The Settings page collects everything (GitHub App credentials, LLM API key, policy repo, diocese configuration, users and roles) and the Inventory page handles your policy documents. Configuration commits to your diocese repo as it lands.
 
-To wipe an install and start over: `docker compose down -v && docker volume rm policycodex-data`.
+To wipe an install and start over: `docker rm -f -v policycodex && docker volume rm policycodex-data`.
 
 ### Before you begin
 
