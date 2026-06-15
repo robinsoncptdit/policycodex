@@ -1,4 +1,4 @@
-{% if message %}<div class="alert alert-success mb-4" data-role="panel-success">{{ message }}</div>{% endif %}
+{% if message %}<div class="alert alert-success mb-4" data-role="panel-success">{{ message }}{% if pr_url %} <a href="{{ pr_url }}" class="link font-semibold" target="_blank" rel="noopener">View PR</a>{% endif %}</div>{% endif %}
 {% if success %}<div class="alert alert-success mb-4" data-role="panel-success">{{ success }}</div>{% endif %}
 {% if error %}<div class="alert alert-warning mb-4" data-role="panel-error">{{ error }}</div>{% endif %}
 {% if message or success %}

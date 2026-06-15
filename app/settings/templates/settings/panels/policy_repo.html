@@ -45,12 +45,6 @@
   </form>
 </div>
 
-{% if pr_url %}
-  <div class="alert alert-success mb-4">
-    <span>Retention policy parsed. <a href="{{ pr_url }}" class="link font-semibold" target="_blank" rel="noopener">View PR</a></span>
-  </div>
-{% endif %}
-
 {% if current_url %}
   <p class="mb-4">Currently connected to <strong>{{ current_url }}</strong>.</p>
 {% endif %}
