@@ -4,9 +4,12 @@ Single JSON file at $POLICYCODEX_CREDENTIAL_STORE_FILE (default /data/.credentia
 encrypted with the Fernet key at $POLICYCODEX_CREDENTIAL_KEY_FILE (default
 /data/.credential-key, generated on first boot per DISC-01).
 
-The store is process-local: read once at first use, written atomically
-(temp-then-rename) on every set, and cached. Tests reset the cache via
-_reset_cache() before each scenario.
+The store is per-process cached but stays consistent across Gunicorn workers:
+the cache is reloaded whenever the on-disk file's mtime changes, so a write on
+one worker becomes visible to the others on their next access (a set() on worker
+A flushes the file; worker B reloads on its next get/has). Writes are atomic
+(temp-then-rename). Tests reset the cache via _reset_cache() before each
+scenario.
 
 Keys follow a dotted namespace: llm.<provider>.api_key, github_app.app_id,
 github_app.installation_id, github_app.private_key_pem.
@@ -28,6 +31,7 @@ _REQUIRED_FOR_BOOT = (
 )
 
 _cache: dict | None = None
+_cache_mtime: float | None = None
 _fernet: Fernet | None = None
 _lock = Lock()
 
@@ -41,8 +45,13 @@ def _store_file() -> Path:
 
 
 def _ensure_loaded() -> None:
-    global _cache, _fernet
-    if _cache is not None:
+    global _cache, _fernet, _cache_mtime
+    store_path = _store_file()
+    disk_mtime = store_path.stat().st_mtime if store_path.is_file() else None
+    # Reload when the cache is cold OR the on-disk store changed underneath us
+    # (another Gunicorn worker wrote it). Without this, each worker's module
+    # cache drifts and a key written on worker A is invisible to worker B.
+    if _cache is not None and disk_mtime == _cache_mtime:
         return
     key_path = _key_file()
     if not key_path.is_file():
@@ -53,7 +62,6 @@ def _ensure_loaded() -> None:
             "POLICYCODEX_CREDENTIAL_KEY_FILE set."
         )
     _fernet = Fernet(key_path.read_bytes().strip())
-    store_path = _store_file()
     if store_path.is_file():
         encrypted = store_path.read_bytes()
         if encrypted.strip():
@@ -62,9 +70,11 @@ def _ensure_loaded() -> None:
             _cache = {}
     else:
         _cache = {}
+    _cache_mtime = disk_mtime
 
 
 def _flush() -> None:
+    global _cache_mtime
     assert _fernet is not None and _cache is not None
     store_path = _store_file()
     store_path.parent.mkdir(parents=True, exist_ok=True)
@@ -81,6 +91,9 @@ def _flush() -> None:
         if os.path.exists(tmp_name):
             os.unlink(tmp_name)
         raise
+    # Record the mtime we just wrote so this worker does not pointlessly
+    # reload its own freshly-written data on the next access.
+    _cache_mtime = store_path.stat().st_mtime
 
 
 def get(key: str) -> str:
@@ -125,7 +138,8 @@ def first_boot_complete() -> bool:
 
 def _reset_cache() -> None:
     """Test-only helper. Forces the next call to re-read from disk."""
-    global _cache, _fernet
+    global _cache, _fernet, _cache_mtime
     with _lock:
         _cache = None
         _fernet = None
+        _cache_mtime = None

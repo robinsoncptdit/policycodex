@@ -108,6 +108,53 @@ def test_hydrate_writes_github_app_key_to_path(credential_env, monkeypatch, tmp_
     assert os.environ["POLICYCODEX_GH_PRIVATE_KEY_PATH"] == str(pem)
 
 
+def _write_store_as_other_worker(key_file: Path, creds_file: Path, data: dict) -> None:
+    """Emulate a second Gunicorn worker writing the on-disk store directly,
+    without touching this process's module cache."""
+    f = Fernet(key_file.read_bytes().strip())
+    creds_file.write_bytes(f.encrypt(json.dumps(data, sort_keys=True).encode("utf-8")))
+
+
+def test_get_sees_key_written_by_another_worker(credential_env):
+    """Regression (GitHub App install-check failed): Gunicorn runs --workers 3,
+    each with its own module cache. The manifest-create callback writes
+    github_app.app_id on worker A; the install callback then lands on worker B,
+    whose cache was warmed (e.g. by first_boot_complete) before the key existed.
+    Pre-fix _ensure_loaded early-returned forever, so worker B raised
+    KeyError('github_app.app_id'). The store must reload when the file changes."""
+    from app.credentials import store
+    key_file, creds_file = credential_env
+
+    # Worker B warms an empty cache before any github_app.app_id is written.
+    store._reset_cache()
+    assert store.has("github_app.app_id") is False
+
+    # Worker A (separate process) creates the App and persists the key.
+    _write_store_as_other_worker(key_file, creds_file, {"github_app.app_id": "424242"})
+
+    # Worker B serves the install check. Must reflect worker A's write.
+    assert store.get("github_app.app_id") == "424242"
+
+
+def test_get_sees_update_from_another_worker_existing_file(credential_env):
+    """Cross-worker visibility also holds when the store file already existed
+    (mtime changes on rewrite)."""
+    from app.credentials import store
+    key_file, creds_file = credential_env
+
+    store._reset_cache()
+    store.set("github_app.app_id", "1")
+    assert store.get("github_app.app_id") == "1"
+
+    # Another worker overwrites the value and we force a strictly-later mtime
+    # so the change is detected regardless of filesystem timestamp resolution.
+    _write_store_as_other_worker(key_file, creds_file, {"github_app.app_id": "2"})
+    future = creds_file.stat().st_mtime + 10
+    os.utime(creds_file, (future, future))
+
+    assert store.get("github_app.app_id") == "2"
+
+
 def test_hydrate_never_raises_when_pem_path_unwritable(credential_env, monkeypatch, tmp_path):
     # Regression: hydrate_environment is called at settings import and its
     # docstring promises it never raises. A read-only target dir (e.g. /data

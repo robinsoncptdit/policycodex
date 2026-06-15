@@ -1,5 +1,6 @@
 import json
 import pytest
+from cryptography.fernet import Fernet
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -11,6 +12,19 @@ def admin(db):
     u.profile.must_change_password = False
     u.profile.save()
     return u
+
+
+@pytest.fixture(autouse=True)
+def credential_env(tmp_path, monkeypatch):
+    """Hermetic credential store. Without this these tests relied on a warm
+    cache leaked from an earlier test in the suite, so they failed in isolation
+    (and once the store reloads on mtime change)."""
+    from app.credentials import store
+    key_file = tmp_path / ".credential-key"
+    key_file.write_bytes(Fernet.generate_key())
+    monkeypatch.setenv("POLICYCODEX_CREDENTIAL_KEY_FILE", str(key_file))
+    monkeypatch.setenv("POLICYCODEX_CREDENTIAL_STORE_FILE", str(tmp_path / ".credentials"))
+    store._reset_cache()
 
 
 def test_redirect_url_has_no_query_string(client, admin):
