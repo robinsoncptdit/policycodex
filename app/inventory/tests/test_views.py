@@ -64,3 +64,18 @@ def test_viewer_denied(client, db):
     client.force_login(u)
     response = client.get("/inventory/")
     assert response.status_code == 403
+
+
+def test_upload_bucket_is_wired_for_client_js(client, editor):
+    """The bucket carries the DOM hooks and loads the upload JS so
+    drag-and-drop and the picker actually submit the form."""
+    client.force_login(editor)
+    response = client.get("/inventory/")
+    assert response.status_code == 200
+    body = response.content
+    # Stable hooks the JS targets.
+    assert b'id="bucket-dropzone"' in body
+    assert b'id="bucket-input"' in body
+    assert b'id="add-policies"' in body
+    # The client behavior script is loaded on this page.
+    assert b"inventory-upload.js" in body

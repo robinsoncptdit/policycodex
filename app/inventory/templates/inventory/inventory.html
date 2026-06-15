@@ -1,9 +1,10 @@
 {% extends "base.html" %}
+{% load static %}
 {% block content %}
 <div class="container mx-auto py-8">
   <div class="flex items-center justify-between mb-6">
     <h1 class="text-2xl font-semibold">Inventory</h1>
-    <a href="#bucket" class="btn btn-primary btn-sm">Add policies</a>
+    <a href="#bucket" id="add-policies" class="btn btn-primary btn-sm">Add policies</a>
   </div>
 
   {% if error %}<div class="alert alert-warning mb-4">{{ error }}</div>{% endif %}
@@ -19,4 +20,8 @@
 
   {% include "inventory/_bucket.html" %}
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script src="{% static 'js/inventory-upload.js' %}" defer></script>
 {% endblock %}
