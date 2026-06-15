@@ -664,3 +664,74 @@ def test_merge_pr_raises_when_pr_already_merged(tmp_path):
         p = GitHubProvider(config=cfg, github_client=fake_client)
         with pytest.raises(RuntimeError, match="not merged"):
             p.merge_pr(42, wd)
+
+
+# --- App-auth helpers: friendly errors + installation listing (PyGithub) ---
+
+
+def test_friendly_github_auth_error_flags_clock_skew():
+    from app.git_provider.github_provider import friendly_github_auth_error
+    # GitHub's actual 401 body when a JWT's exp/iat is out of range.
+    exc = Exception("401: 'Expiration time' claim ('exp') is too far in the future")
+    out = friendly_github_auth_error(exc)
+    assert "clock" in out.lower()
+    assert "ntp" in out.lower()
+    # The original GitHub message is preserved for the operator.
+    assert "Expiration time" in out
+
+
+def test_friendly_github_auth_error_flags_iat_in_future():
+    from app.git_provider.github_provider import friendly_github_auth_error
+    exc = Exception("401: 'Issued at' claim ('iat') is in the future")
+    assert "clock" in friendly_github_auth_error(exc).lower()
+
+
+def test_friendly_github_auth_error_passes_through_other_messages():
+    from app.git_provider.github_provider import friendly_github_auth_error
+    exc = Exception("404 Not Found: installation does not exist")
+    assert friendly_github_auth_error(exc) == "404 Not Found: installation does not exist"
+
+
+def test_list_app_installations_returns_dicts():
+    from app.git_provider.github_provider import list_app_installations
+    inst = MagicMock()
+    inst.id = 555
+    inst.target_type = "Organization"
+    with patch("app.git_provider.github_provider.Auth") as MockAuth, \
+         patch("app.git_provider.github_provider.GithubIntegration") as MockIntegration:
+        MockAuth.AppAuth.return_value = MagicMock()
+        integ = MagicMock()
+        MockIntegration.return_value = integ
+        integ.get_installations.return_value = [inst]
+        result = list_app_installations("123", "-----BEGIN PRIVATE KEY-----")
+    assert result == [{"id": 555, "target_type": "Organization"}]
+    MockAuth.AppAuth.assert_called_once_with(123, "-----BEGIN PRIVATE KEY-----")
+
+
+def test_list_app_installations_raises_friendly_on_clock_skew():
+    from app.git_provider.github_provider import list_app_installations
+    with patch("app.git_provider.github_provider.Auth") as MockAuth, \
+         patch("app.git_provider.github_provider.GithubIntegration") as MockIntegration:
+        MockAuth.AppAuth.return_value = MagicMock()
+        integ = MagicMock()
+        MockIntegration.return_value = integ
+        integ.get_installations.side_effect = Exception(
+            "401: 'Expiration time' claim ('exp') is too far in the future"
+        )
+        with pytest.raises(RuntimeError) as ei:
+            list_app_installations("123", "pem")
+    assert "clock" in str(ei.value).lower()
+
+
+def test_test_credentials_maps_clock_skew_to_friendly_error():
+    with patch("app.git_provider.github_provider.Auth") as MockAuth, \
+         patch("app.git_provider.github_provider.GithubIntegration") as MockIntegration:
+        MockAuth.AppAuth.return_value = MagicMock()
+        integ = MagicMock()
+        MockIntegration.return_value = integ
+        integ.get_access_token.side_effect = Exception(
+            "401: 'Issued at' claim ('iat') is in the future"
+        )
+        with pytest.raises(RuntimeError) as ei:
+            GitHubProvider.test_credentials("1", "2", "pem")
+    assert "clock" in str(ei.value).lower()

@@ -163,28 +163,14 @@ def manifest_callback(request):
 
 
 def _list_installations() -> list[dict]:
-    """GET /app/installations using a fresh App JWT (10-minute window)."""
-    import time
-    import jwt as pyjwt
-    import requests
-
-    app_id = store.get("github_app.app_id")
-    pem = store.get("github_app.private_key_pem")
-    now = int(time.time())
-    token = pyjwt.encode(
-        {"iat": now - 60, "exp": now + 540, "iss": str(app_id)},
-        pem, algorithm="RS256",
+    """List the App's installations. Delegates to the git_provider so all
+    GitHub App auth (and JWT generation) lives in one PyGithub-backed place.
+    Returns dicts with at least 'id'."""
+    from app.git_provider.github_provider import list_app_installations
+    return list_app_installations(
+        store.get("github_app.app_id"),
+        store.get("github_app.private_key_pem"),
     )
-    response = requests.get(
-        "https://api.github.com/app/installations",
-        headers={
-            "Authorization": f"Bearer {token}",
-            "Accept": "application/vnd.github+json",
-        },
-        timeout=10,
-    )
-    response.raise_for_status()
-    return response.json()
 
 
 @require_role("Admin")

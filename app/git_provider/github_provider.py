@@ -16,6 +16,41 @@ _REPO_RE = re.compile(r"^https://github\.com/([^/]+)/(.+?)(?:\.git)?/?$")
 
 _VALID_MERGE_METHODS = ("merge", "squash", "rebase")
 
+# Phrases GitHub returns (HTTP 401) when a JWT's time claims are out of range.
+# These almost always mean the host clock is skewed, not that the credentials
+# are wrong, so we steer the operator to NTP instead of echoing a raw 401.
+_CLOCK_SKEW_SIGNALS = ("expiration time", "issued at", "too far in the future")
+
+
+def friendly_github_auth_error(exc: Exception) -> str:
+    """Map a GitHub App auth failure to an admin-actionable message. JWT
+    time-claim rejections are reported as a clock problem; everything else is
+    passed through unchanged (with GitHub's original text kept either way)."""
+    msg = str(exc)
+    low = msg.lower()
+    if any(sig in low for sig in _CLOCK_SKEW_SIGNALS):
+        return (
+            "GitHub rejected the App credentials because the request time looks "
+            "wrong. This usually means the server clock is off — sync it (enable "
+            f"NTP) and retry. (GitHub said: {msg})"
+        )
+    return msg
+
+
+def list_app_installations(app_id: str, private_key_pem: str) -> list[dict]:
+    """List the App's installations via PyGithub (which generates the JWT per
+    GitHub's spec). Returns dicts with 'id' and 'target_type'. Raises
+    RuntimeError with an admin-actionable message on any auth failure."""
+    try:
+        app_auth = Auth.AppAuth(int(app_id), private_key_pem)
+        integration = GithubIntegration(auth=app_auth)
+        return [
+            {"id": inst.id, "target_type": inst.target_type}
+            for inst in integration.get_installations()
+        ]
+    except Exception as exc:  # noqa: BLE001
+        raise RuntimeError(friendly_github_auth_error(exc)) from exc
+
 
 def _parse_owner_repo(origin_url: str) -> str:
     m = _REPO_RE.match(origin_url.strip())
@@ -79,7 +114,7 @@ class GitHubProvider(GitProvider):
             integration = GithubIntegration(auth=app_auth)
             integration.get_access_token(int(installation_id))
         except Exception as exc:
-            raise RuntimeError(str(exc)) from exc
+            raise RuntimeError(friendly_github_auth_error(exc)) from exc
         return True
 
     @classmethod

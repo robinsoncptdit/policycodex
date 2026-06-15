@@ -41,3 +41,17 @@ def test_install_callback_no_installation_shows_retry(client, admin):
         li.return_value = []
         response = client.get("/settings/github-app/install/callback/")
     assert b"Install" in response.content
+
+
+def test_list_installations_delegates_to_pygithub_provider():
+    """The manifest panel no longer hand-rolls a JWT; it delegates to the
+    git_provider so all GitHub App auth lives in one PyGithub-backed place."""
+    from app.settings.panels import github_app_manifest as m
+    from app.credentials import store
+    store.set("github_app.app_id", "777")
+    store.set("github_app.private_key_pem", "-----BEGIN PRIVATE KEY-----\nX")
+    with patch("app.git_provider.github_provider.list_app_installations") as lai:
+        lai.return_value = [{"id": 42, "target_type": "Organization"}]
+        result = m._list_installations()
+    assert result == [{"id": 42, "target_type": "Organization"}]
+    lai.assert_called_once_with("777", "-----BEGIN PRIVATE KEY-----\nX")
