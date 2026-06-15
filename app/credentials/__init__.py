@@ -56,3 +56,10 @@ def hydrate_environment() -> None:
     except RuntimeError:
         # First-boot, no credential-key yet. Settings haven't been configured.
         pass
+    except OSError:
+        # The PEM target dir is unwritable (e.g. /data not mounted writable
+        # outside Docker, or a read-only volume). hydrate_environment is
+        # best-effort and must never raise — settings.py imports it, so a
+        # raise here takes down the whole app at boot. Degrade to no-op;
+        # the GitHub-backed features stay unconfigured until the path works.
+        pass

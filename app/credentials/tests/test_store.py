@@ -106,3 +106,19 @@ def test_hydrate_writes_github_app_key_to_path(credential_env, monkeypatch, tmp_
     pem = tmp_path / "app.pem"
     assert pem.read_text().startswith("-----BEGIN")
     assert os.environ["POLICYCODEX_GH_PRIVATE_KEY_PATH"] == str(pem)
+
+
+def test_hydrate_never_raises_when_pem_path_unwritable(credential_env, monkeypatch, tmp_path):
+    # Regression: hydrate_environment is called at settings import and its
+    # docstring promises it never raises. A read-only target dir (e.g. /data
+    # not mounted writable outside Docker) made mkdir raise OSError, which
+    # escaped the RuntimeError-only guard and crashed the app at boot.
+    from app.credentials import store, hydrate_environment
+    unwritable = tmp_path / "nope"
+    unwritable.write_text("not a dir")  # parent path component is a file
+    monkeypatch.setenv("POLICYCODEX_GITHUB_APP_KEY_PATH", str(unwritable / "app.pem"))
+    store._reset_cache()
+    store.set("github_app.app_id", "1")
+    store.set("github_app.installation_id", "2")
+    store.set("github_app.private_key_pem", "-----BEGIN PRIVATE KEY-----\nXXX\n-----END PRIVATE KEY-----")
+    hydrate_environment()  # must not raise
