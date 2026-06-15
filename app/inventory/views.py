@@ -39,8 +39,9 @@ def _inventory_pass_kwargs(config, user) -> dict:
     taxonomy = load_foundational_taxonomy(policies_dir, REQUIRED_CAPABILITIES)
     if taxonomy is None:
         raise InventoryNotReady(
-            "No foundational retention bundle found. Finish setting up the "
-            "Policy repository so the document-retention bundle exists, then retry."
+            "No foundational retention bundle found. Upload your retention policy "
+            "under Settings -> Policy repository -> Upload retention policy and "
+            "merge the PR it opens, then retry."
         )
     if user.is_authenticated:
         author_name = user.get_full_name() or user.get_username()

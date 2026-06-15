@@ -54,8 +54,8 @@ class Command(BaseCommand):
         if taxonomy is None:
             raise CommandError(
                 f"No foundational retention bundle found under {policies_dir}. "
-                "Complete onboarding so the document-retention bundle exists, "
-                "then re-run; extraction needs the retention schedule for grounding."
+                "Upload the diocese's retention policy via Settings -> Policy "
+                "repository -> Upload retention policy and merge the resulting PR."
             )
 
         source = Path(options["source_folder"])
