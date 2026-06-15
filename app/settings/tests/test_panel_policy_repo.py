@@ -150,8 +150,16 @@ def test_upload_retention_happy_path_calls_scaffolder(client):
         scaffold.return_value = {"url": "https://github.com/d/r/pull/12", "pr_number": 12}
         resp = client.post("/settings/policy-repo/",
                            {"action": "upload_retention", "retention_document": upload})
-    assert scaffold.called
-    assert b"pull/12" in resp.content or b"Retention policy parsed" in resp.content
+    # The panel's job: write the upload to a temp file and thread config +
+    # author identity into the scaffolder. Verify that wiring, not just .called.
+    assert scaffold.call_count == 1
+    kwargs = scaffold.call_args.kwargs
+    assert kwargs["working_dir"] == "/tmp/wc"
+    assert kwargs["default_branch"] == "main"
+    assert kwargs["document_path"].name == "retention.pdf"
+    assert b"Retention policy parsed" in resp.content
+    # The PR link renders from pr_url now that the template (Task 3) is in place.
+    assert b"pull/12" in resp.content
 
 
 @pytest.mark.django_db
@@ -165,3 +173,12 @@ def test_upload_form_present_when_repo_configured(client):
     assert b'name="retention_document"' in body
     assert b'enctype="multipart/form-data"' in body
     assert b'value="upload_retention"' in body
+
+
+@pytest.mark.django_db
+def test_upload_form_absent_when_repo_not_configured(client):
+    _login_admin(client)
+    from app.credentials import store
+    store._reset_cache()  # no policy_repo.url -> the form is gated off
+    resp = client.get("/settings/policy-repo/")
+    assert b'name="retention_document"' not in resp.content

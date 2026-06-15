@@ -29,14 +29,14 @@ def _render_policy_md(*, title: str, owner: str) -> str:
     """The bundle's policy.md: foundational frontmatter + a short narrative.
     data.yaml carries the machine-readable taxonomy; this file marks the
     directory as the foundational source of truth."""
+    provides_lines = "".join(f"- {cap}\n" for cap in RETENTION_PROVIDES)
     return (
         "---\n"
         f"title: {title}\n"
         f"owner: {owner}\n"
         "foundational: true\n"
         "provides:\n"
-        "- classifications\n"
-        "- retention-schedule\n"
+        f"{provides_lines}"
         "---\n\n"
         f"# {title}\n\n"
         "This foundational policy is the diocese's source of truth for document\n"

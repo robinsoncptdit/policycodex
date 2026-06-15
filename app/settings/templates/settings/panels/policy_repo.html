@@ -35,6 +35,7 @@
   </form>
 </div>
 
+{% if current_url %}
 <div id="upload-retention-form" class="hidden mb-6">
   <form method="post" enctype="multipart/form-data" class="space-y-2 max-w-xl">
     {% csrf_token %}
@@ -44,6 +45,7 @@
     <button type="submit" class="btn btn-primary">Upload and parse</button>
   </form>
 </div>
+{% endif %}
 
 {% if current_url %}
   <p class="mb-4">Currently connected to <strong>{{ current_url }}</strong>.</p>
