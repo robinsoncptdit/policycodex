@@ -152,3 +152,16 @@ def test_upload_retention_happy_path_calls_scaffolder(client):
                            {"action": "upload_retention", "retention_document": upload})
     assert scaffold.called
     assert b"pull/12" in resp.content or b"Retention policy parsed" in resp.content
+
+
+@pytest.mark.django_db
+def test_upload_form_present_when_repo_configured(client):
+    _login_admin(client)
+    from app.credentials import store
+    store.set("policy_repo.url", "https://github.com/d/r")
+    store.set("policy_repo.branch", "main")
+    resp = client.get("/settings/policy-repo/")
+    body = resp.content
+    assert b'name="retention_document"' in body
+    assert b'enctype="multipart/form-data"' in body
+    assert b'value="upload_retention"' in body

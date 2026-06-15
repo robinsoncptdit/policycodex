@@ -35,6 +35,22 @@
   </form>
 </div>
 
+<div id="upload-retention-form" class="hidden mb-6">
+  <form method="post" enctype="multipart/form-data" class="space-y-2 max-w-xl">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="upload_retention">
+    <input type="file" name="retention_document" accept=".pdf,.docx,.md,.txt"
+           class="file-input file-input-bordered w-full max-w-md">
+    <button type="submit" class="btn btn-primary">Upload and parse</button>
+  </form>
+</div>
+
+{% if pr_url %}
+  <div class="alert alert-info mb-4">
+    <span>PR opened: <a href="{{ pr_url }}" class="link" target="_blank" rel="noopener">{{ pr_url }}</a></span>
+  </div>
+{% endif %}
+
 {% if current_url %}
   <p class="mb-4">Currently connected to <strong>{{ current_url }}</strong>.</p>
 {% endif %}
